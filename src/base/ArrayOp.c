@@ -20,7 +20,7 @@ void ZRArrayOp_swap(void *offset, size_t objSize, size_t posa, size_t posb)
 
 void ZRArrayOp_shift(void *offset, size_t objSize, size_t nbObj, size_t shift, bool toTheRight)
 {
-	ZRARRAY_SHIFT(offset, objSize, nbObj, shift, toTheRight);
+	ZRARRAYOP_SHIFT(offset, objSize, nbObj, shift, toTheRight);
 }
 
 void ZRArrayOp_rotate(void *offset, size_t objSize, size_t nbObj, size_t rotate, bool toTheRight)
