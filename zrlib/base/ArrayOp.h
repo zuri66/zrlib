@@ -10,6 +10,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <zrlib/base/MemoryOp.h>
+
 // ============================================================================
 
 #define ZRARRAYOP_GET(offset, objSize, pos) \
@@ -27,7 +29,6 @@
 #define ZRARRAYOP_ROTATE(offset, objSize, nbObj, rotate, toTheRight) \
 	ZRMemoryOp_rotate((offset), ZRARRAYOP_GET(offset, objSize, nbObj) - 1, (rotate) * (objSize), (toTheRight))
 
-#include "MemoryOp.h"
 #define ZRARRAYOP_FILL(offset, objSize, nbObj, object) \
 	ZRMemoryOp_fill(offset, object, objSize, nbObj);
 
@@ -59,16 +60,16 @@ static inline void ZRARRAYOP_REVERSE(void *offset, size_t objSize, size_t nbObj)
 
 // ============================================================================
 
-void* ZRArrayOp_get (void *offset, size_t objSize, size_t pos);
-void  ZRArrayOp_set (void *restrict offset, size_t objSize, size_t pos, void *restrict source);
-void  ZRArrayOp_swap(void *offset, size_t objSize, size_t posa, size_t posb);
+void* ZRArrayOp_get (void          *offset, size_t objSize, size_t pos);
+void  ZRArrayOp_set (void *restrict offset, size_t objSize, size_t pos , void *restrict source);
+void  ZRArrayOp_swap(void          *offset, size_t objSize, size_t posa, size_t posb);
 
-void ZRArrayOp_shift  (void *offset, size_t objSize, size_t nbObj, size_t shift, bool toTheRight);
 void  ZRArrayOp_fill   (void *restrict offset, size_t objSize, size_t nbObj, void *restrict object);
 void  ZRArrayOp_cpy    (void *restrict offset, size_t objSize, size_t nbObj, void *restrict source);
 void  ZRArrayOp_move   (void          *offset, size_t objSize, size_t nbObj, void          *source);
 void  ZRArrayOp_deplace(void          *offset, size_t objSize, size_t nbObj, void          *source);
 
+void ZRArrayOp_shift  (void *offset, size_t objSize, size_t nbObj, size_t shift , bool toTheRight);
 void ZRArrayOp_rotate (void *offset, size_t objSize, size_t nbObj, size_t rotate, bool toTheRight);
 void ZRArrayOp_reverse(void *offset, size_t objSize, size_t nbObj);
 
