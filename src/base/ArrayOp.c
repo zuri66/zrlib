@@ -18,6 +18,26 @@ void ZRArrayOp_swap(void *offset, size_t objSize, size_t posa, size_t posb)
 	ZRARRAYOP_SWAP(offset, objSize, posa, posb);
 }
 
+void ZRArrayOp_fill(void *restrict offset, size_t objSize, size_t nbObj, void *restrict object)
+{
+	ZRARRAYOP_FILL(offset, objSize, nbObj, object);
+}
+
+void ZRArrayOp_cpy(void *restrict offset, size_t objSize, size_t nbObj, void *restrict source)
+{
+	ZRARRAYOP_CPY(offset, objSize, nbObj, source);
+}
+
+void ZRArrayOp_move(void *offset, size_t objSize, size_t nbObj, void *source)
+{
+	ZRARRAYOP_MOVE(offset, objSize, nbObj, source);
+}
+
+void ZRArrayOp_deplace(void *offset, size_t objSize, size_t nbObj, void *source)
+{
+	ZRARRAYOP_DEPLACE(offset, objSize, nbObj, source);
+}
+
 void ZRArrayOp_shift(void *offset, size_t objSize, size_t nbObj, size_t shift, bool toTheRight)
 {
 	ZRARRAYOP_SHIFT(offset, objSize, nbObj, shift, toTheRight);
