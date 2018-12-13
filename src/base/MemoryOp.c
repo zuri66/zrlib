@@ -21,11 +21,51 @@ void ZRMemoryOp_swap(void *restrict offseta, void *restrict offsetb, size_t size
 /**
  * Swap the bytes between 2 memory segment of same size using an external buffer for the copy.
  */
-void ZRMemoryOp_swapB(void *restrict offseta, void *restrict offsetb, size_t size, void *restrict buffer)
+void ZRMemoryOp_swapB(void *restrict const offseta, void *restrict const offsetb, size_t size, void *restrict const buffer)
 {
 	memcpy(buffer, offseta, size);
 	memcpy(offseta, offsetb, size);
 	memcpy(offsetb, buffer, size);
+}
+
+void ZRMemoryOp_fill(void *restrict const dest, void *restrict const source, size_t sourceSize, size_t nb)
+{
+	if (sourceSize == 0 || nb == 0)
+		return;
+
+	ZRMemoryOp_deplace(dest, source, sourceSize);
+	size_t nbCopied = 1;
+	char* nextCpy = (char*)dest + sourceSize;
+
+	while (nbCopied < nb)
+	{
+		size_t const nextNbCopied = nbCopied << 1;
+
+		if (nextNbCopied > nb)
+			nbCopied = nb - nbCopied;
+
+		memcpy(nextCpy, dest, sourceSize * nbCopied);
+		nextCpy += sourceSize * nbCopied;
+		nbCopied = nextNbCopied;
+	}
+}
+
+/**
+ * Copy the memory from source to dest.
+ *
+ * Choose if the memory must be copied or moved if overlap.
+ */
+void ZRMemoryOp_deplace(void * restrict const dest, void * restrict const source, size_t size)
+{
+	ptrdiff_t diff = (char*)dest - (char*)source;
+
+	if (diff < 0)
+		diff = -diff;
+
+	if (diff < size)
+		memmove(dest, source, size);
+	else
+		memcpy(dest, source, size);
 }
 
 /**
