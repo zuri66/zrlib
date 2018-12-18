@@ -24,10 +24,10 @@
 	ZRMemoryOp_swap(ZRARRAYOP_GET(offset, objSize, posa), ZRARRAYOP_GET(offset, objSize, posb), (objSize))
 
 #define ZRARRAYOP_SHIFT(offset, objSize, nbObj, shift, toTheRight) \
-	ZRMemoryOp_shift((offset), ZRARRAYOP_GET(offset, objSize, nbObj) - 1 , (shift)  * (objSize), (toTheRight))
+	ZRMemoryOp_shift((offset), ZRARRAYOP_GET(offset, objSize, nbObj), (shift)  * (objSize), (toTheRight))
 
 #define ZRARRAYOP_ROTATE(offset, objSize, nbObj, rotate, toTheRight) \
-	ZRMemoryOp_rotate((offset), ZRARRAYOP_GET(offset, objSize, nbObj) - 1, (rotate) * (objSize), (toTheRight))
+	ZRMemoryOp_rotate((offset), ZRARRAYOP_GET(offset, objSize, nbObj), (rotate) * (objSize), (toTheRight))
 
 #define ZRARRAYOP_FILL(offset, objSize, nbObj, object) \
 	ZRMemoryOp_fill(offset, object, objSize, nbObj);
