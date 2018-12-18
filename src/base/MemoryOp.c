@@ -74,7 +74,7 @@ void ZRMemoryOp_deplace(void * restrict const dest, void * restrict const source
  * The order between *offset and *end is not important.
  *
  * @param void *offset First address of the segment
- * @param void *end Last valid address of the segment
+ * @param void *end Pointer to next element of the segment
  * @param size_t shift Number of bytes to shift
  * @param int right true for shifting to the right, or false to shift to the left
  */
@@ -84,11 +84,12 @@ void ZRMemoryOp_shift(void *restrict offset, void *restrict end, size_t shift, b
 		return;
 
 	ptrdiff_t diff = (char*)end - (char*)offset;
-	int const nbBytes = diff + 1;
-	int const isInverse = diff < 0;
+	bool const isInverse = diff < 0;
 
 	if (isInverse)
 		diff = -diff;
+
+	size_t const nbBytes = diff;
 
 	// The shift go over the memory limit
 	if (nbBytes <= shift)
@@ -102,20 +103,20 @@ void ZRMemoryOp_shift(void *restrict offset, void *restrict end, size_t shift, b
 		end = tmp;
 	}
 	char *destination;
-	char* source;
+	char *source;
 	size_t nbBytesCpy;
 
 	if (toTheRight)
 	{
 		source = offset;
 		destination = (char*)offset + shift;
-		nbBytesCpy = (char*)end - destination + 1;
+		nbBytesCpy = (char*)end - destination;
 	}
 	else
 	{
 		source = (char*)offset + shift;
 		destination = offset;
-		nbBytesCpy = (char*)end - source + 1;
+		nbBytesCpy = (char*)end - source;
 	}
 	size_t const overlapLimit = (nbBytes >> 1) + nbBytes % 2;
 
@@ -132,7 +133,7 @@ void ZRMemoryOp_shift(void *restrict offset, void *restrict end, size_t shift, b
  * The order between *offset and *end is not important.
  *
  * @param void *offset First address of the segment
- * @param void *end Last valid address of the segment
+ * @param void *end Pointer to next element of the segment
  * @param size_t rotate Number of bytes to rotate
  * @param int right true for rotating to the right, or false to rotate to the left
  */
@@ -142,17 +143,16 @@ void ZRMemoryOp_rotate(void *restrict offset, void *restrict end, size_t rotate,
 		return;
 
 	ptrdiff_t diff = (char*)end - (char*)offset;
-	size_t const nbBytes = diff + 1;
+	bool const isInverse = diff < 0;
 
+	if (isInverse)
+		diff = -diff;
+
+	size_t const nbBytes = diff;
 	rotate %= nbBytes;
 
 	if (rotate == 0)
 		return;
-
-	int const isInverse = diff < 0;
-
-	if (isInverse)
-		diff = -diff;
 
 	if (isInverse)
 	{
@@ -171,7 +171,7 @@ void ZRMemoryOp_rotate(void *restrict offset, void *restrict end, size_t rotate,
 
 	if (toTheRight)
 	{
-		char * const offsetRotate = (char*)end - rotate + 1;
+		char * const offsetRotate = (char*)end - rotate;
 		memcpy(buff, offsetRotate, rotate);
 		memcpy((char*)offset + rotate, offset, nbBytes - rotate);
 		memcpy(offset, buff, rotate);
@@ -180,6 +180,6 @@ void ZRMemoryOp_rotate(void *restrict offset, void *restrict end, size_t rotate,
 	{
 		memcpy(buff, offset, rotate);
 		memcpy(offset, (char*)offset + rotate, nbBytes - rotate);
-		memcpy((char*)end - rotate + 1, buff, rotate);
+		memcpy((char*)end - rotate, buff, rotate);
 	}
 }
