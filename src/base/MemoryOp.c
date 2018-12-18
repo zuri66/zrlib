@@ -28,7 +28,7 @@ void ZRMemoryOp_swapB(void *restrict const offseta, void *restrict const offsetb
 	memcpy(offsetb, buffer, size);
 }
 
-void ZRMemoryOp_fill(void *restrict const dest, void *restrict const source, size_t sourceSize, size_t nb)
+void ZRMemoryOp_fill(void *const dest, void *const source, size_t sourceSize, size_t nb)
 {
 	if (sourceSize == 0 || nb == 0)
 		return;
@@ -55,7 +55,7 @@ void ZRMemoryOp_fill(void *restrict const dest, void *restrict const source, siz
  *
  * Choose if the memory must be copied or moved if overlap.
  */
-void ZRMemoryOp_deplace(void * restrict const dest, void * restrict const source, size_t size)
+void ZRMemoryOp_deplace(void *const dest, void *const source, size_t size)
 {
 	ptrdiff_t diff = (char*)dest - (char*)source;
 

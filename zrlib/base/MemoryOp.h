@@ -12,8 +12,8 @@
 void ZRMemoryOp_swap   (void *restrict offseta, void *restrict offsetb, size_t size);
 void ZRMemoryOp_swapB  (void *restrict offseta, void *restrict offsetb, size_t size, void *restrict buffer);
 
-void ZRMemoryOp_fill   (void *restrict dest, void *restrict source, size_t sourceSize, size_t nb);
-void ZRMemoryOp_deplace(void *restrict dest, void *restrict source, size_t size);
+void ZRMemoryOp_fill   (void *dest, void *source, size_t sourceSize, size_t nb);
+void ZRMemoryOp_deplace(void *dest, void *source, size_t size);
 
 void ZRMemoryOp_shift (void *restrict offset, void *restrict end, size_t shift , bool toTheRight);
 void ZRMemoryOp_rotate(void *restrict offset, void *restrict end, size_t rotate, bool toTheRight);
