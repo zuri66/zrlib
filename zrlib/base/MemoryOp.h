@@ -6,8 +6,11 @@
 #ifndef ZRMEMORY_OP_H
 #define ZRMEMORY_OP_H
 
+#include <zrlib/config.h>
+
 #include <stddef.h>
 #include <stdbool.h>
+
 
 void ZRMemoryOp_swap   (void *restrict offseta, void *restrict offsetb, size_t size);
 void ZRMemoryOp_swapB  (void *restrict offseta, void *restrict offsetb, size_t size, void *restrict buffer);

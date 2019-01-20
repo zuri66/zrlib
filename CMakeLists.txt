@@ -15,6 +15,7 @@ set(HEADERS
 	zrlib/base/Bits.h
 	zrlib/base/macro.h
 	zrlib/base/MemoryOp.h
+	zrlib/config.h
     )
 
 add_library(zrlib ${SRCS} ${HEADERS})

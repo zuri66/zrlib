@@ -6,6 +6,7 @@
 #ifndef ZRBITFIELD_H
 #define ZRBITFIELD_H
 
+#include <zrlib/config.h>
 #include <zrlib/base/macro.h>
 
 #include <limits.h>

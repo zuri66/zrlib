@@ -6,11 +6,12 @@
 #ifndef ZRMEMORY_ARRAY_OP_H
 #define ZRMEMORY_ARRAY_OP_H
 
+#include <zrlib/config.h>
+#include <zrlib/base/MemoryOp.h>
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-
-#include <zrlib/base/MemoryOp.h>
 
 // ============================================================================
 
