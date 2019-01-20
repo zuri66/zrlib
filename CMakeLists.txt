@@ -8,6 +8,8 @@ set(SRCS
 	src/base/ArrayOp.c
 	src/base/Bits.c
 	src/base/MemoryOp.c
+	src/base/Vector/Vector.c
+	src/base/Vector/Vector2SideStrategy.c
     )
     
 set(HEADERS
@@ -15,6 +17,8 @@ set(HEADERS
 	zrlib/base/Bits.h
 	zrlib/base/macro.h
 	zrlib/base/MemoryOp.h
+	zrlib/base/Vector/Vector.h
+	zrlib/base/Vector/Vector2SideStrategy.h
 	zrlib/config.h
     )
 
