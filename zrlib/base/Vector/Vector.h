@@ -122,24 +122,24 @@ static inline void ZRVECTOR_POPFIRST(ZRVector *vec, void *dest)
 
 // ============================================================================
 
-ZRVector ZRVector_init/* */(/*           */size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
-void/* */ZRVector_construct(ZRVector *vec, size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
+ZRVector ZRVector_init(___________________ size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
+void ___ ZRVector_construct(ZRVector *vec, size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
 
 size_t ZRVector_size(ZRVector *vec);
 
-/**/void* ZRVector_get(ZRVector *vec, size_t pos);
-/* */void ZRVector_set(ZRVector *vec, size_t pos, void *obj);
+void*_ ZRVector_get(ZRVector *vec, size_t pos);
+void _ ZRVector_set(ZRVector *vec, size_t pos, void *obj);
 
 void ZRVector_insert(ZRVector *vec, size_t pos, void *obj);
 void ZRVector_delete(ZRVector *vec, size_t pos);
 
-void ZRVector_add/* */(ZRVector *vec, void *obj);
+void ZRVector_add(____ ZRVector *vec, void *obj);
 void ZRVector_addFirst(ZRVector *vec, void *obj);
 
-void ZRVector_dec/* */(ZRVector *vec);
+void ZRVector_dec(____ ZRVector *vec);
 void ZRVector_decFirst(ZRVector *vec);
 
-void ZRVector_pop/* */(ZRVector *vec, void *dest);
+void ZRVector_pop(____ ZRVector *vec, void *dest);
 void ZRVector_popFirst(ZRVector *vec, void *dest);
 
 #endif
