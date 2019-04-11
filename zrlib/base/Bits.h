@@ -63,7 +63,7 @@ typedef unsigned ZRBits;
 do{\
 	register size_t pos = 0;\
 	register size_t i = 0;\
-	register size_t ss = ZRLIB_ARRAY_NBOBJ(source);\
+	register size_t ss = ZRCARRAY_NBOBJ(source);\
 	\
 	while (ss--)\
 	{\
@@ -73,7 +73,7 @@ do{\
 }while(0)
 
 #define ZRBITS_PACK_ARRAY_TYPE(bits,source) \
-	ZRBITS_PACK_(bits,nbBits,sizeof(*source),ZRLIB_ARRAY_NBOBJ(source))
+	ZRBITS_PACK_(bits,nbBits,sizeof(*source),ZRCARRAY_NBOBJ(source))
 
 // ============================================================================
 
