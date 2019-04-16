@@ -5,6 +5,7 @@ project(zrlib)
 include_directories(${PROJECT_BINARY_DIR})
 
 set(SRCS
+	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
 	src/base/Bits.c
 	src/base/MemoryOp.c
@@ -13,6 +14,8 @@ set(SRCS
     )
     
 set(HEADERS
+	zrlib/base/Allocator/Allocator.h
+	zrlib/base/Allocator/CAllocator.h
 	zrlib/base/ArrayOp.h
 	zrlib/base/Bits.h
 	zrlib/base/macro.h
