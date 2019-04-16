@@ -9,83 +9,105 @@
 #include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
 #include <zrlib/base/Allocator/Allocator.h>
+
 #include <stddef.h>
+#include <string.h>
+
+// ============================================================================
 
 typedef struct ZRVectorS ZRVector;
+typedef struct ZRVectorStrategyS ZRVectorStrategy;
 
-typedef struct
+// ============================================================================
+
+struct ZRVectorStrategyS
 {
+	size_t (*fdataSize)(void);
+
+	/**
+	 * (optional)
+	 */
+	void (*finitVec)(ZRVector *vec);
+
 	void (*finsert)(ZRVector *vec, size_t pos);
 	void (*fdelete)(ZRVector *vec, size_t pos);
-} ZRVectorStrategy;
+};
 
 struct ZRVectorS
 {
 	size_t objSize;
 	size_t nbObj;
 
-	ZRAllocator *allocator;
+	/*
+	 * The strategy for memory management and insertion/deletion routines.
+	 */
 	ZRVectorStrategy *strategy;
 
-	// Memory segment, or unused first memory space
-	void * restrict FSpace;
+	/*
+	 * The array of the vector's objects.
+	 */
+	void *array;
 
-	// Effectively used memory space
-	void * restrict USpace;
-
-	// Unused end memory space
-	void * restrict ESpace;
-
-	// First address of outside memory segment
-	void * restrict OSpace;
+	/*
+	 * Data for Strategy purpose.
+	 */
+	char sdata[];
 };
 
 // ============================================================================
 
-#define ZRVECTOR_FSPACE_SIZEOF(V) ((V)->USpace - (V)->FSpace)
-#define ZRVECTOR_USPACE_SIZEOF(V) ((V)->ESpace - (V)->USpace)
-#define ZRVECTOR_ESPACE_SIZEOF(V) ((V)->OSpace - (V)->ESpace)
-#define ZRVECTOR_TOTALSPACE_SIZEOF(V)  ((V)->OSpace - (V)->FSpace)
-#define ZRVECTOR_FREESPACE_SIZEOF(V) (ZRVECTOR_FSPACE_SIZEOF(V) + ZRVECTOR_ESPACE_SIZEOF(V))
+#define ZRVECTOR_SIZEOF_STRUCT(strategy) (sizeof(ZRVector) + strategy->fdataSize())
+#define ZRVECTOR_SIZEOF_VEC(vec) (ZRVECTOR_SIZEOF_STRUCT(vec->strategy))
 
 // ============================================================================
 
-static inline ZRVector ZRVECTOR_INIT(size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy)
+static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
-	ZRVector ret =
-		{ .objSize = objSize, .allocator = allocator, .strategy = strategy };
-	return ret;
+	ZRVector const tmp = { //
+		.objSize = objSize, //
+		.nbObj = 0, //
+		.strategy = strategy //
+		};
+
+	*vec = tmp;
+
+	if (strategy->finitVec)
+		strategy->finitVec(vec);
+	else
+		memset(vec->sdata, 0, strategy->fdataSize());
 }
 
-static inline void ZRVECTOR_CONSTRUCT(ZRVector *vec, size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy)
-{
-	*vec = ZRVECTOR_INIT(objSize, allocator, strategy);
-}
-
-static inline size_t ZRVECTOR_SIZE(ZRVector *vec)
+static inline size_t ZRVECTOR_NBOBJ(ZRVector *vec)
 {
 	return vec->nbObj;
 }
 
+static inline size_t ZRVECTOR_OBJSIZE(ZRVector *vec)
+{
+	return vec->objSize;
+}
+
 static inline void* ZRVECTOR_GET(ZRVector *vec, size_t pos)
 {
-	return ZRARRAYOP_GET(vec->USpace, vec->objSize, pos);
+	return ZRARRAYOP_GET(vec->array, vec->objSize, pos);
 }
 
 static inline void ZRVECTOR_SET(ZRVector *vec, size_t pos, void *obj)
 {
-	ZRARRAYOP_SET(vec->USpace, vec->objSize, pos, obj);
+	ZRARRAYOP_SET(vec->array, vec->objSize, pos, obj);
 }
 
 static inline void ZRVECTOR_INSERT(ZRVector *vec, size_t pos, void *obj)
 {
 	vec->strategy->finsert(vec, pos);
 	ZRVECTOR_SET(vec, pos, obj);
+	vec->nbObj++;
 }
 
 static inline void ZRVECTOR_DELETE(ZRVector *vec, size_t pos)
 {
 	vec->strategy->fdelete(vec, pos);
+	vec->nbObj--;
 }
 
 static inline void ZRVECTOR_ADD(ZRVector *vec, void *obj)
@@ -116,16 +138,16 @@ static inline void ZRVECTOR_POP(ZRVector *vec, void *dest)
 
 static inline void ZRVECTOR_POPFIRST(ZRVector *vec, void *dest)
 {
-	memcpy(dest, vec->USpace, vec->objSize);
+	memcpy(dest, ZRVECTOR_GET(vec, 0), vec->objSize);
 	ZRVECTOR_DECFIRST(vec);
 }
 
 // ============================================================================
 
-ZRVector ZRVector_init(___________________ size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
-void ___ ZRVector_construct(ZRVector *vec, size_t objSize, ZRAllocator *allocator, ZRVectorStrategy *strategy);
+void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
 
-size_t ZRVector_size(ZRVector *vec);
+size_t ZRVector_nbObj(_ ZRVector *vec);
+size_t ZRVector_objSize(ZRVector *vec);
 
 void*_ ZRVector_get(ZRVector *vec, size_t pos);
 void _ ZRVector_set(ZRVector *vec, size_t pos, void *obj);
