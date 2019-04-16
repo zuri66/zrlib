@@ -155,10 +155,9 @@ void ZRBits_getBits(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRB
 // COPY
 // ============================================================================
 
-static inline void ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
+static inline void ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out)
 {
 	size_t const nbAddPos = nbBits + pos;
-	size_t const nbAddOutPos = nbBits + outPos;
 
 	if (pos == 0)
 	{
@@ -264,6 +263,7 @@ static inline void ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, size_t 
 		*out = (*bits & (ZRBits_getLMask(finalBits) >> intermPart2Size)) << intermPart2Size;
 	}
 }
+
 static inline void ZRBits_copy_posLTOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
 {
 	size_t const nbAddOutPos = nbBits + outPos;
@@ -288,7 +288,7 @@ void ZRBits_copy(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits
 	ADJUST_POS(out, outPos);
 
 	if (pos == outPos)
-		ZRBits_copy_posEQOutPos(bits, pos, nbBits, out, outPos);
+		ZRBits_copy_posEQOutPos(bits, pos, nbBits, out);
 	else if (pos > outPos)
 		ZRBits_copy_posGTOutPos(bits, pos, nbBits, out, outPos);
 	else

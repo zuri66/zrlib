@@ -3,10 +3,11 @@
  * @date dimanche 9 décembre 2018, 21:11:56 (UTC+0100)
  */
 
-#ifndef ZRBITFIELD_H
-#define ZRBITFIELD_H
+#ifndef ZRBITS_H
+#define ZRBITS_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/ArrayOp.h>
 #include <zrlib/base/macro.h>
 
 #include <limits.h>
@@ -16,26 +17,7 @@
 
 // ============================================================================
 
-#if defined(UINT32_MAX)
-typedef uint32_t ZRBits;
-
-#define ZRBITS_PRI_LENGTH ""
-#define ZRBITS_PRI_WIDTH "8"
-#else
-typedef unsigned ZRBits;
-
-//=== arbitrary, may be wrong
-#define ZRBITS_PRI_LENGTH ""
-#define ZRBITS_PRI_WIDTH "8"
-//===
-
-#endif
-
-#define ZRBITS_PRI_PREFIX "0" ZRBITS_PRI_WIDTH
-#define ZRBITS_PRI_SPECIFIER(spec) \
-	"%" ZRBITS_PRI_PREFIX ZRBITS_PRI_LENGTH spec
-#define ZRBITS_PRI \
-	ZRBITS_PRI_SPECIFIER("X")
+typedef uint_fast32_t ZRBits;
 
 // ============================================================================
 
