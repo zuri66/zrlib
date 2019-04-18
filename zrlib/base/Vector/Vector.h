@@ -29,8 +29,14 @@ struct ZRVectorStrategyS
 	 */
 	void (*finitVec)(ZRVector *vec);
 
-	void (*finsert)(ZRVector *vec, size_t pos);
-	void (*fdelete)(ZRVector *vec, size_t pos);
+	void (*finsert)(ZRVector *vec, size_t pos, size_t nb, void *obj);
+	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
+
+	/**
+	 * Clean the memory used by the vector.
+	 * The vector MUST NOT be used after this call.
+	 */
+	void (*fclean)(ZRVector *vec);
 };
 
 struct ZRVectorS
@@ -99,15 +105,27 @@ static inline void ZRVECTOR_SET(ZRVector *vec, size_t pos, void *obj)
 
 static inline void ZRVECTOR_INSERT(ZRVector *vec, size_t pos, void *obj)
 {
-	vec->strategy->finsert(vec, pos);
-	ZRVECTOR_SET(vec, pos, obj);
-	vec->nbObj++;
+	vec->strategy->finsert(vec, pos, 1, obj);
+}
+
+static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void *obj)
+{
+	vec->strategy->finsert(vec, pos, nb, obj);
 }
 
 static inline void ZRVECTOR_DELETE(ZRVector *vec, size_t pos)
 {
-	vec->strategy->fdelete(vec, pos);
-	vec->nbObj--;
+	vec->strategy->fdelete(vec, pos, 1);
+}
+
+static inline void ZRVECTOR_DELETE_NB(ZRVector *vec, size_t pos, size_t nb)
+{
+	vec->strategy->fdelete(vec, pos, nb);
+}
+
+static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec, size_t pos)
+{
+	vec->strategy->fdelete(vec, 0, vec->nbObj);
 }
 
 static inline void ZRVECTOR_ADD(ZRVector *vec, void *obj)
@@ -152,8 +170,12 @@ size_t ZRVector_objSize(ZRVector *vec);
 void*_ ZRVector_get(ZRVector *vec, size_t pos);
 void _ ZRVector_set(ZRVector *vec, size_t pos, void *obj);
 
-void ZRVector_insert(ZRVector *vec, size_t pos, void *obj);
-void ZRVector_delete(ZRVector *vec, size_t pos);
+void ZRVector_insert(__ ZRVector *vec, size_t pos, __________ void *obj);
+void ZRVector_insert_nb(ZRVector *vec, size_t pos, size_t nb, void *obj);
+
+void ZRVector_delete(_____ ZRVector *vec, size_t pos);
+void ZRVector_delete_nb(__ ZRVector *vec, size_t pos, size_t nb);
+void ZRVector_delete_all(_ ZRVector *vec, size_t pos);
 
 void ZRVector_add(____ ZRVector *vec, void *obj);
 void ZRVector_addFirst(ZRVector *vec, void *obj);

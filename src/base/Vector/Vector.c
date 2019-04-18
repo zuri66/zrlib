@@ -25,9 +25,24 @@ void ZRVector_insert(ZRVector *vec, size_t pos, void *obj)
 	ZRVECTOR_INSERT(vec, pos, obj);
 }
 
+void ZRVector_insert_nb(ZRVector *vec, size_t pos, size_t nb, void *obj)
+{
+	ZRVECTOR_INSERT_NB(vec, pos, nb, obj);
+}
+
 void ZRVector_delete(ZRVector *vec, size_t pos)
 {
 	ZRVECTOR_DELETE(vec, pos);
+}
+
+void ZRVector_delete_nb(ZRVector *vec, size_t pos, size_t nb)
+{
+	ZRVECTOR_DELETE_NB(vec, pos, nb);
+}
+
+void ZRVector_delete_all(ZRVector *vec, size_t pos)
+{
+	ZRVECTOR_DELETE_ALL(vec, pos);
 }
 
 void* ZRVector_get(ZRVector *vec, size_t pos)
