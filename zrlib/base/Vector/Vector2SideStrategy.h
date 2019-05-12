@@ -12,26 +12,19 @@
 
 // ============================================================================
 
-typedef struct ZRVector_2SideStrategyS ZRVector_2SideStrategy;
+size_t ZRVector_2SideStrategy_size(void);
+size_t ZRVector_2SideData_size(void);
 
-// ============================================================================
+void ZRVector_2SideStrategy_initVec(ZRVector *vec);
 
-struct ZRVector_2SideStrategyS{
-	ZRVectorStrategy strategy;
+void ZRVector_2SideStrategy_init(_______ ZRVectorStrategy *strategy, ZRAllocator *allocator);
+void ZRVector_2SideStrategy_initialSpace(ZRVectorStrategy *strategy, size_t initialSpace);
 
-	/*
-	 * Allocator for the vector's array.
-	 */
-	ZRAllocator *allocator;
-};
+void ZRVector_2SideData_init(_______ char *sdata, ZRVectorStrategy *strategy);
+void ZRVector_2SideData_initialSpace(char *sdata, ZRVectorStrategy *strategy, size_t initialSpace);
 
-// ============================================================================
-
-ZRVector_2SideStrategy ZRVector_2SideStrategy_object(ZRAllocator *allocator);
-void ZRVector_2SideStrategy_init(ZRVector_2SideStrategy *strategy, ZRAllocator *allocator);
-
-size_t ZRVector_2SideStrategy_dataSize(void);
-void ZRVector_2SideStrategy_insert(ZRVector *vec, size_t pos);
-void ZRVector_2SideStrategy_delete(ZRVector *vec, size_t pos);
+void ZRVector_2SideStrategy_insert(ZRVector *vec, size_t pos, size_t nb);
+void ZRVector_2SideStrategy_delete(ZRVector *vec, size_t pos, size_t nb);
+void ZRVector_2SideStrategy_clean(ZRVector *vec);
 
 #endif
