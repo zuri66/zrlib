@@ -29,7 +29,12 @@ struct ZRVectorStrategyS
 	 */
 	void (*finitVec)(ZRVector *vec);
 
-	void (*finsert)(ZRVector *vec, size_t pos, size_t nb, void *obj);
+	/**
+	 * (optional)
+	 */
+	void (*finitSData)(char *sdata, ZRVectorStrategy *strategy);
+
+	void (*finsert)(ZRVector *vec, size_t pos, size_t nb);
 	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
 
 	/**
@@ -67,20 +72,38 @@ struct ZRVectorS
 
 // ============================================================================
 
-static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
+static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *restrict sdata)
 {
 	ZRVector const tmp = { //
 		.objSize = objSize, //
 		.nbObj = 0, //
 		.strategy = strategy //
 		};
-
 	*vec = tmp;
 
+	/*
+	 * Initialisation of strategy data
+	 */
+	if (sdata != NULL)
+		memcpy(vec->sdata, sdata, strategy->fdataSize());
+	else
+	{
+		if (strategy->finitSData == NULL)
+			memset(vec->sdata, 0, strategy->fdataSize());
+		else
+			strategy->finitSData(vec->sdata, strategy);
+	}
+
+	/*
+	 * Initialisation of the vector
+	 */
 	if (strategy->finitVec)
 		strategy->finitVec(vec);
-	else
-		memset(vec->sdata, 0, strategy->fdataSize());
+}
+
+static inline void ZRVECTOR_CLEAN(ZRVector *vec)
+{
+	vec->strategy->fclean(vec);
 }
 
 static inline size_t ZRVECTOR_NBOBJ(ZRVector *vec)
@@ -98,19 +121,37 @@ static inline void* ZRVECTOR_GET(ZRVector *vec, size_t pos)
 	return ZRARRAYOP_GET(vec->array, vec->objSize, pos);
 }
 
+static inline void ZRVECTOR_GET_NB(ZRVector *vec, size_t pos, size_t nb, void *restrict dest)
+{
+	ZRARRAYOP_CPY(dest, vec->objSize, nb, ZRVECTOR_GET(vec, pos));
+}
+
 static inline void ZRVECTOR_SET(ZRVector *vec, size_t pos, void *obj)
 {
 	ZRARRAYOP_SET(vec->array, vec->objSize, pos, obj);
 }
 
-static inline void ZRVECTOR_INSERT(ZRVector *vec, size_t pos, void *obj)
+static inline void ZRVECTOR_SET_NB(ZRVector *vec, size_t pos, size_t nb, void *src)
 {
-	vec->strategy->finsert(vec, pos, 1, obj);
+	ZRARRAYOP_DEPLACE(ZRVECTOR_GET(vec, pos), vec->objSize, nb, src);
 }
 
-static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void *obj)
+static inline void ZRVECTOR_INSERT(ZRVector *vec, size_t pos, void *restrict obj)
 {
-	vec->strategy->finsert(vec, pos, nb, obj);
+	vec->strategy->finsert(vec, pos, 1);
+	ZRVECTOR_SET(vec, pos, obj);
+}
+
+static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void *restrict src)
+{
+	vec->strategy->finsert(vec, pos, nb);
+	ZRVECTOR_SET_NB(vec, pos, nb, src);
+}
+
+static inline void ZRVECTOR_FILL(ZRVector *vec, size_t pos, size_t nb, void *restrict obj)
+{
+	vec->strategy->finsert(vec, pos, nb);
+	ZRARRAYOP_FILL(ZRVECTOR_GET(vec, pos), vec->objSize, nb, obj);
 }
 
 static inline void ZRVECTOR_DELETE(ZRVector *vec, size_t pos)
@@ -123,19 +164,29 @@ static inline void ZRVECTOR_DELETE_NB(ZRVector *vec, size_t pos, size_t nb)
 	vec->strategy->fdelete(vec, pos, nb);
 }
 
-static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec, size_t pos)
+static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec)
 {
 	vec->strategy->fdelete(vec, 0, vec->nbObj);
 }
 
-static inline void ZRVECTOR_ADD(ZRVector *vec, void *obj)
+static inline void ZRVECTOR_ADD(ZRVector *vec, void *restrict obj)
 {
 	ZRVECTOR_INSERT(vec, vec->nbObj, obj);
 }
 
-static inline void ZRVECTOR_ADDFIRST(ZRVector *vec, void *obj)
+static inline void ZRVECTOR_ADD_NB(ZRVector *vec, size_t nb, void *restrict src)
+{
+	ZRVECTOR_INSERT_NB(vec, vec->nbObj, nb, src);
+}
+
+static inline void ZRVECTOR_ADDFIRST(ZRVector *vec, void *restrict obj)
 {
 	ZRVECTOR_INSERT(vec, 0, obj);
+}
+
+static inline void ZRVECTOR_ADDFIRST_NB(ZRVector *vec, size_t nb, void *restrict src)
+{
+	ZRVECTOR_INSERT_NB(vec, 0, nb, src);
 }
 
 static inline void ZRVECTOR_DEC(ZRVector *vec)
@@ -143,47 +194,79 @@ static inline void ZRVECTOR_DEC(ZRVector *vec)
 	ZRVECTOR_DELETE(vec, vec->nbObj - 1);
 }
 
+static inline void ZRVECTOR_DEC_NB(ZRVector *vec, size_t nb)
+{
+	ZRVECTOR_DELETE_NB(vec, vec->nbObj - nb, nb);
+}
+
 static inline void ZRVECTOR_DECFIRST(ZRVector *vec)
 {
 	ZRVECTOR_DELETE(vec, 0);
 }
 
-static inline void ZRVECTOR_POP(ZRVector *vec, void *dest)
+static inline void ZRVECTOR_DECFIRST_NB(ZRVector *vec, size_t nb)
 {
-	memcpy(dest, ZRVECTOR_GET(vec, vec->nbObj - 1), vec->objSize);
+	ZRVECTOR_DELETE_NB(vec, 0, nb);
+}
+
+static inline void ZRVECTOR_POP(ZRVector *vec, void *restrict dest)
+{
+	ZRARRAYOP_CPY(dest, vec->objSize, 1, ZRVECTOR_GET(vec, vec->nbObj - 1));
 	ZRVECTOR_DEC(vec);
 }
 
-static inline void ZRVECTOR_POPFIRST(ZRVector *vec, void *dest)
+static inline void ZRVECTOR_POP_NB(ZRVector *vec, size_t nb, void *restrict dest)
 {
-	memcpy(dest, ZRVECTOR_GET(vec, 0), vec->objSize);
+	ZRARRAYOP_CPY(dest, vec->objSize, nb, ZRVECTOR_GET(vec, vec->nbObj - 1));
+	ZRVECTOR_DEC_NB(vec, nb);
+}
+
+static inline void ZRVECTOR_POPFIRST(ZRVector *vec, void *restrict dest)
+{
+	ZRARRAYOP_CPY(dest, vec->objSize, 1, ZRVECTOR_GET(vec, 0));
 	ZRVECTOR_DECFIRST(vec);
+}
+
+static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict dest)
+{
+	ZRARRAYOP_CPY(dest, vec->objSize, nb, ZRVECTOR_GET(vec, 0));
+	ZRVECTOR_DECFIRST_NB(vec, nb);
 }
 
 // ============================================================================
 
-void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
+void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *sdata);
+void ZRVector_clean(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 
-void*_ ZRVector_get(ZRVector *vec, size_t pos);
-void _ ZRVector_set(ZRVector *vec, size_t pos, void *obj);
+void*_ ZRVector_get(__ ZRVector *vec, size_t pos);
+void _ ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest);
+void _ ZRVector_set(__ ZRVector *vec, size_t pos, __________ void *obj);
+void _ ZRVector_set_nb(ZRVector *vec, size_t pos, size_t nb, void *src);
+void _ ZRVector_fill(_ ZRVector *vec, size_t pos, size_t nb, void *obj);
 
 void ZRVector_insert(__ ZRVector *vec, size_t pos, __________ void *obj);
-void ZRVector_insert_nb(ZRVector *vec, size_t pos, size_t nb, void *obj);
+void ZRVector_insert_nb(ZRVector *vec, size_t pos, size_t nb, void *src);
 
 void ZRVector_delete(_____ ZRVector *vec, size_t pos);
 void ZRVector_delete_nb(__ ZRVector *vec, size_t pos, size_t nb);
-void ZRVector_delete_all(_ ZRVector *vec, size_t pos);
+void ZRVector_delete_all(_ ZRVector *vec);
 
-void ZRVector_add(____ ZRVector *vec, void *obj);
-void ZRVector_addFirst(ZRVector *vec, void *obj);
+void ZRVector_add(_______ ZRVector *vec, __________ void *obj);
+void ZRVector_add_nb(____ ZRVector *vec, size_t nb, void *src);
+void ZRVector_addFirst(__ ZRVector *vec, __________ void *obj);
+void ZRVector_addFirst_nb(ZRVector *vec, size_t nb, void *src);
 
-void ZRVector_dec(____ ZRVector *vec);
-void ZRVector_decFirst(ZRVector *vec);
+void ZRVector_dec(_______ ZRVector *vec);
+void ZRVector_dec_nb(____ ZRVector *vec, size_t nb);
+void ZRVector_decFirst(__ ZRVector *vec);
+void ZRVector_decFirst_nb(ZRVector *vec, size_t nb);
 
-void ZRVector_pop(____ ZRVector *vec, void *dest);
-void ZRVector_popFirst(ZRVector *vec, void *dest);
+void ZRVector_pop(_______ ZRVector *vec, __________ void *restrict dest);
+void ZRVector_pop_nb(____ ZRVector *vec, size_t nb, void *restrict dest);
+void ZRVector_popFirst(__ ZRVector *vec, __________ void *restrict dest);
+void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *restrict dest);
 
 #endif
