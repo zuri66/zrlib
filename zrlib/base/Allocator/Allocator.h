@@ -11,6 +11,14 @@
 #include <stddef.h>
 #include <zrlib/syntax_pad.h>
 
+typedef struct
+{
+	size_t alignment;
+	size_t nbBytes;
+}ZRMemoryBlocSpecification;
+
+#define ZRMEMORYBLOCSPEC_ARG_UNWRAP(SPEC) (SPEC).ALIGNMENT, (SPEC).SIZE
+
 // ============================================================================
 
 typedef struct ZRAllocatorS ZRAllocator;
@@ -18,6 +26,7 @@ typedef struct ZRAllocatorS ZRAllocator;
 struct ZRAllocatorS
 {
 	void* (*falloc)__(ZRAllocator *allocator, size_t nbBytes);
+	void* (*faalloc)_(ZRAllocator *allocator, size_t alignment, size_t nbBytes);
 	void* (*frealloc)(ZRAllocator *allocator, void *allocated, size_t nbBytes);
 	void _(*ffree)___(ZRAllocator *allocator, void *allocated);
 };
@@ -25,6 +34,8 @@ struct ZRAllocatorS
 // ============================================================================
 
 #define ZRALLOC(allocator,nbBytes) (allocator)->falloc(allocator,nbBytes)
+#define ZRAALLOC(allocator,alignment,nbBytes) (allocator)->faalloc(allocator,alignment,nbBytes)
+#define ZRALLOCBLOCSPEC(allocator,blocSpec) ZRAALLOC(allocator,(blocSpec).alignment, (blocSpec).nbBytes)
 #define ZRREALLOC(allocator,allocated,nbBytes) (allocator)->frealloc(allocator,allocated,nbBytes)
 #define ZRFREE(allocator,allocated) (allocator)->ffree(allocator,allocated)
 
