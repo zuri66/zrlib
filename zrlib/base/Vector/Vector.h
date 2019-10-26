@@ -22,7 +22,8 @@ typedef struct ZRVectorStrategyS ZRVectorStrategy;
 
 struct ZRVectorStrategyS
 {
-	size_t (*fdataSize)(void);
+	size_t (*fsdataSize)(ZRVector *vec);
+	size_t (*fstrategySize)();
 
 	/**
 	 * (optional)
@@ -34,6 +35,9 @@ struct ZRVectorStrategyS
 	 */
 	void (*finitSData)(char *sdata, ZRVectorStrategy *strategy);
 
+	/*
+	 * The insert/delete functions are responsible to update properly the vec.nbObj value.
+	 */
 	void (*finsert)(ZRVector *vec, size_t pos, size_t nb);
 	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
 
@@ -43,6 +47,7 @@ struct ZRVectorStrategyS
 	 */
 	void (*fclean)(ZRVector *vec);
 };
+
 
 struct ZRVectorS
 {
@@ -67,11 +72,6 @@ struct ZRVectorS
 
 // ============================================================================
 
-#define ZRVECTOR_SIZEOF_STRUCT(strategy) (sizeof(ZRVector) + strategy->fdataSize())
-#define ZRVECTOR_SIZEOF_VEC(vec) (ZRVECTOR_SIZEOF_STRUCT(vec->strategy))
-
-// ============================================================================
-
 static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *restrict sdata)
 {
 	ZRVector const tmp = { //
@@ -85,11 +85,11 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy
 	 * Initialisation of strategy data
 	 */
 	if (sdata != NULL)
-		memcpy(vec->sdata, sdata, strategy->fdataSize());
+		memcpy(vec->sdata, sdata, strategy->fsdataSize(vec));
 	else
 	{
 		if (strategy->finitSData == NULL)
-			memset(vec->sdata, 0, strategy->fdataSize());
+			memset(vec->sdata, 0, strategy->fsdataSize(vec));
 		else
 			strategy->finitSData(vec->sdata, strategy);
 	}
@@ -235,7 +235,7 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict
 
 // ============================================================================
 
-void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *sdata);
+void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
 void ZRVector_clean(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);

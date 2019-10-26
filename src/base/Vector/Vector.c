@@ -5,9 +5,9 @@
 
 #include <zrlib/base/Vector/Vector.h>
 
-void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *sdata)
+void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
-	ZRVECTOR_INIT(vec, objSize, strategy, sdata);
+	ZRVECTOR_INIT(vec, objSize, strategy, NULL);
 }
 
 void ZRVector_clean(ZRVector *vec)
