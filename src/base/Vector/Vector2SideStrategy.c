@@ -194,9 +194,10 @@ static inline bool _mustGrow(size_t total, size_t used)
 	return (free / 2) < used;
 }
 
-static inline bool _mustShrink(size_t free, size_t used)
+static inline bool _mustShrink(size_t total, size_t used)
 {
-	return (free / 5) > used;
+	size_t const free = total - used;
+	return (free / 4) > used;
 }
 
 static inline size_t getInitialMemorySize(ZRVector *vec)
@@ -287,9 +288,45 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	}
 }
 
-static inline void lessSize(ZRVector *vec, size_t nbObjLess)
-	{
+static inline void lessSize(ZRVector *vec)
+{
+	assert(ZRVector_2SideStrategy_memoryIsAllocated(vec));
+	size_t const totalSpace = ZRVECTOR_TOTALSPACE_SIZEOF(vec);
+	size_t const usedSpace = ZRVECTOR_USPACE_SIZEOF(vec);
+	size_t const initialMemorySize = getInitialMemorySize(vec);
 
+	size_t nextTotalSpace = totalSpace;
+
+	while (_mustShrink(nextTotalSpace, usedSpace))
+		nextTotalSpace /= 2;
+
+	// If we can store it into the initial array
+	if ((nextTotalSpace / vec->objSize) <= ZRVECTOR_STRATEGY(vec)->initialArraySize)
+	{
+		// Nothing to do
+	}
+	// We cant get a memory space less than the initial memory size
+	else if (nextTotalSpace < initialMemorySize)
+	{
+		nextTotalSpace = initialMemorySize;
+	}
+	size_t const nextTotalNbObj = nextTotalSpace / vec->objSize;
+	ZRVector_2SideData * const sdata = ZRVECTOR_DATA(vec);
+
+	if (nextTotalNbObj <= ZRVECTOR_STRATEGY(vec)->initialArraySize)
+	{
+		ZRARRAYOP_CPY(sdata->initialArray, vec->objSize, vec->nbObj, sdata->allocatedMemory);
+		ZRFREE(ZRVECTOR_STRATEGY(vec)->allocator, sdata->allocatedMemory);
+		sdata->allocatedMemory = NULL;
+	}
+	else
+	{
+		setFUEOSpaces(vec, ZRVECTOR_FSPACE(vec), nextTotalNbObj, (char*)ZRVECTOR_USPACE(vec), vec->nbObj);
+		sdata->allocatedMemory = ZRREALLOC(ZRVECTOR_STRATEGY(vec)->allocator, sdata->allocatedMemory, nextTotalSpace);
+
+		if (sdata->allocatedMemory != ZRVECTOR_FSPACE(vec))
+			setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalNbObj, sdata->allocatedMemory + ZRVECTOR_FSPACE_SIZEOF(vec), vec->nbObj);
+	}
 }
 
 static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
@@ -307,14 +344,13 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 	return false;
 }
 
-static inline bool mustShrink(ZRVector *vec, size_t nbObjLess)
+static inline bool mustShrink(ZRVector *vec)
 {
 	size_t const used = ZRVECTOR_USPACE_SIZEOF(vec);
 	size_t const free = ZRVECTOR_FREESPACE_SIZEOF(vec);
-	size_t const objNbBytes = nbObjLess * ZRVECTOR_OBJSIZE(vec);
 
 	if (ZRVector_2SideStrategy_memoryIsAllocated(vec))
-		return _mustShrink(free, used - objNbBytes);
+		return _mustShrink(free, used);
 
 	return false;
 }
@@ -381,7 +417,33 @@ static inline void operationAdd_shift(ZRVector *vec, size_t pos, size_t nbMore)
 
 static inline void operationDel_shift(ZRVector *vec, size_t pos, size_t nbLess)
 {
+	size_t const nbObj = ZRVECTOR_NBOBJ(vec);
+	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
+	size_t const nbBytesLess = nbLess * objSize;
+	size_t const middleOffset = nbObj / 2;
+	bool const toTheRight = pos >= middleOffset;
 
+	void *dest;
+	void *src;
+	size_t nbObjForDepl;
+
+	if (toTheRight)
+	{
+		nbObjForDepl = nbObj - pos - nbLess;
+		dest = ZRVECTOR_GET(vec, pos);
+		src = dest + nbBytesLess;
+		ZRVECTOR_ESPACE(vec) = (char*)ZRVECTOR_ESPACE(vec) - nbBytesLess;
+	}
+	else
+	{
+		nbObjForDepl = pos;
+		src = ZRVECTOR_GET(vec, 0);
+		dest = src + nbBytesLess;
+		ZRVECTOR_USPACE(vec) = dest;
+	}
+
+	if (nbObjForDepl > 0)
+		ZRARRAYOP_DEPLACE(dest, objSize, nbObjForDepl, src);
 }
 
 // ============================================================================
@@ -407,6 +469,8 @@ void ZRVector_2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb)
 void ZRVector_2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZRVECTOR_FSPACE(vec) != NULL);
+	assert(nb <= vec->nbObj);
+
 	operationDel_shift(vec, pos, nb);
 	vec->nbObj -= nb;
 }
@@ -414,12 +478,13 @@ void ZRVector_2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb)
 void ZRVector_2SideStrategy_fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZRVECTOR_FSPACE(vec) != NULL);
-
-	if (mustShrink(vec, nb))
-		lessSize(vec, nb);
+	assert(nb <= vec->nbObj);
 
 	operationDel_shift(vec, pos, nb);
 	vec->nbObj -= nb;
+
+	if (mustShrink(vec))
+		lessSize(vec);
 }
 
 void ZRVector_2SideStrategy_fclean(ZRVector *vec)
