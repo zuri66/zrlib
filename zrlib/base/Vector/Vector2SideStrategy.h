@@ -18,9 +18,7 @@
 size_t ZRVector_2SideStrategy_sdataSize(ZRVector *vec);
 size_t ZRVector_2SideStrategy_size();
 
-void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize);
-
-void ZRVector_2SideStrategy_modeInitialMemorySize(ZRVectorStrategy *strategy, size_t initialMemorySize);
+void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize, size_t initialMemorySize);
 
 void ZRVector_2SideStrategy_fixedMemory(______ ZRVectorStrategy *strategy);
 void ZRVector_2SideStrategy_dynamicMemory(____ ZRVectorStrategy *strategy);

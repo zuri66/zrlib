@@ -99,7 +99,7 @@ static inline void setFUEOSpaces(ZRVector *vec, void *fspace, size_t fspaceNbObj
 
 static inline bool ZRVector_2SideStrategy_memoryIsAllocated(ZRVector *vec)
 {
-	return ((ZRVector_2SideData*)vec->sdata)->allocatedMemory != NULL ;
+	return ((ZRVector_2SideData*)vec->sdata)->allocatedMemory != NULL;
 }
 
 // ============================================================================
@@ -120,17 +120,7 @@ size_t ZRVector_2SideStrategy_size()
 	return sizeof(ZRVector_2SideStrategy);
 }
 
-void ZRVector_2SideStrategy_modeInitialMemorySize(ZRVectorStrategy *strategy, size_t initialMemorySize)
-{
-	ZRVector_2SideStrategy *twoSideStrategy = (ZRVector_2SideStrategy*)strategy;
-
-	if (initialMemorySize < 0)
-		twoSideStrategy->initialMemorySize = INITIAL_SIZE;
-	else
-		twoSideStrategy->initialMemorySize = initialMemorySize;
-}
-
-void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize)
+void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize, size_t initialMemorySize)
 {
 	*(ZRVector_2SideStrategy*)strategy = (ZRVector_2SideStrategy ) //
 		{ //
@@ -144,12 +134,12 @@ void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *alloca
 			},//
 		.allocator = allocator,  //
 		.initialArraySize = initialArraySize, //
+		.initialMemorySize = initialMemorySize, //
 		.fmustGrow = mustGrowTwice, //
 		.fincreaseSpace = increaseSpaceTwice, //
 		.fmustShrink = mustShrink4, //
 		.fdecreaseSpace = decreaseSpaceTwice, //
-		0
-		};
+		0 };
 	;
 }
 
@@ -222,10 +212,13 @@ void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec)
 
 static inline size_t getInitialMemorySize(ZRVector *vec)
 {
-	return ZRVECTOR_STRATEGY(vec)->initialMemorySize > 0 //
-		? ZRVECTOR_STRATEGY(vec)->initialMemorySize //
-		: ZRVECTOR_STRATEGY(vec)->initialArraySize //
-	;
+	if (ZRVECTOR_STRATEGY(vec)->initialMemorySize > 0)
+		return ZRVECTOR_STRATEGY(vec)->initialMemorySize;
+
+	if (ZRVECTOR_STRATEGY(vec)->initialArraySize > 0)
+		return ZRVECTOR_STRATEGY(vec)->initialArraySize;
+
+	return INITIAL_SIZE;
 }
 
 static inline void setFUEOSpaces(ZRVector *vec, void *fspace, size_t fspaceNbObj, void *source, size_t sourceNbObj)
