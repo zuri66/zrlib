@@ -188,14 +188,23 @@ void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec)
 
 // ============================================================================
 
-static inline bool _mustGrow(size_t free, size_t used)
+static inline bool _mustGrow(size_t total, size_t used)
 {
+	size_t const free = total - used;
 	return (free / 2) < used;
 }
 
 static inline bool _mustShrink(size_t free, size_t used)
 {
 	return (free / 5) > used;
+}
+
+static inline size_t getInitialMemorySize(ZRVector *vec)
+{
+	return ZRVECTOR_STRATEGY(vec)->initialMemorySize > 0 //
+		? ZRVECTOR_STRATEGY(vec)->initialMemorySize //
+		: ZRVECTOR_STRATEGY(vec)->initialArraySize //
+	;
 }
 
 static inline void setFUEOSpaces(ZRVector *vec, void *fspace, size_t fspaceNbObj, void *source, size_t sourceNbObj)
@@ -225,7 +234,7 @@ static inline void centerFUEOSpaces(ZRVector *vec, size_t nbMore)
 {
 	assert(nbMore > 0);
 	size_t const newNbObj = vec->nbObj + nbMore;
-	void *lastUSpace = ZRVECTOR_USPACE(vec);
+	void * const lastUSpace = ZRVECTOR_USPACE(vec);
 
 	size_t const uspaceOffset = (ZRVECTOR_TOTALSPACE_SIZEOF(vec) - (newNbObj * vec->objSize)) / 2;
 	ZRVECTOR_USPACE(vec) = (char*)ZRVECTOR_FSPACE(vec) + uspaceOffset;
@@ -239,60 +248,47 @@ static inline void centerFUEOSpaces(ZRVector *vec, size_t nbMore)
 static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 {
 	size_t const totalSpace = ZRVECTOR_TOTALSPACE_SIZEOF(vec);
-	size_t const objNbBytes = nbObjMore * ZRVECTOR_OBJSIZE(vec);
-	size_t const nextUsedSpace = ZRVECTOR_USPACE_SIZEOF(vec) + objNbBytes;
+	size_t const moreNbBytes = nbObjMore * ZRVECTOR_OBJSIZE(vec);
+	size_t const nextUsedSpace = ZRVECTOR_USPACE_SIZEOF(vec) + moreNbBytes;
 	bool const isAllocated = ZRVector_2SideStrategy_memoryIsAllocated(vec);
 
-	size_t nextFreeSpace;
 	size_t nextTotalSpace;
 
 	if (!isAllocated)
 	{
-		assert(ZRVECTOR_STRATEGY(vec)->initialMemorySize + ZRVECTOR_STRATEGY(vec)->initialArraySize > 0);
-
-		size_t const initialSize = ZRVECTOR_STRATEGY(vec)->initialMemorySize > 0 //
-			? ZRVECTOR_STRATEGY(vec)->initialMemorySize //
-			: ZRVECTOR_STRATEGY(vec)->initialArraySize //
-			;
+		size_t const initialSize = getInitialMemorySize(vec);
 		nextTotalSpace = initialSize * vec->objSize;
-		assert(nextTotalSpace >= (vec->nbObj * vec->objSize));
-		nextFreeSpace = nextTotalSpace - (vec->nbObj * vec->objSize);
-
-		// Take into account the space of the new objects
-		if (nextFreeSpace < objNbBytes)
-			nextTotalSpace += objNbBytes;
-		else
-			nextFreeSpace -= objNbBytes;
 	}
 	else
 	{
-		nextTotalSpace = totalSpace + objNbBytes;
-		nextFreeSpace = ZRVECTOR_FREESPACE_SIZEOF(vec);
+		nextTotalSpace = totalSpace;
 	}
 
-	while (_mustGrow(nextFreeSpace, nextUsedSpace))
-	{
-		nextFreeSpace += nextTotalSpace;
+	while (nextTotalSpace < nextUsedSpace)
 		nextTotalSpace *= 2;
-	}
+	while (_mustGrow(nextTotalSpace, nextUsedSpace))
+		nextTotalSpace *= 2;
+
+	size_t const nextTotalNbObj = nextTotalSpace / vec->objSize;
+	ZRVector_2SideData * const sdata = ZRVECTOR_DATA(vec);
 
 	if (!isAllocated)
 	{
-		ZRVector_2SideData *sdata = (ZRVector_2SideData*)vec->sdata;
 		sdata->allocatedMemory = ZRALLOC(ZRVECTOR_STRATEGY(vec)->allocator, nextTotalSpace);
-		setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalSpace / vec->objSize, sdata->initialArray, vec->nbObj);
+		setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalNbObj, sdata->initialArray, vec->nbObj);
 	}
 	else
 	{
-		void *lastFSpace = ZRVECTOR_FSPACE(vec);
-		size_t offsetLastUSpace = ZRVECTOR_FSPACE_SIZEOF(vec);
-		ZRVECTOR_FSPACE(vec) = ZRREALLOC(ZRVECTOR_STRATEGY(vec)->allocator, ZRVECTOR_FSPACE(vec), nextTotalSpace);
-		setFUEOSpaces(vec, ZRVECTOR_FSPACE(vec), nextTotalSpace / vec->objSize, (char*)ZRVECTOR_FSPACE(vec) + offsetLastUSpace, vec->nbObj);
+		void * const lastFSpace = ZRVECTOR_FSPACE(vec);
+		size_t const offsetLastUSpace = ZRVECTOR_FSPACE_SIZEOF(vec);
+		sdata->allocatedMemory = ZRREALLOC(ZRVECTOR_STRATEGY(vec)->allocator, sdata->allocatedMemory, nextTotalSpace);
+
+		setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalNbObj, (char*)sdata->allocatedMemory + offsetLastUSpace, vec->nbObj);
 	}
 }
 
 static inline void lessSize(ZRVector *vec, size_t nbObjLess)
-{
+	{
 
 }
 
@@ -302,10 +298,13 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 	size_t const free = ZRVECTOR_FREESPACE_SIZEOF(vec);
 	size_t const objNbBytes = nbObjMore * ZRVECTOR_OBJSIZE(vec);
 
+	if (free < objNbBytes)
+		return true;
+
 	if (ZRVector_2SideStrategy_memoryIsAllocated(vec))
 		return _mustGrow(free, used + objNbBytes);
 
-	return free == 0;
+	return false;
 }
 
 static inline bool mustShrink(ZRVector *vec, size_t nbObjLess)
