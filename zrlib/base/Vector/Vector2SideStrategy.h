@@ -10,11 +10,12 @@
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Vector/Vector.h>
 
+#include <stdbool.h>
+
 // ============================================================================
 
 size_t ZRVector_2SideStrategy_sdataSize(ZRVector *vec);
 size_t ZRVector_2SideStrategy_size();
-
 
 void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize);
 
@@ -30,6 +31,18 @@ void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec);
 
 void ZRVector_2SideData_init(char *sdata, ZRVectorStrategy *strategy);
 
+void ZRVector_2SideStrategy_growStrategy( //
+	ZRVectorStrategy *strategy, //
+	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
+	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	);
+
+void ZRVector_2SideStrategy_shrinkStrategy( //
+	ZRVectorStrategy *strategy, //
+	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
+	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	);
+
 // ============================================================================
 // HELPERS
 
@@ -39,6 +52,15 @@ ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialSpace, size_t objSiz
 
 ZRVector* ZRVector2SideStrategy_createFixedM(_ size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, ZRAllocator *allocator);
+
+// ============================================================================
+// SPACE STRATEGIES
+
+bool mustGrowTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
+size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
+
+bool mustShrink4(size_t total, size_t used, ZRVector *vec);
+size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
 
 // ============================================================================
 

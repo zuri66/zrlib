@@ -24,6 +24,12 @@ struct ZRVector_2SideStrategyS
 	 */
 	ZRAllocator *allocator;
 
+	bool _ (*fmustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector*);
+	size_t (*fincreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector*);
+
+	bool _ (*fmustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec);
+	size_t (*fdecreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec);
+
 	size_t initialMemorySize;
 
 	size_t initialArraySize;
@@ -99,6 +105,7 @@ static inline bool ZRVector_2SideStrategy_memoryIsAllocated(ZRVector *vec)
 // ============================================================================
 
 #include "Vector2SideStrategy_help.c"
+#include "Vector2SideStrategy_spaceStrategies.c"
 
 // ============================================================================
 
@@ -136,7 +143,12 @@ void ZRVector_2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *alloca
 			.fclean = ZRVector_2SideStrategy_fclean //
 			},//
 		.allocator = allocator,  //
-		.initialArraySize = initialArraySize //
+		.initialArraySize = initialArraySize, //
+		.fmustGrow = mustGrowTwice, //
+		.fincreaseSpace = increaseSpaceTwice, //
+		.fmustShrink = mustShrink4, //
+		.fdecreaseSpace = decreaseSpaceTwice, //
+		0
 		};
 	;
 }
@@ -181,24 +193,32 @@ void ZRVector_2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
 	twoSideStrategy->strategy.fdelete = v ? ZRVector_2SideStrategy_fdeleteShrink : ZRVector_2SideStrategy_fdelete;
 }
 
+void ZRVector_2SideStrategy_growStrategy( //
+	ZRVectorStrategy *strategy, //
+	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector*), //
+	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector*) //
+	)
+{
+	((ZRVector_2SideStrategy*)strategy)->fmustGrow = mustGrow;
+	((ZRVector_2SideStrategy*)strategy)->fincreaseSpace = increaseSpace;
+}
+
+void ZRVector_2SideStrategy_shrinkStrategy( //
+	ZRVectorStrategy *strategy, //
+	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
+	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	)
+{
+	((ZRVector_2SideStrategy*)strategy)->fmustShrink = mustShrink;
+	((ZRVector_2SideStrategy*)strategy)->fdecreaseSpace = decreaseSpace;
+}
+
 void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec)
 {
 
 }
 
 // ============================================================================
-
-static inline bool _mustGrow(size_t total, size_t used)
-{
-	size_t const free = total - used;
-	return (free / 2) < used;
-}
-
-static inline bool _mustShrink(size_t total, size_t used)
-{
-	size_t const free = total - used;
-	return (free / 4) > used;
-}
 
 static inline size_t getInitialMemorySize(ZRVector *vec)
 {
@@ -264,11 +284,13 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	{
 		nextTotalSpace = totalSpace;
 	}
+	size_t (* const fincreaseSpace)(size_t, size_t, ZRVector*) = ZRVECTOR_STRATEGY(vec)->fincreaseSpace;
+	bool _ (* const fmustGrow)(____ size_t, size_t, ZRVector*) = ZRVECTOR_STRATEGY(vec)->fmustGrow;
 
 	while (nextTotalSpace < nextUsedSpace)
-		nextTotalSpace *= 2;
-	while (_mustGrow(nextTotalSpace, nextUsedSpace))
-		nextTotalSpace *= 2;
+		nextTotalSpace = fincreaseSpace(nextTotalSpace, nextUsedSpace, vec);
+	while (fmustGrow(nextTotalSpace, nextUsedSpace, vec))
+		nextTotalSpace = fincreaseSpace(nextTotalSpace, nextUsedSpace, vec);
 
 	size_t const nextTotalNbObj = nextTotalSpace / vec->objSize;
 	ZRVector_2SideData * const sdata = ZRVECTOR_DATA(vec);
@@ -297,8 +319,11 @@ static inline void lessSize(ZRVector *vec)
 
 	size_t nextTotalSpace = totalSpace;
 
-	while (_mustShrink(nextTotalSpace, usedSpace))
-		nextTotalSpace /= 2;
+	size_t (* const fdecreaseSpace)(size_t, size_t, ZRVector*) = ZRVECTOR_STRATEGY(vec)->fdecreaseSpace;
+	bool _ (* const fmustShrink)(__ size_t, size_t, ZRVector*) = ZRVECTOR_STRATEGY(vec)->fmustShrink;
+
+	while (fmustShrink(nextTotalSpace, usedSpace, vec))
+		nextTotalSpace = fdecreaseSpace(nextTotalSpace, usedSpace, vec);
 
 	// If we can store it into the initial array
 	if ((nextTotalSpace / vec->objSize) <= ZRVECTOR_STRATEGY(vec)->initialArraySize)
@@ -339,7 +364,7 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 		return true;
 
 	if (ZRVector_2SideStrategy_memoryIsAllocated(vec))
-		return _mustGrow(free, used + objNbBytes);
+		return ZRVECTOR_STRATEGY(vec)->fmustGrow(free, used + objNbBytes, vec);
 
 	return false;
 }
@@ -350,7 +375,7 @@ static inline bool mustShrink(ZRVector *vec)
 	size_t const free = ZRVECTOR_FREESPACE_SIZEOF(vec);
 
 	if (ZRVector_2SideStrategy_memoryIsAllocated(vec))
-		return _mustShrink(free, used);
+		return ZRVECTOR_STRATEGY(vec)->fmustShrink(free, used, vec);
 
 	return false;
 }
