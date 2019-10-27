@@ -53,6 +53,8 @@ ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialSpace, size_t objSiz
 ZRVector* ZRVector2SideStrategy_createFixedM(_ size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, ZRAllocator *allocator);
 
+void ZRVector2SideStrategy_delete(ZRVector *vec);
+
 // ============================================================================
 // SPACE STRATEGIES
 
