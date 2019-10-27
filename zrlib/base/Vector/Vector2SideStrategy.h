@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 // ============================================================================
+// STRATEGY
 
 size_t ZRVector_2SideStrategy_sdataSize(ZRVector *vec);
 size_t ZRVector_2SideStrategy_size();
@@ -27,10 +28,6 @@ void ZRVector_2SideStrategy_dynamicMemory(____ ZRVectorStrategy *strategy);
 void ZRVector_2SideStrategy_growOnAdd(____ ZRVectorStrategy *strategy, bool v);
 void ZRVector_2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v);
 
-void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec);
-
-void ZRVector_2SideData_init(char *sdata, ZRVectorStrategy *strategy);
-
 void ZRVector_2SideStrategy_growStrategy( //
 	ZRVectorStrategy *strategy, //
 	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
@@ -42,6 +39,11 @@ void ZRVector_2SideStrategy_shrinkStrategy( //
 	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
 	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
 	);
+
+// ============================================================================
+// VECTOR
+
+void ZRVector_2SideStrategy_memoryTrim(ZRVector *vec);
 
 // ============================================================================
 // HELPERS
