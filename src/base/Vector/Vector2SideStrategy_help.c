@@ -45,7 +45,7 @@ ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t 
 /**
  * Delete a vector created by one of the creation helper functions
  */
-void ZRVector2SideStrategy_delete(ZRVector *vec)
+void ZRVector2SideStrategy_destroy(ZRVector *vec)
 {
 	ZRAllocator * const allocator = ZRVECTOR_STRATEGY(vec)->allocator;
 	ZRVector_clean(vec);
