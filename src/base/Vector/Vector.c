@@ -7,7 +7,7 @@
 
 void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
-	ZRVECTOR_INIT(vec, objSize, strategy, NULL);
+	ZRVECTOR_INIT(vec, objSize, strategy);
 }
 
 void ZRVector_clean(ZRVector *vec)

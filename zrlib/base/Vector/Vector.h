@@ -30,11 +30,6 @@ struct ZRVectorStrategyS
 	 */
 	void (*finitVec)(ZRVector *vec);
 
-	/**
-	 * (optional)
-	 */
-	void (*finitSData)(char *sdata, ZRVectorStrategy *strategy);
-
 	/*
 	 * The insert/delete functions are responsible to update properly the vec.nbObj value.
 	 */
@@ -47,7 +42,6 @@ struct ZRVectorStrategyS
 	 */
 	void (*fclean)(ZRVector *vec);
 };
-
 
 struct ZRVectorS
 {
@@ -72,27 +66,13 @@ struct ZRVectorS
 
 // ============================================================================
 
-static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy, char *restrict sdata)
+static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
-	ZRVector const tmp = { //
+	*vec = (ZRVector ) { //
 		.objSize = objSize, //
 		.nbObj = 0, //
-		.strategy = strategy //
+		.strategy = strategy, //
 		};
-	*vec = tmp;
-
-	/*
-	 * Initialisation of strategy data
-	 */
-	if (sdata != NULL)
-		memcpy(vec->sdata, sdata, strategy->fsdataSize(vec));
-	else
-	{
-		if (strategy->finitSData == NULL)
-			memset(vec->sdata, 0, strategy->fsdataSize(vec));
-		else
-			strategy->finitSData(vec->sdata, strategy);
-	}
 
 	/*
 	 * Initialisation of the vector
