@@ -25,14 +25,14 @@ size_t ZRMPool_blockSize(ZRMemoryPool *pool)
 	return ZRMPOOL_BLOCKSIZE(pool);
 }
 
-void* ZRMPool_get(ZRMemoryPool *pool)
+void* ZRMPool_reserve(ZRMemoryPool *pool)
 {
-	return ZRMPOOL_GET(pool);
+	return ZRMPOOL_RESERVE(pool);
 }
 
-void* ZRMPool_get_nb(ZRMemoryPool *pool, size_t nb)
+void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb)
 {
-	return ZRMPOOL_GET_NB(pool, nb);
+	return ZRMPOOL_RESERVE_NB(pool, nb);
 }
 
 void ZRMPool_release(ZRMemoryPool *pool, void *block)
