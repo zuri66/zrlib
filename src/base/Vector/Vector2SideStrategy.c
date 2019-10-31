@@ -147,6 +147,7 @@ void ZRVector2SideStrategy_finitVec(ZRVector *vec)
 {
 	ZRVector2SideStrategy *twoSideStrategy = ZRVECTOR_STRATEGY(vec);
 	ZRVector2SideData *sdata = (ZRVector2SideData*)vec->sdata;
+	*sdata = (ZRVector2SideData ) { 0 };
 
 	if (twoSideStrategy->initialArraySize == 0)
 	{
