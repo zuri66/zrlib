@@ -370,3 +370,50 @@ void ZRBits_inArrayShift(ZRBits *bits, size_t nbZRBits, size_t shift, size_t toT
 	else
 		ZRBits_inArrayLShift_(bits, nbZRBits, shift);
 }
+
+// ============================================================================
+// SEARCH
+// ============================================================================
+
+void ZRBits_searchFixedPattern(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos)
+{
+	ADJUST_POS(bits, pos);
+	size_t const mask_nbZRBits = nbBits / ZRBITS_NBOF;
+	size_t const mask_rest = (nbBits % ZRBITS_NBOF);
+	size_t const offsetMask = ZRBITS_NBOF - mask_rest;
+	size_t const maskSize = mask_nbZRBits + (bool)mask_rest;
+	ZRBits mask[maskSize];
+	ZRBits buf[maskSize];
+
+	mask[0] = ZRBits_getRMask(mask_rest);
+
+	if (maskSize > 0)
+		memset(&mask[1], 0, mask_nbZRBits * sizeof(ZRBits));
+
+	memset(buf, 0, maskSize * sizeof(ZRBits));
+	int ipos = pos;
+
+	for (;;)
+	{
+		ZRBits_copy(bits, ipos, nbBits, buf, offsetMask);
+
+		if (memcmp(buf, mask, maskSize * sizeof(ZRBits)) == 0)
+		{
+			*dest = bits;
+			*outPos = ipos;
+			return;
+		}
+		ipos++;
+
+		if (ipos == sizeof(ZRBits) * CHAR_BIT)
+		{
+			if (nbZRBits == 0)
+				break;
+
+			ipos = 0;
+			bits++;
+		}
+	}
+	*dest = NULL;
+	*outPos = 0;
+}

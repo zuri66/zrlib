@@ -79,4 +79,6 @@ void ZRBits_inArrayShift(__ ZRBits *bits, size_t nbZRBits, size_t shift, size_t 
 void ZRBits_inArrayLShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);
 void ZRBits_inArrayRShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);
 
+void ZRBits_searchFixedPattern(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos);
+
 #endif
