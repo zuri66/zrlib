@@ -40,7 +40,7 @@ struct ZRVectorStrategyS
 	 * Clean the memory used by the vector.
 	 * The vector MUST NOT be used after this call.
 	 */
-	void (*fclean)(ZRVector *vec);
+	void (*fdone)(ZRVector *vec);
 };
 
 struct ZRVectorS
@@ -81,9 +81,9 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy
 		strategy->finitVec(vec);
 }
 
-static inline void ZRVECTOR_CLEAN(ZRVector *vec)
+static inline void ZRVECTOR_DONE(ZRVector *vec)
 {
-	vec->strategy->fclean(vec);
+	vec->strategy->fdone(vec);
 }
 
 static inline size_t ZRVECTOR_NBOBJ(ZRVector *vec)
@@ -216,7 +216,7 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict
 // ============================================================================
 
 void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
-void ZRVector_clean(ZRVector *vec);
+void ZRVector_done(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);

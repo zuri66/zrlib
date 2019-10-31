@@ -48,7 +48,7 @@ ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t 
 void ZRVector2SideStrategy_destroy(ZRVector *vec)
 {
 	ZRAllocator * const allocator = ZRVECTOR_STRATEGY(vec)->allocator;
-	ZRVector_clean(vec);
+	ZRVector_done(vec);
 	ZRFREE(allocator, vec->strategy);
 	ZRFREE(allocator, vec);
 }
