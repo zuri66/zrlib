@@ -155,6 +155,21 @@ void ZRBits_getBits(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRB
 // COPY
 // ============================================================================
 
+static inline void ZRBits_copyBlocks(ZRBits const * restrict bits, size_t nbZRBits, size_t finalBits, ZRBits * restrict out)
+{
+	if (nbZRBits)
+	{
+		memcpy(out, bits, nbZRBits * sizeof(ZRBits));
+		out += nbZRBits;
+		bits += nbZRBits;
+	}
+
+	if (!finalBits)
+		return;
+
+	*out = *bits & ZRBits_getLMask(finalBits);
+}
+
 static inline void ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out)
 {
 	size_t const nbAddPos = nbBits + pos;
@@ -163,18 +178,7 @@ static inline void ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t 
 	{
 		size_t const nbZRBits = nbBits / ZRBITS_NBOF;
 		size_t const finalBits = nbBits % ZRBITS_NBOF;
-
-		if (nbZRBits)
-		{
-			memcpy(out, bits, nbZRBits * sizeof(ZRBits));
-			out += nbZRBits;
-			bits += nbZRBits;
-		}
-
-		if (!finalBits)
-			return;
-
-		*out = *bits & ZRBits_getLMask(finalBits);
+		ZRBits_copyBlocks(bits, nbZRBits, finalBits, out);
 	}
 	// The selection stay inside a ZRBits object
 	else if (nbAddPos <= ZRBITS_NBOF)
@@ -188,20 +192,8 @@ static inline void ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t 
 		size_t const finalBits = (nbBits + pos) % ZRBITS_NBOF;
 
 		*out = *bits & ZRBits_getRMask(ZRBITS_NBOF - pos);
-		out++;
-		bits++;
-
-		if (nbZRBits)
-		{
-			memcpy(out, bits, nbZRBits * sizeof(ZRBits));
-			out += nbZRBits;
-			bits += nbZRBits;
-		}
-
-		if (!finalBits)
-			return;
-
-		*out = *bits & ZRBits_getLMask(finalBits);
+		out++, bits++;
+		ZRBits_copyBlocks(bits, nbZRBits, finalBits, out);
 	}
 }
 
@@ -226,41 +218,39 @@ static inline void ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, size_t 
 
 		*out = ((*bits & firstPart1Mask) << posSubOutPos) | ((*(bits + 1) & firstPart2Mask) >> (firstPart1Size + outPos));
 	}
-	// The most general case
-	else
+	else if (outPos == 0)
 	{
 		size_t const firstPart1Size = ZRBITS_NBOF - pos;
-		size_t const firstPart2Size = ZRBITS_NBOF - outPos - firstPart1Size;
-		size_t const firstPartTotalSize = firstPart1Size + firstPart2Size;
-		ZRBits const firstPart1Mask = ZRBits_getRMask(firstPart1Size);
-		ZRBits const firstPart2Mask = ZRBits_getLMask(firstPart2Size);
-
-		*out = ((*bits & firstPart1Mask) << posSubOutPos) | ((*(bits + 1) & firstPart2Mask) >> (firstPart1Size + outPos));
-		bits++;
-		out++;
-
-		size_t nbZRBits = (nbBits - firstPartTotalSize) / ZRBITS_NBOF;
+		size_t nbZRBits = nbBits / ZRBITS_NBOF;
 		size_t const finalBits = nbBits % ZRBITS_NBOF;
 
-		size_t const intermPart1Size = ZRBITS_NBOF - firstPart2Size;
-		size_t const intermPart2Size = firstPart2Size;
-		ZRBits const intermPart1Mask = ~firstPart2Mask;
-		ZRBits const intermPart2Mask = firstPart2Mask;
+		size_t const part1Size = ZRBITS_NBOF - pos;
+		ZRBits const part1Mask = ZRBits_getRMask(part1Size);
+		ZRBits const part2Mask = ~part1Mask;
 
-		if (nbZRBits)
+		while (nbZRBits--)
 		{
-			while (nbZRBits--)
-			{
-				*out = (*bits & intermPart1Mask) << intermPart2Size | (*(bits + 1) & intermPart2Mask) >> intermPart1Size;
-				bits++;
-				out++;
-			}
+			*out = (*bits & part1Mask) << pos | (*(bits + 1) & part2Mask) >> part1Size;
+			bits++, out++;
 		}
 
 		if (!finalBits)
 			return;
 
-		*out = (*bits & (ZRBits_getLMask(finalBits) >> intermPart2Size)) << intermPart2Size;
+		ZRBits_copy_posGTOutPos(bits,pos,finalBits,out,0);
+	}
+	// The most general case
+	else
+	{
+		size_t const firstPart1Size = ZRBITS_NBOF - pos;
+		size_t const firstPart2Size = posSubOutPos;
+		size_t const firstPartTotalSize = firstPart1Size + firstPart2Size;
+		ZRBits const firstPart1Mask = ZRBits_getRMask(firstPart1Size);
+		ZRBits const firstPart2Mask = ZRBits_getLMask(firstPart2Size);
+
+		*out = ((*bits & firstPart1Mask) << posSubOutPos) | ((*(bits + 1) & firstPart2Mask) >> (firstPart1Size + outPos));
+		bits++, out++;
+		ZRBits_copy_posGTOutPos(bits, posSubOutPos, nbBits - firstPartTotalSize, out, 0);
 	}
 }
 
