@@ -15,6 +15,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if (__has_include(<x86intrin.h>))
+#include <x86intrin.h>
+#	define ZRBITS_INTRINSIC
+#	define ZRBITS_NAME_SUFFIX _i
+#else
+#	define ZRBITS_NAME_SUFFIX _std
+#endif
+
+#define ZRBITS_ADDSUFFIX(name) ZRCONCAT(name,ZRBITS_NAME_SUFFIX)
+
 // ============================================================================
 
 typedef uint_fast32_t ZRBits;
@@ -24,7 +34,14 @@ typedef uint_fast32_t ZRBits;
 /**
  * Number of bits in an object ZRBits.
  */
-#define ZRBITS_NBOF (sizeof(ZRBits) * CHAR_BIT)
+//#define ZRBITS_NBOF (sizeof(ZRBits) * CHAR_BIT)
+#if UINT_FAST32_MAX == 18446744073709551615UL
+#	define ZRBITS_NBOF 64
+#elif UINT_FAST32_MAX == 4294967295U
+#	define ZRBITS_NBOF 32
+#else
+#	error "Can't determine the width of ZRBits"
+#endif
 
 #define ZRBITS_0 ((ZRBits)0)
 
@@ -56,6 +73,23 @@ do{\
 
 #define ZRBITS_PACK_ARRAY_TYPE(bits,source) \
 	ZRBITS_PACK_(bits,nbBits,sizeof(*source),ZRCARRAY_NBOBJ(source))
+
+// ============================================================================
+
+/**
+ * Adapt the bits offset (and the position) if the position refer to a bit in another offset.
+ */
+#define ADJUST_POS(bits, pos) \
+if (pos >= ZRBITS_NBOF) \
+{ \
+	bits += pos / ZRBITS_NBOF; \
+	pos %= ZRBITS_NBOF; \
+}
+
+#include "Bits_std.h"
+#include "Bits_intrinsic.h"
+
+#undef ADJUST_POS
 
 // ============================================================================
 
