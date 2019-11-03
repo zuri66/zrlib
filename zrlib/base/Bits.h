@@ -86,8 +86,21 @@ if (pos >= ZRBITS_NBOF) \
 	pos %= ZRBITS_NBOF; \
 }
 
-#include "Bits_std.h"
+
+#ifdef _IMMINTRIN_H_INCLUDED
+#	define ZRBITS_GETLMASK ZRBITS_GETLMASK_I
+#	define ZRBITS_GETRMASK ZRBITS_GETRMASK_I
+#endif
+
+#ifndef ZRBITS_GETLMASK
+#	define ZRBITS_GETLMASK ZRBITS_GETLMASK_STD
+#endif
+#ifndef ZRBITS_GETRMASK
+#	define ZRBITS_GETRMASK ZRBITS_GETRMASK_STD
+#endif
+
 #include "Bits_intrinsic.h"
+#include "Bits_std.h"
 
 #undef ADJUST_POS
 

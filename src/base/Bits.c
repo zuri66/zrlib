@@ -13,20 +13,20 @@
 
 ZRBits ZRBits_getLMask(size_t nbBits)
 {
-	return ZRBITS_ADDSUFFIX(ZRBits_getLMask)(nbBits);
+	return ZRBITS_GETLMASK(nbBits);
 }
 
 ZRBits ZRBits_getRMask(size_t nbBits)
 {
-	return ZRBITS_ADDSUFFIX(ZRBits_getRMask)(nbBits);
+	return ZRBITS_GETRMASK(nbBits);
 }
 
 ZRBits ZRBits_getMask(size_t nbBits, bool toTheRight)
 {
 	if (toTheRight)
-		return ZRBITS_ADDSUFFIX(ZRBits_getRMask)(nbBits);
+		return ZRBITS_GETRMASK(nbBits);
 
-	return ZRBITS_ADDSUFFIX(ZRBits_getLMask)(nbBits);
+	return ZRBITS_GETLMASK(nbBits);
 }
 
 // ============================================================================

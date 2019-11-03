@@ -67,12 +67,12 @@ static inline void ZRBITS_SETBITSFROMTHERIGHT_STD(ZRBits *bits, size_t pos, size
 {
 	ADJUST_POS(bits, pos);
 	size_t const nbAddPos = nbBits + pos;
-	ZRBits const lmask = ZRBITS_GETLMASK_STD(nbBits);
+	ZRBits const lmask = ZRBITS_GETLMASK(nbBits);
 
 	// We align to the left
 	source <<= ZRBITS_NBOF - nbBits;
 
-	source &= ZRBITS_GETLMASK_STD(nbBits);
+	source &= ZRBITS_GETLMASK(nbBits);
 	*bits = (*bits & ~(lmask >> pos)) | source >> pos;
 
 	if (nbAddPos > ZRBITS_NBOF)
@@ -87,9 +87,9 @@ static inline void ZRBITS_SETBITSFROMTHELEFT_STD(ZRBits *bits, size_t pos, size_
 {
 	ADJUST_POS(bits, pos);
 	size_t const nbAddPos = nbBits + pos;
-	ZRBits const lmask = ZRBITS_GETLMASK_STD(nbBits);
+	ZRBits const lmask = ZRBITS_GETLMASK(nbBits);
 
-	source &= ZRBITS_GETLMASK_STD(nbBits);
+	source &= ZRBITS_GETLMASK(nbBits);
 	*bits = (*bits & ~(lmask >> pos)) | source >> pos;
 
 	if (nbAddPos > ZRBITS_NBOF)
@@ -122,7 +122,7 @@ static inline void std_ZRBits_copyBlocks(ZRBits const * restrict bits, size_t nb
 	if (!finalBits)
 	return;
 
-	*out = *bits & ZRBITS_GETLMASK_STD(finalBits);
+	*out = *bits & ZRBITS_GETLMASK(finalBits);
 }
 
 static inline void std_ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out)
@@ -138,7 +138,7 @@ static inline void std_ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, siz
 	// The selection stay inside a ZRBits object
 	else if (nbAddPos <= ZRBITS_NBOF)
 	{
-		ZRBits const mask = ZRBITS_GETLMASK_STD(nbBits) >> pos;
+		ZRBits const mask = ZRBITS_GETLMASK(nbBits) >> pos;
 		*out = *bits & mask;
 	}
 	else
@@ -146,7 +146,7 @@ static inline void std_ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, siz
 		size_t const nbZRBits = (nbBits - (ZRBITS_NBOF - pos)) / ZRBITS_NBOF;
 		size_t const finalBits = (nbBits + pos) % ZRBITS_NBOF;
 
-		*out = *bits & ZRBITS_GETRMASK_STD(ZRBITS_NBOF - pos);
+		*out = *bits & ZRBITS_GETRMASK(ZRBITS_NBOF - pos);
 		out++, bits++;
 		std_ZRBits_copyBlocks(bits, nbZRBits, finalBits, out);
 	}
@@ -161,15 +161,15 @@ static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, siz
 	// The selection stay inside a ZRBits object
 	if (nbAddPos <= ZRBITS_NBOF)
 	{
-		*out = (*bits & (ZRBITS_GETLMASK_STD(nbBits) >> pos)) << posSubOutPos;
+		*out = (*bits & (ZRBITS_GETLMASK(nbBits) >> pos)) << posSubOutPos;
 	}
 	// The result is store in only one ZRBits
 	else if (nbAddOutPos <= ZRBITS_NBOF)
 	{
 		size_t const firstPart1Size = ZRBITS_NBOF - pos;
 		size_t const firstPart2Size = nbBits - firstPart1Size;
-		ZRBits const firstPart1Mask = ZRBITS_GETRMASK_STD(firstPart1Size);
-		ZRBits const firstPart2Mask = ZRBITS_GETLMASK_STD(firstPart2Size);
+		ZRBits const firstPart1Mask = ZRBITS_GETRMASK(firstPart1Size);
+		ZRBits const firstPart2Mask = ZRBITS_GETLMASK(firstPart2Size);
 
 		*out _= ((*bits & firstPart1Mask) << posSubOutPos) | ((*(bits + 1) & firstPart2Mask) >> (firstPart1Size + outPos));
 	}
@@ -180,7 +180,7 @@ static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, siz
 		size_t const finalBits = nbBits % ZRBITS_NBOF;
 
 		size_t const part1Size = ZRBITS_NBOF - pos;
-		ZRBits const part1Mask = ZRBITS_GETRMASK_STD(part1Size);
+		ZRBits const part1Mask = ZRBITS_GETRMASK(part1Size);
 		ZRBits const part2Mask = ~part1Mask;
 
 		while (nbZRBits--)
@@ -200,8 +200,8 @@ static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, siz
 		size_t const firstPart1Size = ZRBITS_NBOF - pos;
 		size_t const firstPart2Size = posSubOutPos;
 		size_t const firstPartTotalSize = firstPart1Size + firstPart2Size;
-		ZRBits const firstPart1Mask = ZRBITS_GETRMASK_STD(firstPart1Size);
-		ZRBits const firstPart2Mask = ZRBITS_GETLMASK_STD(firstPart2Size);
+		ZRBits const firstPart1Mask = ZRBITS_GETRMASK(firstPart1Size);
+		ZRBits const firstPart2Mask = ZRBITS_GETLMASK(firstPart2Size);
 
 		*out = ((*bits & firstPart1Mask) << posSubOutPos) | ((*(bits + 1) & firstPart2Mask) >> (firstPart1Size + outPos));
 		bits++, out++;
@@ -216,11 +216,11 @@ static inline void std_ZRBits_copy_posLTOutPos(ZRBits const * restrict bits, siz
 
 	// The result is stored in only one ZRBits
 	if (nbAddOutPos <= ZRBITS_NBOF)
-	*out = (*bits & (ZRBITS_GETLMASK_STD(nbBits) >> pos)) >> outPosSubPos;
+	*out = (*bits & (ZRBITS_GETLMASK(nbBits) >> pos)) >> outPosSubPos;
 	else
 	{
 		size_t const firstPart1Size = ZRBITS_NBOF - outPos;
-		ZRBits const firstPart1Mask = ZRBITS_GETLMASK_STD(firstPart1Size);
+		ZRBits const firstPart1Mask = ZRBITS_GETLMASK(firstPart1Size);
 
 		*out = (*bits & (firstPart1Mask >> pos)) >> outPosSubPos;
 		std_ZRBits_copy_posGTOutPos(bits, pos + firstPart1Size, nbBits - firstPart1Size, out + 1, 0);
@@ -252,7 +252,7 @@ static inline void ZRBITS_INARRAYRSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_
 		return;
 	}
 	size_t const rightPartBits = ZRBITS_NBOF - shift;
-	ZRBits const rightPartMask = ZRBITS_GETRMASK_STD(rightPartBits);
+	ZRBits const rightPartMask = ZRBITS_GETRMASK(rightPartBits);
 	ZRBits const rightPartComplementMask = ~rightPartMask;
 
 	if (nbZRBits > 1)
@@ -282,7 +282,7 @@ static inline void ZRBITS_INARRAYLSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_
 		return;
 	}
 	size_t const leftPartBits = ZRBITS_NBOF - shift;
-	ZRBits const leftPartMask = ZRBITS_GETRMASK_STD(leftPartBits);
+	ZRBits const leftPartMask = ZRBITS_GETRMASK(leftPartBits);
 	ZRBits const leftPartComplementMask = ~leftPartMask;
 
 	if (nbZRBits > 1)
@@ -306,7 +306,7 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 	ZRBits mask[maskSize];
 	ZRBits buf[maskSize];
 
-	mask[0] = ZRBITS_GETRMASK_STD(mask_rest);
+	mask[0] = ZRBITS_GETRMASK(mask_rest);
 
 	if (maskSize > 0)
 		memset(&mask[1], 0, mask_nbZRBits * sizeof(ZRBits));
