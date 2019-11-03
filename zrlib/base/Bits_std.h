@@ -52,6 +52,13 @@ static inline ZRBits ZRBITS_GETRMASK_STD(size_t nbBits)
 	return ret;
 }
 
+static inline ZRBits ZRBITS_SELECTBITS(ZRBits bits, size_t pos, size_t nbBits)
+{
+	assert(pos + nbBits <= ZRBITS_NBOF);
+	ZRBits const mask = ZRBITS_GETLMASK(nbBits) >> pos;
+	return (bits & mask) << pos;
+}
+
 static inline void ZRBITS_SETBIT_STD(ZRBits *bits, size_t pos, bool bit)
 {
 	ADJUST_POS(bits, pos);

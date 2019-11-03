@@ -98,6 +98,9 @@ if (pos >= ZRBITS_NBOF) \
 #ifndef ZRBITS_GETRMASK
 #	define ZRBITS_GETRMASK ZRBITS_GETRMASK_STD
 #endif
+#ifndef ZRBITS_SELECTBITS
+#	define ZRBITS_SELECTBITS ZRBITS_SELECTBITS_STD
+#endif
 
 #include "Bits_intrinsic.h"
 #include "Bits_std.h"
@@ -105,10 +108,15 @@ if (pos >= ZRBITS_NBOF) \
 #undef ADJUST_POS
 
 // ============================================================================
+// CORE FUNCTIONS
 
 ZRBits ZRBits_getMask(__ size_t nbBits, bool toTheRight);
 ZRBits ZRBits_getLMask(_ size_t nbBits);
 ZRBits ZRBits_getRMask(_ size_t nbBits);
+
+ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits);
+
+// ============================================================================
 
 void ZRBits_cpack(_ ZRBits _________*bits, size_t nbBits, char ___________*source, size_t sourceSize);
 void ZRBits_pack(__ ZRBits *restrict bits, size_t nbBits, ZRBits *restrict source, size_t sourceSize);

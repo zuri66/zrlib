@@ -29,6 +29,11 @@ ZRBits ZRBits_getMask(size_t nbBits, bool toTheRight)
 	return ZRBITS_GETLMASK(nbBits);
 }
 
+ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits)
+{
+	return ZRBITS_SELECTBITS_STD(bits, pos, nbBits);
+}
+
 // ============================================================================
 
 void ZRBits_cpack(ZRBits * bits, size_t nbBits, char * source, size_t sourceSize)
