@@ -312,20 +312,71 @@ static inline void ZRBITS_INARRAYLSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_
 	*bits <<= shift;
 }
 
+static inline size_t std_firstBitSet(ZRBits *bits, size_t nbZRBits, size_t pos)
+{
+	size_t ret = 0;
+	ZRBits const selectMask = ZRBITS_GETRMASK(ZRBITS_NBOF - pos);
+
+	while (nbZRBits && !(*bits & selectMask))
+	{
+		bits++;
+		ret += ZRBITS_NBOF;
+		nbZRBits--;
+	}
+
+	if (nbZRBits == 0)
+		return ret;
+
+	ZRBits ref = *bits & selectMask;
+	ZRBits const mask = ZRBITS_MASK_1L >> pos;
+
+	for (;;)
+	{
+		if (ref & mask)
+			return ret;
+
+		ret++;
+		ref <<= 1;
+	}
+}
+
 static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos)
 {
 	ADJUST_POS(bits, pos);
+
+	if (nbBits == 1)
+	{
+		while (*bits == 0 && nbZRBits > 0)
+		{
+			bits++;
+			nbZRBits--;
+		}
+		size_t ret = std_firstBitSet(bits, 1, pos);
+
+		if (ret < ZRBITS_NBOF - pos)
+		{
+			*dest = bits;
+			*outPos = ret;
+		}
+		else
+		{
+			*dest = NULL;
+			*outPos = 0;
+		}
+		return;
+	}
 	size_t const mask_nbZRBits = nbBits / ZRBITS_NBOF;
 	size_t const mask_rest = (nbBits % ZRBITS_NBOF);
 	size_t const offsetMask = ZRBITS_NBOF - mask_rest;
 	size_t const maskSize = mask_nbZRBits + (bool)mask_rest;
+	size_t const maskFirstBitSet = ZRBITS_NBOF - mask_rest;
 	ZRBits mask[maskSize];
 	ZRBits buf[maskSize];
 
 	mask[0] = ZRBITS_GETRMASK(mask_rest);
 
-	if (maskSize > 0)
-		memset(&mask[1], 0, mask_nbZRBits * sizeof(ZRBits));
+	if (maskSize > 1)
+		memset(&mask[1], 1, mask_nbZRBits * sizeof(ZRBits));
 
 	memset(buf, 0, maskSize * sizeof(ZRBits));
 	int ipos = pos;
@@ -340,15 +391,23 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 			*outPos = ipos;
 			return;
 		}
-		ipos++;
 
-		if (ipos == sizeof(ZRBits) * CHAR_BIT)
+		for (size_t i = 0; i < maskSize; i++)
+			buf[i] = mask[i] & buf[i];
+
+		size_t firstSetBitPos = std_firstBitSet(buf, maskSize, maskFirstBitSet);
+		ipos += firstSetBitPos;
+
+		if (ipos >= ZRBITS_NBOF)
 		{
-			if (nbZRBits == 0)
+			size_t const ipos_nbZRBits = ipos / ZRBITS_NBOF;
+
+			if (nbZRBits <= ipos_nbZRBits)
 				break;
 
-			ipos = 0;
-			bits++;
+			nbZRBits -= ipos_nbZRBits;
+			bits += ipos_nbZRBits;
+			ipos %= ZRBITS_NBOF;
 		}
 	}
 	*dest = NULL;
