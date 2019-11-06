@@ -10,9 +10,9 @@ void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPoolStrategy *st
 	ZRMPOOL_INIT(pool, blockSize, strategy);
 }
 
-void ZRMPool_clean(ZRMemoryPool *pool)
+void ZRMPool_done(ZRMemoryPool *pool)
 {
-	ZRMPOOL_CLEAN(pool);
+	ZRMPOOL_DONE(pool);
 }
 
 size_t ZRMPool_nbBlock(_ ZRMemoryPool *pool)
