@@ -223,7 +223,7 @@ static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, siz
 static inline void std_ZRBits_copy_posLTOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
 {
 	size_t const nbAddOutPos = nbBits + outPos;
-	size_t outPosSubPos = outPos - pos;
+	size_t const outPosSubPos = outPos - pos;
 
 	// The result is stored in only one ZRBits
 	if (nbAddOutPos <= ZRBITS_NBOF)
@@ -376,7 +376,7 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 	mask[0] = ZRBITS_GETRMASK(mask_rest);
 
 	if (maskSize > 1)
-		memset(&mask[1], 1, mask_nbZRBits * sizeof(ZRBits));
+		memset(&mask[1], (int)ZRBITS_MASK_FULL, mask_nbZRBits * sizeof(ZRBits));
 
 	memset(buf, 0, maskSize * sizeof(ZRBits));
 	int ipos = pos;
