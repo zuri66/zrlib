@@ -47,7 +47,7 @@ typedef uint_fast32_t ZRBits;
 
 #define ZRBITS_MASK_1R ((ZRBits)1)
 #define ZRBITS_MASK_1L ~(ZRBITS_MASK_FULL >> 1)
-#define ZRBITS_MASK_FULL (~(ZRBits)0)
+#define ZRBITS_MASK_FULL (UINT_FAST32_MAX)
 
 // ============================================================================
 
@@ -98,6 +98,9 @@ if (pos >= ZRBITS_NBOF) \
 #ifndef ZRBITS_GETRMASK
 #	define ZRBITS_GETRMASK ZRBITS_GETRMASK_STD
 #endif
+#ifndef ZRBITS_1LPOS
+#	define ZRBITS_1LPOS ZRBITS_1LPOS_STD
+#endif
 #ifndef ZRBITS_SELECTBITS
 #	define ZRBITS_SELECTBITS ZRBITS_SELECTBITS_STD
 #endif
@@ -114,6 +117,7 @@ ZRBits ZRBits_getMask(__ size_t nbBits, bool toTheRight);
 ZRBits ZRBits_getLMask(_ size_t nbBits);
 ZRBits ZRBits_getRMask(_ size_t nbBits);
 
+size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos);
 ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits);
 
 // ============================================================================
