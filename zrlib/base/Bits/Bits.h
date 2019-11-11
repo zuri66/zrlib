@@ -15,6 +15,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if (__has_include(<x86intrin.h>))
+#include <x86intrin.h>
+#	define ZRBITS_INTRINSIC
+#	define ZRBITS_NAME_SUFFIX _i
+#else
+#	define ZRBITS_NAME_SUFFIX _std
+#endif
+
+#define ZRBITS_ADDSUFFIX(name) ZRCONCAT(name,ZRBITS_NAME_SUFFIX)
+
 // ============================================================================
 
 typedef uint_fast32_t ZRBits;
@@ -24,13 +34,20 @@ typedef uint_fast32_t ZRBits;
 /**
  * Number of bits in an object ZRBits.
  */
-#define ZRBITS_NBOF (sizeof(ZRBits) * CHAR_BIT)
+//#define ZRBITS_NBOF (sizeof(ZRBits) * CHAR_BIT)
+#if UINT_FAST32_MAX == 18446744073709551615UL
+#	define ZRBITS_NBOF 64
+#elif UINT_FAST32_MAX == 4294967295U
+#	define ZRBITS_NBOF 32
+#else
+#	error "Can't determine the width of ZRBits"
+#endif
 
 #define ZRBITS_0 ((ZRBits)0)
 
 #define ZRBITS_MASK_1R ((ZRBits)1)
 #define ZRBITS_MASK_1L ~(ZRBITS_MASK_FULL >> 1)
-#define ZRBITS_MASK_FULL (~(ZRBits)0)
+#define ZRBITS_MASK_FULL (UINT_FAST32_MAX)
 
 // ============================================================================
 
@@ -59,9 +76,42 @@ do{\
 
 // ============================================================================
 
-ZRBits ZRBits_getMask(__ size_t nbBits, bool toTheRight);
-ZRBits ZRBits_getLMask(_ size_t nbBits);
-ZRBits ZRBits_getRMask(_ size_t nbBits);
+/**
+ * Adapt the bits offset (and the position) if the position refer to a bit in another offset.
+ */
+#define ADJUST_POS(bits, pos) \
+if (pos >= ZRBITS_NBOF) \
+{ \
+	bits += pos / ZRBITS_NBOF; \
+	pos %= ZRBITS_NBOF; \
+}
+
+#include "Bits_intrinsic_declare.h"
+#include "Bits_std_declare.h"
+
+#include "Bits_intrinsic.h"
+#include "Bits_std.h"
+
+#undef ADJUST_POS
+
+// ============================================================================
+// CORE FUNCTIONS
+
+ZRBits ZRBits_getMask(__ unsigned nbBits, bool toTheRight);
+ZRBits ZRBits_getLMask(_ unsigned nbBits);
+ZRBits ZRBits_getRMask(_ unsigned nbBits);
+
+ZRBits ZRBits_bextr(ZRBits bits, unsigned start, unsigned len);
+
+unsigned ZRBits_lzcnt(ZRBits bits);
+unsigned ZRBits_rzcnt(ZRBits bits);
+
+// ============================================================================
+
+size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos);
+size_t ZRBits_1RPos(ZRBits *bits, size_t nbZRBits, size_t pos);
+
+// ============================================================================
 
 void ZRBits_cpack(_ ZRBits _________*bits, size_t nbBits, char ___________*source, size_t sourceSize);
 void ZRBits_pack(__ ZRBits *restrict bits, size_t nbBits, ZRBits *restrict source, size_t sourceSize);
@@ -70,6 +120,7 @@ void ZRBits_setBit(______________ ZRBits *bits, size_t pos, bool bit);
 void ZRBits_setBits(_____________ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source, bool fromTheRight);
 void ZRBits_setBitsFromTheRight(_ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
 void ZRBits_setBitsFromTheLeft(__ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
+void ZRBits_fill(________________ ZRBits *bits, size_t pos, size_t nbBits);
 
 bool ZRBits_getBit(__ ZRBits const _________*bits, size_t pos);
 void ZRBits_getBits(_ ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out);
@@ -78,5 +129,7 @@ void ZRBits_copy(____ ZRBits const *restrict bits, size_t pos, size_t nbBits, ZR
 void ZRBits_inArrayShift(__ ZRBits *bits, size_t nbZRBits, size_t shift, size_t toTheRight);
 void ZRBits_inArrayLShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);
 void ZRBits_inArrayRShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);
+
+void ZRBits_searchFixedPattern(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos);
 
 #endif
