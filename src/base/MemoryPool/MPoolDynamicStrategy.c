@@ -52,6 +52,15 @@ struct ZRMPoolDynamicStrategyS
 
 	size_t maxFreeBuckets;
 
+	/**
+	 * (Optional)
+	 */
+	ZRVector* (*fcreateBuckets)(ZRMemoryPool*);
+
+	/**
+	 * (Optional)
+	 */
+	void (*fdestroyBuckets)(ZRVector *buckets);
 };
 
 // ============================================================================
@@ -71,7 +80,6 @@ struct ZRMPoolDynamicDataS
 #define ZRMPOOL_STRATEGY(pool) ((ZRMPoolDynamicStrategy*)((pool)->strategy))
 
 #define DEFAULT_MAX_FREE_BUCKETS 10
-#define INITIAL_BUCKET_SPACE 1024
 #define INITIAL_BUCKETS_SPACE 1024
 #define INITIAL_BUCKET_SIZE   1024
 #define INITIAL_BITS_SPACE ((1024*64)/ZRBITS_NBOF)
@@ -142,7 +150,7 @@ void finitPool(ZRMemoryPool *pool)
 	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
 	data->nbFreeBuckets = 0;
 	data->nbAvailables = 0;
-	data->buckets = ZRVector2SideStrategy_createDynamic(INITIAL_BUCKET_SPACE, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
+	data->buckets = ZRMPOOL_STRATEGY(pool)->fcreateBuckets(pool);
 	addBucket(pool, 0);
 }
 
@@ -250,6 +258,18 @@ void fdone(ZRMemoryPool *pool)
 		ZRMPoolDS_bucket * const bucket = *(ZRMPoolDS_bucket **)ZRVECTOR_GET(buckets, i);
 		ZRFREE(allocator, bucket);
 	}
+	ZRMPOOL_STRATEGY(pool)->fdestroyBuckets(buckets);
+}
+
+// ============================================================================
+
+static ZRVector *fcreateBuckets(ZRMemoryPool *pool)
+{
+	return ZRVector2SideStrategy_createDynamic(INITIAL_BUCKETS_SPACE, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
+}
+
+static void fdestroyBuckets(ZRVector *buckets)
+{
 	ZRVector2SideStrategy_destroy(buckets);
 }
 
@@ -267,6 +287,8 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 		.allocator = allocator, //
 		.initialBucketSize = initialBucketSize, //
 		.maxFreeBuckets = maxFreeBuckets, //
+		.fcreateBuckets = fcreateBuckets, //
+		.fdestroyBuckets = fdestroyBuckets, //
 		};
 }
 
