@@ -505,23 +505,4 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 	*outPos = 0;
 }
 
-// ============================================================================
-
-ZRBits ZRBits_getLMask_std(size_t nbBits);
-ZRBits ZRBits_getRMask_std(size_t nbBits);
-
-size_t ZRBits_1LPos_std(ZRBits *bits, size_t nbZRBits, size_t pos);
-
-void ZRBits_setBit_std(______________ ZRBits *bits, size_t pos, bool bit);
-void ZRBits_setBitsFromTheRight_std(_ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
-void ZRBits_setBitsFromTheLeft_std(__ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
-
-bool ZRBits_getBit_std(ZRBits const * ________ bits, size_t pos);
-void ZRBits_copy_std(_ ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos);
-
-void ZRBits_inArrayLShift_std(ZRBits *bits, size_t nbZRBits, size_t shift);
-void ZRBits_inArrayRShift_std(ZRBits *bits, size_t nbZRBits, size_t shift);
-
-void ZRBits_searchFixedPattern_std(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos);
-
 #endif

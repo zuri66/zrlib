@@ -7,9 +7,6 @@
 #error "This file: " __FILE__ "cannot be used outside of Bits.h"
 #endif
 
-#ifndef BITS_INTRINSIC_H
-#define BITS_INTRINSIC_H
-
 #include <zrlib/base/macro.h>
 #include <stdint.h>
 
@@ -51,8 +48,6 @@ static inline ZRBits ZRBITS_BEXTR_I(ZRBits bits, unsigned start, unsigned len)
 	return _bextr_u(bits, start, len);
 }
 
-ZRBits ZRBits_getLMask_i(size_t nbBits);
-ZRBits ZRBits_getRMask_i(size_t nbBits);
 static inline unsigned ZRBITS_LZCNT_I(ZRBits bits)
 {
 	return _lzcnt_u(bits);
@@ -71,7 +66,3 @@ static inline unsigned ZRBITS_RZCNT_I(ZRBits bits)
 #undef FACTOR_NBOFBITS
 #undef SUFFIX_NBOFBITS
 #undef _bextr_u
-
-// ============================================================================
-
-#endif
