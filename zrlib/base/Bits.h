@@ -119,6 +119,7 @@ ZRBits ZRBits_getRMask(_ unsigned nbBits);
 
 size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos);
 ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits);
+size_t ZRBits_1RPos(ZRBits *bits, size_t nbZRBits, size_t pos);
 
 // ============================================================================
 

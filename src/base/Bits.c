@@ -32,6 +32,17 @@ ZRBits ZRBits_getMask(unsigned nbBits, bool toTheRight)
 ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits)
 {
 	return ZRBITS_SELECTBITS_STD(bits, pos, nbBits);
+
+// ============================================================================
+
+size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos)
+{
+	return ZRBITS_1LPOS(bits, nbZRBits, pos);
+}
+
+size_t ZRBits_1RPos(ZRBits *bits, size_t nbZRBits, size_t pos)
+{
+	return ZRBITS_1RPOS(bits, nbZRBits, pos);
 }
 
 // ============================================================================

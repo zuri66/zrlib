@@ -13,10 +13,20 @@ ZRBits ZRBits_getRMask_std(unsigned nbBits)
 	return ZRBITS_GETRMASK_STD(nbBits);
 }
 
+
+// ============================================================================
+
 size_t ZRBits_1LPos_std(ZRBits *bits, size_t nbZRBits, size_t pos)
 {
 	return ZRBITS_1LPOS_STD(bits, nbZRBits, pos);
 }
+
+size_t ZRBits_1RPos_std(ZRBits *bits, size_t nbZRBits, size_t pos)
+{
+	return ZRBITS_1RPOS_STD(bits, nbZRBits, pos);
+}
+
+// ============================================================================
 
 void ZRBits_setBit_std(ZRBits *bits, size_t pos, bool bit)
 {

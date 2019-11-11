@@ -337,32 +337,66 @@ static inline void ZRBITS_INARRAYLSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_
 	*bits <<= shift;
 }
 
+static inline size_t ZRBITS_1RPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
+{
+	if (nbZRBits == 0)
+		return 0;
+
+	bits += nbZRBits - 1;
+
+	if (*bits)
+	{
+		if (pos)
+		{
+			ZRBits const current = *bits & ZRBITS_GETLMASK(pos + 1);
+
+			if (current != 0)
+				return ZRBITS_RZCNT(current);
+		}
+		else
+			return ZRBITS_RZCNT(*bits);
+	}
+
+	if (nbZRBits == 1)
+		return ZRBITS_NBOF;
+
+	ZRBits * const last = bits;
+
+	while (--nbZRBits && !*--bits)
+		;
+
+	size_t const offset = (last - bits) * ZRBITS_NBOF;
+	return offset + ZRBITS_RZCNT(*bits);
+}
+
 static inline size_t ZRBITS_1LPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
 {
-	size_t ret = 0;
-	ZRBits const selectMask = ZRBITS_GETRMASK(ZRBITS_NBOF - pos);
-
-	while (nbZRBits && !(*bits & selectMask))
-	{
-		bits++;
-		ret += ZRBITS_NBOF;
-		nbZRBits--;
-	}
-
 	if (nbZRBits == 0)
-		return ret;
+		return 0;
 
-	ZRBits ref = *bits & selectMask;
-	ZRBits const mask = ZRBITS_MASK_1L >> pos;
-
-	for (;;)
+	if (*bits)
 	{
-		if (ref & mask)
-			return ret;
+		if (pos)
+		{
+			ZRBits const current = *bits & ZRBITS_GETRMASK(ZRBITS_NBOF - pos);
 
-		ret++;
-		ref <<= 1;
+			if (current != 0)
+				return ZRBITS_LZCNT(current);
+		}
+		else
+			return ZRBITS_LZCNT(*bits);
 	}
+
+	if (nbZRBits == 1)
+		return ZRBITS_NBOF;
+
+	ZRBits * const first = bits;
+
+	while (--nbZRBits && !*++bits)
+		;
+
+	size_t const offset = (bits - first) * ZRBITS_NBOF;
+	return offset + ZRBITS_LZCNT(*bits);
 }
 
 static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos)
