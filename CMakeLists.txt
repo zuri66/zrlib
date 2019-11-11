@@ -4,7 +4,7 @@ project(zrlib)
 
 include_directories(${PROJECT_BINARY_DIR})
 
-add_compile_options(-mbmi)
+add_compile_options(-mbmi -mlzcnt -Winline)
 
 set(SRCS
 	src/base/Allocator/CAllocator.c
