@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <zrlib/base/ArrayOp.h>
-#include <zrlib/base/Bits.h>
+#include <zrlib/base/Bits/Bits.h>
 
 // ============================================================================
 
