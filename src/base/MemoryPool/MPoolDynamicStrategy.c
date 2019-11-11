@@ -135,13 +135,13 @@ size_t fstrategySize(void)
 	return sizeof(ZRMPoolDynamicStrategy);
 }
 
-void finitPool(ZRMemoryPool *pool, size_t maxFreeBucket, size_t initialBucketSpace)
+void finitPool(ZRMemoryPool *pool)
 {
 	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
-	data->maxFreeBuckets = maxFreeBucket;
+	data->maxFreeBuckets = DEFAULT_MAX_FREE_BUCKETS;
 	data->nbFreeBuckets = 0;
 	data->nbAvailables = 0;
-	data->buckets = ZRVector2SideStrategy_createDynamic(initialBucketSpace, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
+	data->buckets = ZRVector2SideStrategy_createDynamic(INITIAL_BUCKET_SPACE, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
 	addBucket(pool, 0);
 }
 
