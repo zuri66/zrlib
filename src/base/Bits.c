@@ -29,9 +29,20 @@ ZRBits ZRBits_getMask(unsigned nbBits, bool toTheRight)
 	return ZRBITS_GETLMASK(nbBits);
 }
 
-ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits)
+ZRBits ZRBits_bextr(ZRBits bits, unsigned start, unsigned len)
 {
-	return ZRBITS_SELECTBITS_STD(bits, pos, nbBits);
+	return ZRBITS_BEXTR(bits, start, len);
+}
+
+unsigned ZRBits_lzcnt(ZRBits bits)
+{
+	return ZRBITS_LZCNT(bits);
+}
+
+unsigned ZRBits_rzcnt(ZRBits bits)
+{
+	return ZRBITS_RZCNT(bits);
+}
 
 // ============================================================================
 

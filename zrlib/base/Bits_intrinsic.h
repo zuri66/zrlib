@@ -25,6 +25,8 @@
 #define SUFFIX_NBOFBITS(suff) ZRCONCAT(suff,ZRBITS_NBOF)
 
 #define _bextr_u SUFFIX_NBOFBITS(_bextr_u)
+#define _lzcnt_u SUFFIX_NBOFBITS(_lzcnt_u)
+#define _rzcnt_u SUFFIX_NBOFBITS(_tzcnt_u)
 
 // ============================================================================
 
@@ -44,12 +46,22 @@ static inline ZRBits ZRBITS_GETRMASK_I(unsigned nbBits)
 	return _bextr_u(ZRBITS_MASK_FULL, 0, nbBits);
 }
 
-// ============================================================================
+static inline ZRBits ZRBITS_BEXTR_I(ZRBits bits, unsigned start, unsigned len)
+{
+	return _bextr_u(bits, start, len);
+}
 
 ZRBits ZRBits_getLMask_i(size_t nbBits);
 ZRBits ZRBits_getRMask_i(size_t nbBits);
+static inline unsigned ZRBITS_LZCNT_I(ZRBits bits)
+{
+	return _lzcnt_u(bits);
+}
 
-// ============================================================================
+static inline unsigned ZRBITS_RZCNT_I(ZRBits bits)
+{
+	return _rzcnt_u(bits);
+}
 
 #endif
 // _IMMINTRIN_H_INCLUDED

@@ -117,8 +117,14 @@ ZRBits ZRBits_getMask(__ unsigned nbBits, bool toTheRight);
 ZRBits ZRBits_getLMask(_ unsigned nbBits);
 ZRBits ZRBits_getRMask(_ unsigned nbBits);
 
+ZRBits ZRBits_bextr(ZRBits bits, unsigned start, unsigned len);
+
+unsigned ZRBits_lzcnt(ZRBits bits);
+unsigned ZRBits_rzcnt(ZRBits bits);
+
+// ============================================================================
+
 size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos);
-ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits);
 size_t ZRBits_1RPos(ZRBits *bits, size_t nbZRBits, size_t pos);
 
 // ============================================================================

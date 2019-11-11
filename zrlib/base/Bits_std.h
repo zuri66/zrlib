@@ -52,11 +52,43 @@ static inline ZRBits ZRBITS_GETRMASK_STD(unsigned nbBits)
 	return ret;
 }
 
-static inline ZRBits ZRBITS_SELECTBITS(ZRBits bits, size_t pos, size_t nbBits)
+static inline ZRBits ZRBITS_BEXTR_STD(ZRBits bits, unsigned start, unsigned len)
 {
-	assert(pos + nbBits <= ZRBITS_NBOF);
-	ZRBits const mask = ZRBITS_GETLMASK(nbBits) >> pos;
-	return (bits & mask) << pos;
+	assert(start + len <= ZRBITS_NBOF);
+	ZRBits const mask = ZRBITS_GETLMASK(len) >> start;
+	return (bits & mask);
+}
+
+static inline unsigned ZRBITS_LZCNT_STD(ZRBits bits)
+{
+	if (bits == 0)
+		return ZRBITS_NBOF;
+
+	unsigned ret = 0;
+
+	for (;;)
+	{
+		if (bits & ZRBITS_MASK_1L)
+			return ret;
+
+		ret++;
+		bits <<= 1;
+	}
+}
+
+static inline unsigned ZRBITS_RZCNT_STD(ZRBits bits)
+{
+	unsigned ret = 0;
+
+	if (bits == 0)
+		return ZRBITS_NBOF;
+
+	bits = (bits ^ (bits - 1)) >> 1;
+
+	for (; bits; ret++)
+		bits >>= 1;
+
+	return ret;
 }
 
 static inline void ZRBITS_SETBIT_STD(ZRBits *bits, size_t pos, bool bit)

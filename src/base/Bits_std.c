@@ -13,6 +13,20 @@ ZRBits ZRBits_getRMask_std(unsigned nbBits)
 	return ZRBITS_GETRMASK_STD(nbBits);
 }
 
+ZRBits ZRBitd_bextr_std(ZRBits bits, unsigned start, unsigned len)
+{
+	return ZRBITS_BEXTR_STD(bits, start, len);
+}
+
+unsigned ZRBits_lzcnt_std(ZRBits bits)
+{
+	return ZRBITS_LZCNT_STD(bits);
+}
+
+unsigned ZRBits_rzcnt_std(ZRBits bits)
+{
+	return ZRBITS_RZCNT_STD(bits);
+}
 
 // ============================================================================
 
