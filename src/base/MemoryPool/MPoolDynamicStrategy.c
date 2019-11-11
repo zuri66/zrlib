@@ -49,6 +49,9 @@ struct ZRMPoolDynamicStrategyS
 	ZRAllocator *allocator;
 
 	size_t initialBucketSize;
+
+	size_t maxFreeBuckets;
+
 };
 
 // ============================================================================
@@ -58,8 +61,6 @@ struct ZRMPoolDynamicDataS
 	size_t nbAvailables;
 
 	size_t nbFreeBuckets;
-
-	size_t maxFreeBuckets;
 
 	ZRVector *buckets;
 };
@@ -71,13 +72,14 @@ struct ZRMPoolDynamicDataS
 
 #define DEFAULT_MAX_FREE_BUCKETS 10
 #define INITIAL_BUCKET_SPACE 1024
+#define INITIAL_BUCKETS_SPACE 1024
+#define INITIAL_BUCKET_SIZE   1024
 #define INITIAL_BITS_SPACE ((1024*64)/ZRBITS_NBOF)
 
 #define BIT_BLOCKISEMPTY 1
 #define BIT_BLOCKISLOCKD 0
 #define BIT_FULLEMPTY ZRBITS_MASK_FULL
 #define BIT_FULLLOCKD 0
-
 
 // ============================================================================
 // Internal functions
@@ -138,7 +140,6 @@ size_t fstrategySize(void)
 void finitPool(ZRMemoryPool *pool)
 {
 	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
-	data->maxFreeBuckets = DEFAULT_MAX_FREE_BUCKETS;
 	data->nbFreeBuckets = 0;
 	data->nbAvailables = 0;
 	data->buckets = ZRVector2SideStrategy_createDynamic(INITIAL_BUCKET_SPACE, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
@@ -202,7 +203,7 @@ static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket
 
 	if (bucket->nbAvailables == bucket->nbBlocks)
 	{
-		if (data->nbFreeBuckets == data->maxFreeBuckets)
+		if (data->nbFreeBuckets == ZRMPOOL_STRATEGY(pool)->maxFreeBuckets)
 		{
 			data->nbAvailables -= bucket->nbBlocks;
 			pool->nbBlock -= bucket->nbBlocks;
@@ -252,9 +253,7 @@ void fdone(ZRMemoryPool *pool)
 	ZRVector2SideStrategy_destroy(buckets);
 }
 
-// ============================================================================
-
-void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size_t initialBucketSize)
+void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size_t initialBucketSize, size_t maxFreeBuckets)
 {
 	*(ZRMPoolDynamicStrategy*)strategy = (ZRMPoolDynamicStrategy ) { //
 		.strategy = (ZRMemoryPoolStrategy ) { //
@@ -267,6 +266,7 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 			},//
 		.allocator = allocator, //
 		.initialBucketSize = initialBucketSize, //
+		.maxFreeBuckets = maxFreeBuckets, //
 		};
 }
 
