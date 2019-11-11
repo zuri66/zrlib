@@ -129,6 +129,7 @@ void ZRBits_setBit(______________ ZRBits *bits, size_t pos, bool bit);
 void ZRBits_setBits(_____________ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source, bool fromTheRight);
 void ZRBits_setBitsFromTheRight(_ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
 void ZRBits_setBitsFromTheLeft(__ ZRBits *bits, size_t pos, size_t nbBits, ZRBits source);
+void ZRBits_fill(________________ ZRBits *bits, size_t pos, size_t nbBits);
 
 bool ZRBits_getBit(__ ZRBits const _________*bits, size_t pos);
 void ZRBits_getBits(_ ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out);

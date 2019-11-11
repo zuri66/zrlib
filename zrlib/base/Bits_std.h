@@ -107,6 +107,31 @@ static inline void ZRBITS_SETBITSFROMTHELEFT_STD(ZRBits *bits, size_t pos, size_
 	}
 }
 
+static inline void ZRBITS_FILL_STD(ZRBits *bits, size_t pos, size_t nbBits)
+{
+	ADJUST_POS(bits, pos);
+	size_t const nbAddPos = nbBits + pos;
+
+	if (nbAddPos <= ZRBITS_NBOF)
+	{
+		ZRBits const mask = ZRBITS_GETLMASK(nbBits) >> pos;
+		*bits = (*bits & ~mask) | (mask & ZRBITS_MASK_FULL);
+	}
+	else
+	{
+		size_t const firstSize = ZRBITS_NBOF - pos;
+		ZRBits const firstMask = ZRBITS_GETLMASK(firstSize) >> pos;
+		size_t const nbZRBits = (nbBits - firstSize) / ZRBITS_NBOF;
+		size_t const finalBits = (nbBits - firstSize) % ZRBITS_NBOF;
+		ZRBits const finalMask = ZRBITS_GETLMASK(finalBits);
+
+		*bits = (*bits & ~firstMask) | (firstMask & ZRBITS_MASK_FULL);
+		memset(bits + 1, (int)ZRBITS_MASK_FULL, nbZRBits * sizeof(ZRBits));
+		bits += nbZRBits + 1;
+		*bits = (*bits & ~finalMask) | (finalMask & ZRBITS_MASK_FULL);
+	}
+}
+
 static inline bool ZRBITS_GETBIT_STD(ZRBits const *bits, size_t pos)
 {
 	ADJUST_POS(bits, pos);

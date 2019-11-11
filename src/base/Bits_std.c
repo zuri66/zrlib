@@ -23,6 +23,11 @@ void ZRBits_setBit_std(ZRBits *bits, size_t pos, bool bit)
 	return ZRBITS_SETBIT_STD(bits, pos, bit);
 }
 
+void ZRBits_fill_std(ZRBits *bits, size_t pos, size_t nbBits)
+{
+	return ZRBITS_FILL_STD(bits, pos, nbBits);
+}
+
 bool ZRBits_getBit_std(ZRBits const *bits, size_t pos)
 {
 	return ZRBITS_GETBIT_STD(bits, pos);

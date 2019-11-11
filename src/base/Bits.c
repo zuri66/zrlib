@@ -91,6 +91,11 @@ void ZRBits_setBits(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source, bool
 		ZRBITS_SETBITSFROMTHELEFT_STD(bits, pos, nbBits, source);
 }
 
+void ZRBits_fill(ZRBits *bits, size_t pos, size_t nbBits)
+{
+	return ZRBITS_FILL_STD(bits, pos, nbBits);
+}
+
 bool ZRBits_getBit(ZRBits const *bits, size_t pos)
 {
 	return ZRBITS_GETBIT_STD(bits, pos);
