@@ -14,6 +14,7 @@ set(SRCS
 	src/base/Vector/Vector.c
 	src/base/Vector/Vector2SideStrategy.c
 	src/base/MemoryPool/MemoryPool.c
+	src/base/MemoryPool/MPoolDynamicStrategy.c
     )
     
 set(HEADERS
@@ -26,6 +27,7 @@ set(HEADERS
 	zrlib/base/Vector/Vector.h
 	zrlib/base/Vector/Vector2SideStrategy.h
 	zrlib/base/MemoryPool/MemoryPool.h
+	zrlib/base/MemoryPool/MPoolDynamicStrategy.h
 	zrlib/config.h
     )
 
