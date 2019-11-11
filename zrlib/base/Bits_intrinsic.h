@@ -34,12 +34,12 @@
 // 32/64 Bits
 // ============================================================================
 
-static inline ZRBits ZRBITS_GETLMASK_I(size_t nbBits)
+static inline ZRBits ZRBITS_GETLMASK_I(unsigned nbBits)
 {
 	return _bextr_u(ZRBITS_MASK_FULL, 0, nbBits) << ZRBITS_NBOF - nbBits;
 }
 
-static inline ZRBits ZRBITS_GETRMASK_I(size_t nbBits)
+static inline ZRBits ZRBITS_GETRMASK_I(unsigned nbBits)
 {
 	return _bextr_u(ZRBITS_MASK_FULL, 0, nbBits);
 }

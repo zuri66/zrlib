@@ -14,7 +14,7 @@
 
 // ============================================================================
 
-static inline ZRBits ZRBITS_GETLMASK_STD(size_t nbBits)
+static inline ZRBits ZRBITS_GETLMASK_STD(unsigned nbBits)
 {
 	assert(nbBits <= ZRBITS_NBOF);
 
@@ -33,7 +33,7 @@ static inline ZRBits ZRBITS_GETLMASK_STD(size_t nbBits)
 	return ret;
 }
 
-static inline ZRBits ZRBITS_GETRMASK_STD(size_t nbBits)
+static inline ZRBits ZRBITS_GETRMASK_STD(unsigned nbBits)
 {
 	assert(nbBits <= ZRBITS_NBOF);
 

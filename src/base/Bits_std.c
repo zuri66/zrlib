@@ -3,12 +3,12 @@
  * @date vendredi 1 novembre 2019, 15:07:48 (UTC+0100)
  */
 
-ZRBits ZRBits_getLMask_std(size_t nbBits)
+ZRBits ZRBits_getLMask_std(unsigned nbBits)
 {
 	return ZRBITS_GETLMASK_STD(nbBits);
 }
 
-ZRBits ZRBits_getRMask_std(size_t nbBits)
+ZRBits ZRBits_getRMask_std(unsigned nbBits)
 {
 	return ZRBITS_GETRMASK_STD(nbBits);
 }

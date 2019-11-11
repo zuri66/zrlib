@@ -11,17 +11,17 @@
 // GETMASK
 // ============================================================================
 
-ZRBits ZRBits_getLMask(size_t nbBits)
+ZRBits ZRBits_getLMask(unsigned nbBits)
 {
 	return ZRBITS_GETLMASK(nbBits);
 }
 
-ZRBits ZRBits_getRMask(size_t nbBits)
+ZRBits ZRBits_getRMask(unsigned nbBits)
 {
 	return ZRBITS_GETRMASK(nbBits);
 }
 
-ZRBits ZRBits_getMask(size_t nbBits, bool toTheRight)
+ZRBits ZRBits_getMask(unsigned nbBits, bool toTheRight)
 {
 	if (toTheRight)
 		return ZRBITS_GETRMASK(nbBits);

@@ -113,9 +113,9 @@ if (pos >= ZRBITS_NBOF) \
 // ============================================================================
 // CORE FUNCTIONS
 
-ZRBits ZRBits_getMask(__ size_t nbBits, bool toTheRight);
-ZRBits ZRBits_getLMask(_ size_t nbBits);
-ZRBits ZRBits_getRMask(_ size_t nbBits);
+ZRBits ZRBits_getMask(__ unsigned nbBits, bool toTheRight);
+ZRBits ZRBits_getLMask(_ unsigned nbBits);
+ZRBits ZRBits_getRMask(_ unsigned nbBits);
 
 size_t ZRBits_1LPos(ZRBits *bits, size_t nbZRBits, size_t pos);
 ZRBits ZRBits_selectBits(ZRBits bits, size_t pos, size_t nbBits);
