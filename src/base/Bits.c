@@ -97,12 +97,12 @@ void ZRBits_setBit(ZRBits *bits, size_t pos, bool bit)
 
 void ZRBits_setBitsFromTheRight(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source)
 {
-	ZRBits_setBits(bits, pos, nbBits, source, true);
+	ZRBITS_SETBITSFROMTHERIGHT_STD(bits, pos, nbBits, source);
 }
 
 void ZRBits_setBitsFromTheLeft(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source)
 {
-	ZRBits_setBits(bits, pos, nbBits, source, false);
+	ZRBITS_SETBITSFROMTHELEFT_STD(bits, pos, nbBits, source);
 }
 
 void ZRBits_setBits(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source, bool fromTheRight)

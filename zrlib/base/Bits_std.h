@@ -105,6 +105,7 @@ static inline void ZRBITS_SETBIT_STD(ZRBits *bits, size_t pos, bool bit)
 static inline void ZRBITS_SETBITSFROMTHERIGHT_STD(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source)
 {
 	ADJUST_POS(bits, pos);
+	assert(nbBits <= ZRBITS_NBOF);
 	size_t const nbAddPos = nbBits + pos;
 	ZRBits const lmask = ZRBITS_GETLMASK(nbBits);
 
@@ -125,6 +126,7 @@ static inline void ZRBITS_SETBITSFROMTHERIGHT_STD(ZRBits *bits, size_t pos, size
 static inline void ZRBITS_SETBITSFROMTHELEFT_STD(ZRBits *bits, size_t pos, size_t nbBits, ZRBits source)
 {
 	ADJUST_POS(bits, pos);
+	assert(nbBits <= ZRBITS_NBOF);
 	size_t const nbAddPos = nbBits + pos;
 	ZRBits const lmask = ZRBITS_GETLMASK(nbBits);
 
@@ -184,7 +186,7 @@ static inline void std_ZRBits_copyBlocks(ZRBits const * restrict bits, size_t nb
 	}
 
 	if (!finalBits)
-		return;
+	return;
 
 	ZRBits const mask = ZRBITS_GETLMASK(finalBits);
 	*out = (*out & ~mask) | (*bits & mask);
@@ -257,7 +259,7 @@ static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, siz
 		}
 
 		if (!finalBits)
-			return;
+		return;
 
 		std_ZRBits_copy_posGTOutPos(bits, pos, finalBits, out, 0);
 	}
@@ -306,11 +308,11 @@ static inline void ZRBITS_COPY_STD(ZRBits const * restrict bits, size_t pos, siz
 	ADJUST_POS(out, outPos);
 
 	if (pos == outPos)
-		std_ZRBits_copy_posEQOutPos(bits, pos, nbBits, out);
+	std_ZRBits_copy_posEQOutPos(bits, pos, nbBits, out);
 	else if (pos > outPos)
-		std_ZRBits_copy_posGTOutPos(bits, pos, nbBits, out, outPos);
+	std_ZRBits_copy_posGTOutPos(bits, pos, nbBits, out, outPos);
 	else
-		std_ZRBits_copy_posLTOutPos(bits, pos, nbBits, out, outPos);
+	std_ZRBits_copy_posLTOutPos(bits, pos, nbBits, out, outPos);
 }
 
 static inline void ZRBITS_INARRAYRSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_t shift)

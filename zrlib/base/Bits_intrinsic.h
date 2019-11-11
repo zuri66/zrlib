@@ -66,3 +66,5 @@ static inline unsigned ZRBITS_RZCNT_I(ZRBits bits)
 #undef FACTOR_NBOFBITS
 #undef SUFFIX_NBOFBITS
 #undef _bextr_u
+#undef _lzcnt_u
+#undef _rzcnt_u
