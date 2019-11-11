@@ -437,17 +437,12 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 
 	if (nbBits == 1)
 	{
-		while (*bits == 0 && nbZRBits > 0)
-		{
-			bits++;
-			nbZRBits--;
-		}
-		size_t ret = ZRBITS_1LPOS(bits, 1, pos);
+		size_t ret = ZRBITS_1LPOS(bits, nbZRBits, pos);
 
-		if (ret < ZRBITS_NBOF - pos)
+		if (ret < ZRBITS_NBOF * nbZRBits)
 		{
-			*dest = bits;
-			*outPos = ret;
+			*dest = bits + ret / ZRBITS_NBOF;
+			*outPos = ret % ZRBITS_NBOF;
 		}
 		else
 		{
@@ -458,23 +453,28 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 	}
 	size_t const mask_nbZRBits = nbBits / ZRBITS_NBOF;
 	size_t const mask_rest = (nbBits % ZRBITS_NBOF);
-	size_t const offsetMask = ZRBITS_NBOF - mask_rest;
 	size_t const maskSize = mask_nbZRBits + (bool)mask_rest;
-	size_t const maskFirstBitSet = ZRBITS_NBOF - mask_rest;
+	size_t const maskNbOfBits = maskSize * ZRBITS_NBOF;
+	size_t const maskFirstBitSet = mask_rest ? ZRBITS_NBOF - mask_rest : 0;
 	ZRBits mask[maskSize];
 	ZRBits buf[maskSize];
 
-	mask[0] = ZRBITS_GETRMASK(mask_rest);
+	if (mask_rest)
+	{
+		mask[0] = ZRBITS_GETRMASK(mask_rest);
 
-	if (maskSize > 1)
-		memset(&mask[1], (int)ZRBITS_MASK_FULL, mask_nbZRBits * sizeof(ZRBits));
+		if (maskSize > 1)
+			memset(&mask[1], (int)ZRBITS_MASK_FULL, mask_nbZRBits * sizeof(ZRBits));
+	}
+	else
+		memset(mask, (int)ZRBITS_MASK_FULL, maskSize * sizeof(ZRBits));
 
 	memset(buf, 0, maskSize * sizeof(ZRBits));
 	int ipos = pos;
 
 	for (;;)
 	{
-		ZRBITS_COPY_STD(bits, ipos, nbBits, buf, offsetMask);
+		ZRBITS_COPY_STD(bits, ipos, nbBits, buf, maskFirstBitSet);
 
 		if (memcmp(buf, mask, maskSize * sizeof(ZRBits)) == 0)
 		{
@@ -482,12 +482,10 @@ static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_
 			*outPos = ipos;
 			return;
 		}
+		buf[1] &= mask[1];
 
-		for (size_t i = 0; i < maskSize; i++)
-			buf[i] = mask[i] & buf[i];
-
-		size_t firstSetBitPos = ZRBITS_1LPOS(buf, maskSize, maskFirstBitSet);
-		ipos += firstSetBitPos;
+		size_t const firstSetBitPos = ZRBITS_1LPOS(buf, maskSize, maskFirstBitSet + 1);
+		ipos += firstSetBitPos - maskFirstBitSet;
 
 		if (ipos >= ZRBITS_NBOF)
 		{
