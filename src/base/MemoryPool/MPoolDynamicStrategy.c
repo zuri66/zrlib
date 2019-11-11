@@ -4,7 +4,7 @@
  */
 
 #include <zrlib/base/Allocator/Allocator.h>
-#include <zrlib/base/Bits.h>
+#include <zrlib/base/Bits/Bits.h>
 #include <zrlib/base/MemoryPool/MPoolDynamicStrategy.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 #include <zrlib/base/ArrayOp.h>
