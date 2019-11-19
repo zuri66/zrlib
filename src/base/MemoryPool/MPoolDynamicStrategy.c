@@ -154,7 +154,7 @@ void finitPool(ZRMemoryPool *pool)
 	addBucket(pool, 0);
 }
 
-void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bucket *bucket)
+static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bucket *bucket)
 {
 	if (nb > bucket->nbAvailables)
 		return NULL ;
