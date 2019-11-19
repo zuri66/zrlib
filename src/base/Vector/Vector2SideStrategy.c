@@ -62,7 +62,7 @@ struct ZRVector2SideDataS
 
 	unsigned char *allocatedMemory;
 
-	unsigned char initialArray[0];
+	unsigned char initialArray[];
 };
 
 // ============================================================================
