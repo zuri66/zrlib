@@ -70,6 +70,11 @@ void ZRVector_set_nb(ZRVector *vec, size_t pos, size_t nb, void *src)
 	ZRVECTOR_SET_NB(vec, pos, nb, src);
 }
 
+void ZRVector_reserve(ZRVector *vec, size_t pos, size_t nb)
+{
+	ZRVECTOR_RESERVE(vec, pos, nb);
+}
+
 void ZRVector_add(ZRVector *vec, void *obj)
 {
 	ZRVECTOR_ADD(vec, obj);
