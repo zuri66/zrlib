@@ -135,7 +135,7 @@ void ZRVector2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocat
 		.allocator = allocator,  //
 		.initialArraySize = initialArraySize, //
 		.initialMemorySize = initialMemorySize, //
-		.fmustGrow = mustGrowTwice, //
+		.fmustGrow = mustGrowSimple, //
 		.fincreaseSpace = increaseSpaceTwice, //
 		.fmustShrink = mustShrink4, //
 		.fdecreaseSpace = decreaseSpaceTwice, //
