@@ -47,6 +47,7 @@ struct ZRVectorS
 {
 	size_t objSize;
 	size_t nbObj;
+	size_t capacity;
 
 	/*
 	 * The strategy for memory management and insertion/deletion routines.
@@ -71,6 +72,7 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy
 	*vec = (ZRVector ) { //
 		.objSize = objSize, //
 		.nbObj = 0, //
+		.capacity = 0, //
 		.strategy = strategy, //
 		};
 

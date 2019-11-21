@@ -157,6 +157,7 @@ void ZRVector2SideStrategy_finitVec(ZRVector *vec)
 	{
 		vec->array = sdata->initialArray;
 		setFUEOSpaces(vec, vec->array, twoSideStrategy->initialArraySize, NULL, 0);
+		vec->capacity = twoSideStrategy->initialArraySize;
 	}
 }
 
@@ -302,6 +303,7 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 
 		setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalNbObj, (char*)sdata->allocatedMemory + offsetLastUSpace, vec->nbObj);
 	}
+	vec->capacity = ZRVECTOR_TOTALSPACE_SIZEOF(vec);
 }
 
 static inline void lessSize(ZRVector *vec)
@@ -346,6 +348,7 @@ static inline void lessSize(ZRVector *vec)
 		if (sdata->allocatedMemory != ZRVECTOR_FSPACE(vec))
 			setFUEOSpaces(vec, sdata->allocatedMemory, nextTotalNbObj, sdata->allocatedMemory + ZRVECTOR_FSPACE_SIZEOF(vec), vec->nbObj);
 	}
+	vec->capacity = ZRVECTOR_TOTALSPACE_SIZEOF(vec);
 }
 
 static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
