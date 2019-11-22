@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 
 project(zrlib)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 include_directories(${PROJECT_BINARY_DIR})
 
 add_compile_options(-mbmi -mlzcnt -Winline)
@@ -13,6 +15,7 @@ set(SRCS
 	src/base/MemoryOp.c
 	src/base/Vector/Vector.c
 	src/base/Vector/Vector2SideStrategy.c
+	src/base/Map/HashTable.c
 	src/base/Map/Map.c
 	src/base/MemoryPool/MemoryPool.c
 	src/base/MemoryPool/MPoolDynamicStrategy.c
@@ -27,6 +30,7 @@ set(HEADERS
 	zrlib/base/MemoryOp.h
 	zrlib/base/Vector/Vector.h
 	zrlib/base/Vector/Vector2SideStrategy.h
+	zrlib/base/Map/HashTable.h
 	zrlib/base/Map/Map.h
 	zrlib/base/MemoryPool/MemoryPool.h
 	zrlib/base/MemoryPool/MPoolDynamicStrategy.h
