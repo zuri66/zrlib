@@ -11,6 +11,7 @@ add_compile_options(-mbmi -mlzcnt -Winline)
 set(SRCS
 	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
+	src/base/ReserveOp_bits.c
 	src/base/Bits/Bits.c
 	src/base/MemoryOp.c
 	src/base/Vector/Vector.c
@@ -25,6 +26,7 @@ set(HEADERS
 	zrlib/base/Allocator/Allocator.h
 	zrlib/base/Allocator/CAllocator.h
 	zrlib/base/ArrayOp.h
+	zrlib/base/ReserveOp_bits.h
 	zrlib/base/Bits/Bits.h
 	zrlib/base/macro.h
 	zrlib/base/MemoryOp.h
