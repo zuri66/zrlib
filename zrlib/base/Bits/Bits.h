@@ -126,6 +126,8 @@ bool ZRBits_getBit(__ ZRBits const _________*bits, size_t pos);
 void ZRBits_getBits(_ ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out);
 void ZRBits_copy(____ ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos);
 
+int ZRBits_cmp(ZRBits *a, ZRBits *b, size_t pos, size_t nb);
+
 void ZRBits_inArrayShift(__ ZRBits *bits, size_t nbZRBits, size_t shift, size_t toTheRight);
 void ZRBits_inArrayLShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);
 void ZRBits_inArrayRShift(_ ZRBits *bits, size_t nbZRBits, size_t shift);

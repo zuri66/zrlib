@@ -57,6 +57,8 @@ void ZRBits_fill_std(________________ ZRBits *bits, size_t pos, size_t nbBits);
 bool ZRBits_getBit_std(ZRBits const * ________ bits, size_t pos);
 void ZRBits_copy_std(_ ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos);
 
+int ZRBits_cmp_std(ZRBits *a, ZRBits *b, size_t pos, size_t nb);
+
 void ZRBits_inArrayLShift_std(ZRBits *bits, size_t nbZRBits, size_t shift);
 void ZRBits_inArrayRShift_std(ZRBits *bits, size_t nbZRBits, size_t shift);
 

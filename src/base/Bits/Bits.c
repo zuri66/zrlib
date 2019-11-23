@@ -58,7 +58,7 @@ size_t ZRBits_1RPos(ZRBits *bits, size_t nbZRBits, size_t pos)
 
 // ============================================================================
 
-void ZRBits_cpack(ZRBits * bits, size_t nbBits, char * source, size_t sourceSize)
+void ZRBits_cpack(ZRBits *bits, size_t nbBits, char *source, size_t sourceSize)
 {
 	size_t i = 0;
 
@@ -76,7 +76,7 @@ void ZRBits_cpack(ZRBits * bits, size_t nbBits, char * source, size_t sourceSize
  * @param unsigned int *source which contains the bits to get
  * @param size_t sourceSize The size of the source.
  */
-void ZRBits_pack(ZRBits * restrict bits, size_t nbBits, ZRBits * restrict source, size_t sourceSize)
+void ZRBits_pack(ZRBits *restrict bits, size_t nbBits, ZRBits *restrict source, size_t sourceSize)
 {
 	size_t i = 0;
 
@@ -123,14 +123,19 @@ bool ZRBits_getBit(ZRBits const *bits, size_t pos)
 	return ZRBITS_GETBIT_STD(bits, pos);
 }
 
-void ZRBits_getBits(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out)
+void ZRBits_getBits(ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits *restrict out)
 {
 	ZRBITS_COPY_STD(bits, pos, nbBits, out, 0);
 }
 
-void ZRBits_copy(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
+void ZRBits_copy(ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits *restrict out, size_t outPos)
 {
 	ZRBITS_COPY_STD(bits, pos, nbBits, out, outPos);
+}
+
+int ZRBits_cmp(ZRBits *a, ZRBits *b, size_t pos, size_t nb)
+{
+	return ZRBITS_CMP_STD(a, b, pos, nb);
 }
 
 // ============================================================================

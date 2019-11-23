@@ -67,9 +67,14 @@ bool ZRBits_getBit_std(ZRBits const *bits, size_t pos)
 	return ZRBITS_GETBIT_STD(bits, pos);
 }
 
-void ZRBits_copy_std(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
+void ZRBits_copy_std(ZRBits const *restrict bits, size_t pos, size_t nbBits, ZRBits *restrict out, size_t outPos)
 {
 	ZRBITS_COPY_STD(bits, pos, nbBits, out, outPos);
+}
+
+int ZRBits_cmp_std(ZRBits *a, ZRBits *b, size_t pos, size_t nb)
+{
+	return ZRBITS_CMP_STD(a, b, pos, nb);
 }
 
 void ZRBits_inArrayLShift_std(ZRBits *bits, size_t nbZRBits, size_t shift)
