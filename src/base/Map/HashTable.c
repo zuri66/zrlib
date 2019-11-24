@@ -3,6 +3,7 @@
  * @date mardi 19 novembre 2019, 21:52:33 (UTC+0100)
  */
 
+#include <zrlib/base/ReserveOp_list.h>
 #include <zrlib/base/Map/HashTable.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
@@ -50,7 +51,7 @@ struct \
 #define STRUCT_BUCKET(KeySize, ObjSize) \
 struct \
 { \
-	uint_fast32_t nextUnused; \
+	ZRReserveNextUnused nextUnused; \
 	char key[KeySize]; \
 	struct { char obj[ObjSize]; }; \
 }
@@ -90,38 +91,6 @@ static void fdone(ZRMap *htable)
 		strategy->ftable_destroy(data->table);
 }
 
-static inline void add_updateBuckets(ZRMap *htable, void *vbucket)
-{
-	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
-	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	TYPEDEF_SDATA(strategy->nbfhash);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
-	ZRVector *table = data->table;
-	ZRHashTableBucket *bucket = vbucket;
-	ZRHashTableBucket *nextBucket = bucket + 1;
-
-	// Over the array space
-	if (nextBucket == ZRVECTOR_GET(data->table, data->table->nbObj))
-		bucket->nextUnused = ((ZRHashTableBucket*)data->table->array)->nextUnused + 1;
-	else
-		bucket->nextUnused = (bucket + 1)->nextUnused + 1;
-
-	// Update the previous chain of buckets
-
-	if (bucket == table->array)
-		return;
-
-	size_t i = 1;
-	ZRHashTableBucket *prevBucket = bucket - 1;
-
-	while (prevBucket != table->array && prevBucket->nextUnused != 0)
-	{
-		prevBucket->nextUnused = bucket->nextUnused + i;
-		prevBucket--;
-		i++;
-	}
-}
-
 enum InsertModeE
 {
 	PUT, REPLACE, PUTIFABSENT
@@ -133,6 +102,8 @@ static inline bool insert(ZRMap *htable, void *key, void *obj, enum InsertModeE 
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
 	TYPEDEF_SDATA(strategy->nbfhash);
 	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+
+	// TODO mustgrow
 
 	fhash_t *fhash = data->fhash;
 	ZRHashTableBucket *bucket = NULL;
@@ -151,7 +122,8 @@ static inline bool insert(ZRMap *htable, void *key, void *obj, enum InsertModeE 
 
 			memcpy(bucket->key, key, htable->keySize);
 			memcpy(bucket->obj, obj, htable->objSize);
-			add_updateBuckets(htable, bucket);
+//			add_updateBuckets(htable, bucket);
+			ZRRESERVEOPLIST_RESERVENB(data->table->array, sizeof(ZRHashTableBucket), data->table->nbObj, offsetof(ZRHashTableBucket, nextUnused), pos, 1);
 			goto end;
 		}
 		else if (memcmp(key, bucket->key, htable->keySize) == 0)
@@ -172,14 +144,7 @@ static inline bool insert(ZRMap *htable, void *key, void *obj, enum InsertModeE 
 	}
 	else
 	{
-		bucket += bucket->nextUnused;
-
-		// The end of the vector is reached
-		if (bucket == ZRVECTOR_GET(data->table, data->table->nbObj - 1))
-		{
-			ZRHashTableBucket *first = data->table->array;
-			bucket = first + first->nextUnused;
-		}
+		bucket += bucket->nextUnused % data->table->nbObj;
 	}
 	end:
 	htable->nbObj++;
@@ -201,7 +166,7 @@ static bool freplace(ZRMap *htable, void *key, void *obj)
 	return insert(htable, key, obj, REPLACE);
 }
 
-static inline void* getBucket(ZRMap *htable, void *key)
+static inline size_t getBucket(ZRMap *htable, void *key, size_t *outPos)
 {
 	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
@@ -218,8 +183,12 @@ static inline void* getBucket(ZRMap *htable, void *key)
 		if (bucket->nextUnused == 0)
 			;
 		else if (memcmp(key, bucket->key, htable->keySize) == 0)
-			return bucket;
+		{
+			if (outPos)
+				*outPos = pos;
 
+			return bucket;
+		}
 		fhash++;
 	}
 	return NULL ;
@@ -228,7 +197,7 @@ static inline void* getBucket(ZRMap *htable, void *key)
 static void* fget(ZRMap *htable, void *key)
 {
 	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
-	ZRHashTableBucket *const bucket = getBucket(htable, key);
+	ZRHashTableBucket *const bucket = getBucket(htable, key, NULL);
 
 	if (bucket == NULL)
 		return NULL ;
@@ -236,43 +205,20 @@ static void* fget(ZRMap *htable, void *key)
 	return &bucket->obj;
 }
 
-static inline void delete_updateBuckets(ZRMap *htable, void *vbucket)
-{
-	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
-	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	TYPEDEF_SDATA(strategy->nbfhash);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
-	ZRVector *table = data->table;
-	ZRHashTableBucket *bucket = vbucket;
-	ZRHashTableBucket *nextBucket = bucket + 1;
-
-	bucket->nextUnused = 0;
-
-	// Update the previous chain of buckets
-
-	if (bucket == table->array)
-		return;
-
-	size_t i = 1;
-	ZRHashTableBucket *prevBucket = bucket - 1;
-
-	while (prevBucket != table->array && prevBucket->nextUnused != 0)
-	{
-		prevBucket->nextUnused = i;
-		prevBucket--;
-		i++;
-	}
-}
-
 static bool fdelete(ZRMap *htable, void *key)
 {
 	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
-	ZRHashTableBucket *const bucket = getBucket(htable, key);
+	size_t pos;
+	ZRHashTableBucket *const bucket = getBucket(htable, key, &pos);
 
 	if (bucket == NULL)
 		return false;
 
-	delete_updateBuckets(htable, bucket);
+	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
+	TYPEDEF_SDATA(strategy->nbfhash);
+	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+
+	ZRRESERVEOPLIST_RELEASENB(data->table->array, sizeof(ZRHashTableBucket), data->table->nbObj, offsetof(ZRHashTableBucket, nextUnused), pos, 1);
 	htable->nbObj--;
 	return true;
 }
