@@ -480,7 +480,8 @@ static inline size_t ZRBITS_1LPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
 
 static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos)
 {
-	ADJUST_POS(bits, pos);
+	assert(pos < (nbZRBits * ZRBITS_NBOF));
+	ADJUST_POS_NB(bits, pos, nbZRBits);
 
 	if (nbBits == 1)
 	{

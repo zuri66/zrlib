@@ -86,6 +86,13 @@ if (pos >= ZRBITS_NBOF) \
 	pos %= ZRBITS_NBOF; \
 }
 
+#define ADJUST_POS_NB(bits, pos, nb) \
+if (pos >= ZRBITS_NBOF) \
+{ \
+	bits += pos / ZRBITS_NBOF; \
+	pos %= ZRBITS_NBOF; \
+}
+
 #include "Bits_intrinsic_declare.h"
 #include "Bits_std_declare.h"
 
