@@ -30,7 +30,7 @@ static inline size_t ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(ZRBits *bits, size_t
 	ZRBits *retBits;
 	ZRBits_searchFixedPattern(bits, 0, nbZRBits, nbAvailables, &retBits, &pos);
 
-	if (bits == NULL)
+	if (retBits == NULL)
 		return SIZE_MAX;
 
 	ZRRESERVEOPBITS_RESERVENB(retBits, pos, nbAvailables);
