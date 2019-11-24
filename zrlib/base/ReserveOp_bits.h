@@ -13,10 +13,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define BIT_BLOCKISEMPTY 1
-#define BIT_BLOCKISLOCKD 0
-#define BIT_FULLEMPTY ZRBITS_MASK_FULL
-#define BIT_FULLLOCKD 0
+#define ZRRESERVEOPBITS_BLOCKISEMPTY 1
+#define ZRRESERVEOPBITS_BLOCKISLOCKD 0
+#define ZRRESERVEOPBITS_FULLEMPTY ZRBITS_MASK_FULL
+#define ZRRESERVEOPBITS_FULLLOCKD 0
 
 // ============================================================================
 
@@ -43,7 +43,7 @@ static inline void ZRRESERVEOPBITS_RESERVENB(ZRBits *bits, size_t pos, size_t nb
 	size_t const nbZRBits = ((pos + nbAvailables) / ZRBITS_NBOF) + ((pos + nbAvailables) % ZRBITS_NBOF ? 1 : 0);
 	ZRBits set[nbZRBits];
 
-	memset(set, (int)BIT_FULLLOCKD, nbZRBits * sizeof(ZRBits));
+	memset(set, (int)ZRRESERVEOPBITS_FULLLOCKD, nbZRBits * sizeof(ZRBits));
 	ZRBits_copy(set, 0, nbAvailables, bits, pos);
 }
 
@@ -64,7 +64,7 @@ static inline bool ZRRESERVEOPBITS_AVAILABLES(ZRBits *bits, size_t pos, size_t n
 		set[nbZRBits - 1] = ZRBits_getLMask(rest);
 
 		if (nbZRBits > 2)
-			memset(&set[1], (int)BIT_FULLEMPTY, (nbZRBits - 2) * sizeof(ZRBits));
+			memset(&set[1], (int)ZRRESERVEOPBITS_FULLEMPTY, (nbZRBits - 2) * sizeof(ZRBits));
 	}
 	return ZRBits_cmp(bits, set, pos, nbAvailables) == 0;
 }
@@ -73,7 +73,7 @@ static inline void ZRRESERVEOPBITS_RELEASENB(ZRBits *bits, size_t pos, size_t nb
 {
 	size_t const nbZRBits = ((pos + nbToRelease) / ZRBITS_NBOF) + ((pos + nbToRelease) % ZRBITS_NBOF ? 1 : 0);
 	ZRBits set[nbZRBits];
-	memset(set, (int)BIT_FULLEMPTY, nbZRBits * sizeof(ZRBits));
+	memset(set, (int)ZRRESERVEOPBITS_FULLEMPTY, nbZRBits * sizeof(ZRBits));
 	ZRBits_copy(set, 0, nbToRelease, bits, pos);
 }
 

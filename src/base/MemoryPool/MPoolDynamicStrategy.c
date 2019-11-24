@@ -124,7 +124,7 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	data->nbAvailables += nbBlocksToAlloc;
 	data->nbFreeBuckets++;
 
-	ZRARRAYOP_FILL(bucket->bits, sizeof(ZRBits), nbZRBits, &((ZRBits ) { BIT_FULLEMPTY } ));
+	ZRARRAYOP_FILL(bucket->bits, sizeof(ZRBits), nbZRBits, &((ZRBits ) { ZRRESERVEOPBITS_FULLEMPTY } ));
 	return bucket;
 }
 
