@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(zrlib)
 
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${PROJECT_BINARY_DIR})
@@ -12,6 +13,7 @@ set(SRCS
 	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
 	src/base/ReserveOp_bits.c
+	src/base/ReserveOp_list.c
 	src/base/Bits/Bits.c
 	src/base/MemoryOp.c
 	src/base/Vector/Vector.c
@@ -27,6 +29,7 @@ set(HEADERS
 	zrlib/base/Allocator/CAllocator.h
 	zrlib/base/ArrayOp.h
 	zrlib/base/ReserveOp_bits.h
+	zrlib/base/ReserveOp_list.h
 	zrlib/base/Bits/Bits.h
 	zrlib/base/macro.h
 	zrlib/base/MemoryOp.h
