@@ -15,6 +15,7 @@ set(SRCS
 	src/base/ReserveOp_bits.c
 	src/base/ReserveOp_list.c
 	src/base/Bits/Bits.c
+	src/base/List/List.c
 	src/base/MemoryOp.c
 	src/base/Vector/Vector.c
 	src/base/Vector/Vector2SideStrategy.c
@@ -32,6 +33,7 @@ set(HEADERS
 	zrlib/base/ReserveOp_list.h
 	zrlib/base/Bits/Bits.h
 	zrlib/base/macro.h
+	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
 	zrlib/base/Vector/Vector.h
 	zrlib/base/Vector/Vector2SideStrategy.h
