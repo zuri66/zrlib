@@ -67,6 +67,11 @@ struct ZRVectorS
 
 // ============================================================================
 
+static inline void ZRVECTOR_ADD_NB(ZRVector *vec, size_t nb, void *restrict src);
+static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec);
+
+// ============================================================================
+
 static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
 	*vec = (ZRVector ) { //
@@ -81,6 +86,17 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy
 	 */
 	if (strategy->finitVec)
 		strategy->finitVec(vec);
+}
+
+static inline void ZRVECTOR_COPY(ZRVector *dest, ZRVector *src)
+{
+	ZRVECTOR_DELETE_ALL(dest);
+	*dest = (ZRVector ) { //
+		.objSize = src->objSize, //
+		.nbObj = 0, //
+		};
+
+	ZRVECTOR_ADD_NB(dest, src->nbObj, src->array);
 }
 
 static inline void ZRVECTOR_DONE(ZRVector *vec)
@@ -223,6 +239,7 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict
 // ============================================================================
 
 void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
+void ZRVector_copy(ZRVector *dest, ZRVector *src);
 void ZRVector_done(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);
