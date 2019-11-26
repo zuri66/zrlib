@@ -27,7 +27,7 @@ ZRMemoryPool* ZRMPoolDS_createDefault(size_t objSize, ZRAllocator *allocator)
 	return ZRMPoolDS_create(INITIAL_BUCKET_SIZE, DEFAULT_MAX_FREE_BUCKETS, objSize, allocator);
 }
 
-ZRMemoryPool* ZRMPoolDS_destroy(ZRMemoryPool *pool)
+void ZRMPoolDS_destroy(ZRMemoryPool *pool)
 {
 	ZRMPool_done(pool);
 	ZRAllocator *allocator = ZRMPOOL_STRATEGY(pool)->allocator;
