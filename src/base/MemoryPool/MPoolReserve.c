@@ -85,7 +85,7 @@ static void* freserve_list(ZRMemoryPool *pool, size_t nb)
 	TYPEDEF_SDATA_LIST_AUTO(pool);
 	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
 	size_t const offset = ZRReserveOpList_reserveFirstAvailables(data->reserve, sizeof(*data->reserve), data->nbBlocks, offsetof(ZRMPoolReserveBucketList, nextUnused), nb);
-	pool->nbBlock += nb;
+	pool->nbBlocks += nb;
 	return &data->reserve[offset];
 }
 
@@ -99,7 +99,7 @@ static void frelease_list(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 
 	size_t const pos = (size_t)((char*)firstBlock - (char*)data->reserve);
 	ZRReserveOpList_releaseNb(data->reserve, sizeof(*data->reserve), data->nbBlocks, offsetof(ZRMPoolReserveBucketList, nextUnused), pos, nb);
-	pool->nbBlock -= nb;
+	pool->nbBlocks -= nb;
 }
 
 // ============================================================================
@@ -151,7 +151,7 @@ static void* freserve_bits(ZRMemoryPool *pool, size_t nb)
 	TYPEDEF_SDATA_BITS_AUTO(pool);
 	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
 	size_t const offset = ZRReserveOpBits_reserveFirstAvailables(data->bits, nbZRBits, nb);
-	pool->nbBlock += nb;
+	pool->nbBlocks += nb;
 	return data->reserve + offset * pool->blockSize;
 }
 
@@ -165,7 +165,7 @@ static void frelease_bits(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 
 	size_t const pos = (size_t)((char*)firstBlock - data->reserve);
 	ZRReserveOpBits_releaseNb(data->bits, pos, nb);
-	pool->nbBlock -= nb;
+	pool->nbBlocks -= nb;
 }
 
 // ============================================================================

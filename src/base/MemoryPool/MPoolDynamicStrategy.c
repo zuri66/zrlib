@@ -120,7 +120,7 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	bucket->nbZRBits = nbZRBits;
 	bucket->nbBlocks = nbBlocksToAlloc;
 	bucket->nbAvailables = nbBlocksToAlloc;
-	pool->nbBlock += nbBlocksToAlloc;
+	pool->nbBlocks += nbBlocksToAlloc;
 	data->nbAvailables += nbBlocksToAlloc;
 	data->nbFreeBuckets++;
 
@@ -201,7 +201,7 @@ static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket
 		if (data->nbFreeBuckets == ZRMPOOL_STRATEGY(pool)->maxFreeBuckets)
 		{
 			data->nbAvailables -= bucket->nbBlocks;
-			pool->nbBlock -= bucket->nbBlocks;
+			pool->nbBlocks -= bucket->nbBlocks;
 			ZRFREE(ZRMPOOL_STRATEGY(pool)->allocator, bucket);
 			ZRVECTOR_DELETE(data->buckets, bucket_i);
 			return true;
