@@ -10,6 +10,8 @@
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 #include <zrlib/base/Allocator/Allocator.h>
 
+#include <stdbool.h>
+
 // ============================================================================
 
 static inline void* ZRMPOOLRESERVE_RESERVEPOS(ZRMemoryPool *pool, size_t pos)
@@ -26,7 +28,7 @@ static inline void* ZRMPOOLRESERVE_RESERVEPOS_NB(ZRMemoryPool *pool, size_t pos,
 // HELP
 // ============================================================================
 
-ZRMemoryPool* ZRMPoolReserve_create(size_t objSize, size_t nbBlocks, ZRAllocator *allocator);
+ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t nbBlocks, ZRAllocator *allocator, bool bitStrategy);
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool);
 
 // ============================================================================
