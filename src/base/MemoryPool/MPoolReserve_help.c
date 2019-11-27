@@ -31,8 +31,8 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t nbBlocks, ZRAllocat
 		size_t poolSize = sizeof(ZRMemoryPool) + sizeof(ZRMPoolReserveDataList);
 		pool = ZRALLOC(allocator, poolSize);
 
-		ZRMPOOL_DATA_LIST(pool)->reserveSize = sizeof(ZRMPoolReserveDataList);
-		ZRMPOOL_DATA_LIST(pool)->nbBlocks = sizeof(ZRMPoolReserveDataList);
+		ZRMPoolReserveDataList *data = ZRMPOOL_DATA_LIST(pool);
+		data->nbBlocks = nbBlocks;
 	}
 	ZRMPool_init(pool, blockSize, strategy);
 	return pool;
