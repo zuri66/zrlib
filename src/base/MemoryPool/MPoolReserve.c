@@ -16,17 +16,6 @@
 
 // ============================================================================
 
-typedef struct ZRMPoolReserveStrategyS ZRMPoolReserveStrategy;
-
-// ============================================================================
-
-struct ZRMPoolReserveStrategyS
-{
-	ZRMemoryPoolStrategy strategy;
-
-	ZRAllocator *allocator;
-};
-
 // ============================================================================
 
 #define ZRMPOOL_STRATEGY(pool) ((ZRMPoolReserveStrategy*)((pool)->strategy))
@@ -103,6 +92,22 @@ static void frelease_list(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	pool->nbBlocks -= nb;
 }
 
+static bool favailablePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
+{
+	TYPEDEF_SDATA_LIST_AUTO(pool);
+	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
+	return ZRRESERVEOPLIST_AVAILABLES(data->nextUnused, sizeof(ZRReserveNextUnused), 0, pos, nb);
+}
+
+static void* freservePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
+{
+	TYPEDEF_SDATA_LIST_AUTO(pool);
+	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
+	ZRRESERVEOPLIST_RESERVENB(data->nextUnused, sizeof(ZRReserveNextUnused), data->nbBlocks, 0, pos, nb);
+	pool->nbBlocks += nb;
+	return &data->reserve[pos * pool->blockSize];
+}
+
 // ============================================================================
 // BITS
 
@@ -172,6 +177,21 @@ static void frelease_bits(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	pool->nbBlocks -= nb;
 }
 
+static bool favailablePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
+{
+	TYPEDEF_SDATA_BITS_AUTO(pool);
+	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
+	return ZRRESERVEOPBITS_AVAILABLES(data->bits, pos, nb);
+}
+
+static void* freservePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
+{
+	TYPEDEF_SDATA_BITS_AUTO(pool);
+	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
+	ZRRESERVEOPBITS_RESERVENB(data->bits, pos, nb);
+	pool->nbBlocks += nb;
+}
+
 // ============================================================================
 
 static size_t fstrategySize(void)
@@ -200,6 +220,8 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.frelease = frelease_bits, //
 				},//
 			.allocator = allocator, //
+			.favailablePos = favailablePos_list, //
+			.freservePos = freservePos_list, //
 			};
 	else
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
@@ -212,9 +234,31 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.frelease = frelease_list, //
 				},//
 			.allocator = allocator, //
+			.favailablePos = favailablePos_bits, //
+			.freservePos = freservePos_bits, //
 			};
 }
 
 // ============================================================================
 
 #include "MPoolReserve_help.c"
+
+bool ZRMPoolReserve_availablePos_nb(ZRMemoryPool *pool, size_t pos, size_t nb)
+{
+	return ZRMPOOLRESERVE_AVAILABLEPOS_NB(pool, pos, nb);
+}
+
+bool ZRMPoolReserve_availablePos(ZRMemoryPool *pool, size_t pos)
+{
+	return ZRMPOOLRESERVE_AVAILABLEPOS(pool, pos);
+}
+
+void* ZRMPoolReserve_reservePos_nb(ZRMemoryPool *pool, size_t pos, size_t nb, bool checkAvailability)
+{
+	return ZRMPOOLRESERVE_RESERVEPOS_NB(pool, pos, nb, checkAvailability);
+}
+
+void* ZRMPoolReserve_reservePos(ZRMemoryPool *pool, size_t pos, bool checkAvailability)
+{
+	return ZRMPOOLRESERVE_RESERVEPOS(pool, pos, checkAvailability);
+}
