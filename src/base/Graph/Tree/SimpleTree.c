@@ -62,12 +62,6 @@ static void fdestroy(ZRTree *tree)
 // NODE
 // ============================================================================
 
-static size_t fNodeSize(ZRTree *tree, ZRTreeNode *node)
-{
-	return sizeof( STRUCT_NODE_AUTO(tree)
-	);
-}
-
 static ZRTreeNode* fNode_getObj(ZRTree *tree, ZRTreeNode *node)
 {
 	TYPEDEF_NODE_AUTO(tree);
@@ -112,7 +106,6 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 	*strategy = (ZRSimpleTreeStrategy ) { //
 		.fsdataSize = fsdataSize, //
 		.fstrategySize = fstrategySize, //
-		.fNodeSize = fNodeSize, //
 		.fNodeGetObj = (ZRTreeNode_fgetObj_t)fNode_getObj, //
 		.fNodeGetParent = (ZRTreeNode_fgetParent_t)fNode_getParent, //
 		.fNodeGetChild = (ZRTreeNode_fgetChild_t)fNode_getChild, //

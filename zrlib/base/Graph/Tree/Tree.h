@@ -22,7 +22,6 @@ typedef struct ZRTreeEdgeS ZRTreeEdge;
 
 // ============================================================================
 
-typedef size_t ____ (*ZRTreeNode_fsize_t)(________ ZRTree*, ZRTreeNode*);
 typedef void* _____ (*ZRTreeNode_fgetObj_t)(______ ZRTree*, ZRTreeNode*);
 typedef ZRTreeNode* (*ZRTreeNode_fgetParent_t)(___ ZRTree*, ZRTreeNode*);
 typedef ZRTreeNode* (*ZRTreeNode_fgetChild_t)(____ ZRTree*, ZRTreeNode*, size_t pos);
@@ -38,7 +37,6 @@ typedef void _ (*ZRTree_fdestroy_t)(ZRTree*);
 	size_t (*fsdataSize)(ZRTree *tree); \
 	size_t (*fstrategySize)(void); \
 	\
-	ZRTreeNode_fsize_t fNodeSize; \
 	ZRTreeNode_fgetObj_t fNodeGetObj; \
 	ZRTreeNode_fgetParent_t fNodeGetParent; \
 	ZRTreeNode_fgetChild_t fNodeGetChild; \
