@@ -56,7 +56,7 @@ void ZRTree_destroy(ZRTree *tree)
 
 size_t ZRTree_getNbNodes(ZRTree *tree)
 {
-	return tree->strategy->fgetNbNodes(tree);
+	return tree->nbNodes;
 }
 
 size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut)

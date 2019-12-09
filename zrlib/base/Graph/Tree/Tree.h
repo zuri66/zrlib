@@ -28,7 +28,6 @@ typedef ZRTreeNode* (*ZRTreeNode_fgetChild_t)(____ ZRTree*, ZRTreeNode*, size_t 
 typedef size_t ____ (*ZRTreeNode_fgetNbChilds_t)(_ ZRTree*, ZRTreeNode*);
 typedef size_t ____ (*ZRTreeNode_fgetNChilds_t)(__ ZRTree*, ZRTreeNode*, ZRTreeNode **nodes_out, size_t maxNbOut);
 
-typedef size_t (*ZRTree_fgetNbNodes_t)(_ ZRTree*);
 typedef size_t (*ZRTree_fgetNNodes_t)(__ ZRTree*, ZRTreeNode **nodes_out, size_t maxNbOut);
 typedef void _ (*ZRTree_fdone_t)(__ ZRTree*);
 typedef void _ (*ZRTree_fdestroy_t)(ZRTree*);
@@ -43,7 +42,6 @@ typedef void _ (*ZRTree_fdestroy_t)(ZRTree*);
 	ZRTreeNode_fgetNbChilds_t fNodeGetNbChilds; \
 	ZRTreeNode_fgetNChilds_t fNodeGetNChilds; \
 	\
-	ZRTree_fgetNbNodes_t fgetNbNodes; \
 	ZRTree_fgetNNodes_t fgetNNodes; \
 	ZRTree_fdone_t fdone; \
 	\

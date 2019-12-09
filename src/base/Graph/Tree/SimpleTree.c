@@ -24,11 +24,6 @@ static size_t fstrategySize(void)
 	return sizeof(ZRSimpleTreeStrategy);
 }
 
-static size_t fgetNbNodes(ZRTree *tree)
-{
-	return ZRVECTOR_NBOBJ(DATA(tree)->nodes);
-}
-
 static size_t fgetNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbNodes)
 {
 	TYPEDEF_NODE_AUTO(tree);
@@ -111,7 +106,6 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 		.fNodeGetChild = (ZRTreeNode_fgetChild_t)fNode_getChild, //
 		.fNodeGetNbChilds = (ZRTreeNode_fgetNbChilds_t)fNode_getNbChilds, //
 		.fNodeGetNChilds = (ZRTreeNode_fgetNChilds_t)fNode_getNChilds, //
-		.fgetNbNodes = fgetNbNodes, //
 		.fgetNNodes = fgetNNodes, //
 		.fdone = fdone, //
 		.fdestroy = fdestroy, //
