@@ -93,7 +93,7 @@ static void fBuilder_end(ZRSimpleTreeBuilder *builder)
 	ZRVECTOR_DEC(builder->nodeStack);
 }
 
-static inline void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNodes, ZRTree *tree, ZRSimpleTreeNode *parent, ZRSimpleTreeNode *treeNode_out)
+static inline void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNodes, ZRSimpleTree *tree, ZRSimpleTreeNode *parent, ZRSimpleTreeNode *treeNode_out)
 {
 	*treeNode_out = (ZRSimpleTreeNode ) { //
 		.nbChilds = ZRVECTOR_NBOBJ(currentBNodes->childs), //
@@ -104,9 +104,9 @@ static inline void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 	memcpy(((ZRSimpleTreeNodeInstance*)treeNode_out)->obj, currentBNodes->obj, builder->objSize);
 }
 
-static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNode, ZRTree *tree, ZRSimpleTreeNode *currentTreeNode)
+static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNode, ZRSimpleTree *tree, ZRSimpleTreeNode *currentTreeNode)
 {
-	ZRVector *const treeNodes = DATA(tree)->nodes;
+	ZRVector *const treeNodes = tree->nodes;
 	size_t const nbChilds = ZRVECTOR_NBOBJ(currentBNode->childs);
 	size_t const nbNodes = builder->build_nbNodes;
 	size_t i;
@@ -129,13 +129,13 @@ static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder
 	}
 }
 
-static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRTree *tree)
+static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRSimpleTree *tree)
 {
 	size_t const nodeSize = sizeof(STRUCT_NODE(builder->objSize)
 	);
 	ZRVector *const treeNodes = ZRVector2SideStrategy_createFixed(builder->nbNodes, nodeSize, builder->allocator);
 
-	DATA(tree)->nodes = treeNodes;
+	tree->nodes = treeNodes;
 	ZRVECTOR_RESERVE(treeNodes, 0, builder->nbNodes);
 
 	ZRSimpleTreeNode *const treeRoot = ZRVECTOR_GET(treeNodes, 0);
@@ -147,11 +147,12 @@ static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRTree *tree)
 	fBuilder_build_rec(builder, builder->root, tree, treeRoot);
 
 	tree->nbNodes = builder->nbNodes;
+	tree->nbEdges = builder->nbNodes ? builder->nbNodes - 1 : 0;
 }
 
-static ZRTree* fBuilder_new(ZRSimpleTreeBuilder *builder)
+static ZRSimpleTree* fBuilder_new(ZRSimpleTreeBuilder *builder)
 {
-	ZRTree *tree = ZRSimpleTree_create(builder->objSize, builder->allocator, NULL);
+	ZRSimpleTree *tree = (ZRSimpleTree*)ZRSimpleTree_create(builder->objSize, builder->allocator, NULL);
 	fBuilder_build(builder, tree);
 	return tree;
 }

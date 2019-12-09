@@ -14,17 +14,12 @@
 // STRATEGY FUNCTIONS
 // ============================================================================
 
-static size_t fsdataSize(ZRTree *tree)
-{
-	return sizeof(ZRSimpleTreeData);
-}
-
 static size_t fstrategySize(void)
 {
 	return sizeof(ZRSimpleTreeStrategy);
 }
 
-static size_t fgetNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbNodes)
+static size_t fgetNNodes(ZRSimpleTree *tree, ZRTreeNode **nodes_out, size_t maxNbNodes)
 {
 	TYPEDEF_NODE_AUTO(tree);
 	size_t const nbNodes = tree->nbNodes;
@@ -38,19 +33,18 @@ static size_t fgetNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbNodes
 	return nb;
 }
 
-static void fdone(ZRTree *tree)
+static void fdone(ZRSimpleTree *tree)
 {
-	ZRVector2SideStrategy_destroy(DATA(tree)->nodes);
-	ZRFREE(DATA(tree)->allocator, STRATEGY(tree));
+	ZRVector2SideStrategy_destroy(tree->nodes);
+	ZRFREE(tree->allocator, tree->strategy);
 }
 
-static void fdestroy(ZRTree *tree)
+static void fdestroy(ZRSimpleTree *tree)
 {
-	ZRSimpleTreeStrategy *strategy = STRATEGY(tree);
-	ZRAllocator *allocator = DATA(tree)->allocator;
-	ZRVector2SideStrategy_destroy(DATA(tree)->nodes);
+	ZRAllocator *allocator = tree->allocator;
+	ZRVector2SideStrategy_destroy(tree->nodes);
+	ZRFREE(allocator, tree->strategy);
 	ZRFREE(allocator, tree);
-	ZRFREE(allocator, strategy);
 }
 
 // ============================================================================
@@ -63,24 +57,31 @@ static ZRTreeNode* fNode_getObj(ZRTree *tree, ZRTreeNode *node)
 	return ((ZRSimpleTreeNodeInstance*)node)->obj;
 }
 
-static ZRTreeNode* fNode_getParent(ZRTree *tree, ZRSimpleTreeNode *node)
+static ZRTreeNode* fNode_getTheParent(ZRTree *tree, ZRSimpleTreeNode *node)
 {
 	return node->parent;
 }
 
-static ZRTreeNode* fNode_getChild(ZRTree *tree, ZRSimpleTreeNode *node, size_t pos)
+static ZRTreeNode* fNode_getParent(ZRSimpleTree *tree, ZRSimpleTreeNode *node, size_t pos)
+{
+	TYPEDEF_NODE_AUTO(tree);
+	ZRSimpleTreeNodeInstance *parents = (ZRSimpleTreeNodeInstance*)(node->parent);
+	return (ZRTreeNode*)(parents + pos);
+}
+
+static ZRTreeNode* fNode_getChild(ZRSimpleTree *tree, ZRSimpleTreeNode *node, size_t pos)
 {
 	TYPEDEF_NODE_AUTO(tree);
 	ZRSimpleTreeNodeInstance *childs = (ZRSimpleTreeNodeInstance*)(node->childs);
 	return (ZRTreeNode*)(childs + pos);
 }
 
-static size_t fNode_getNbChilds(ZRTree *tree, ZRSimpleTreeNode *node)
+static size_t fNode_getNbChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node)
 {
 	return node->nbChilds;
 }
 
-static size_t fNode_getNChilds(ZRTree *tree, ZRSimpleTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbNodes)
+static size_t fNode_getNChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbNodes)
 {
 	TYPEDEF_NODE_AUTO(tree);
 	size_t const nbNodes = node->nbChilds;
@@ -99,38 +100,36 @@ static size_t fNode_getNChilds(ZRTree *tree, ZRSimpleTreeNode *node, ZRTreeNode 
 static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 {
 	*strategy = (ZRSimpleTreeStrategy ) { //
-		.fsdataSize = fsdataSize, //
 		.fstrategySize = fstrategySize, //
-		.fNodeGetObj = (ZRTreeNode_fgetObj_t)fNode_getObj, //
-		.fNodeGetParent = (ZRTreeNode_fgetParent_t)fNode_getParent, //
-		.fNodeGetChild = (ZRTreeNode_fgetChild_t)fNode_getChild, //
-		.fNodeGetNbChilds = (ZRTreeNode_fgetNbChilds_t)fNode_getNbChilds, //
-		.fNodeGetNChilds = (ZRTreeNode_fgetNChilds_t)fNode_getNChilds, //
-		.fgetNNodes = fgetNNodes, //
-		.fdone = fdone, //
-		.fdestroy = fdestroy, //
+		.fNodeGetObj = (ZRGraphNode_fgetObj_t)fNode_getObj, //
+		.fNodeGetTheParent = (ZRTreeNode_fgetTheParent_t)fNode_getTheParent, //
+		.fNodeGetParent = (ZRGraphNode_fgetParent_t)fNode_getParent, //
+		.fNodeGetChild = (ZRGraphNode_fgetChild_t)fNode_getChild, //
+		.fNodeGetNbChilds = (ZRGraphNode_fgetNbChilds_t)fNode_getNbChilds, //
+		.fNodeGetNChilds = (ZRGraphNode_fgetNChilds_t)fNode_getNChilds, //
+		.fgetNNodes = (ZRGraph_fgetNNodes_t)fgetNNodes, //
+		.fdone = (ZRGraph_fdone_t)fdone, //
+//		.fdestroy = (ZRGraph_fdestroy_t)fdestroy, //
 		};
 }
 
 ZRTree* ZRSimpleTree_alloc(size_t objSize, ZRAllocator *allocator)
 {
-	return ZRALLOC(allocator, sizeof(ZRTree) + sizeof(ZRSimpleTreeData));
+	return ZRALLOC(allocator, sizeof(ZRSimpleTree));
 }
 
 ZRTree* ZRSimpleTree_create(size_t objSize, ZRAllocator *allocator, ZRVector *nodes)
 {
 	ZRSimpleTreeStrategy *strategy = ZRALLOC(allocator, sizeof(ZRSimpleTreeStrategy));
 	ZRSimpleTreeStrategy_init(strategy);
-	strategy->fdestroy = fdestroy;
+	strategy->fdestroy = (ZRGraph_fdestroy_t)fdestroy;
 
-	ZRTree *tree = ZRSimpleTree_alloc(objSize, allocator);
-	*tree = (ZRTree ) { //
-		.strategy = (ZRTreeStrategy*)strategy, //
-		};
-	*DATA(tree) = (ZRSimpleTreeData ) { //
+	ZRSimpleTree *tree = (ZRSimpleTree*)ZRSimpleTree_alloc(objSize, allocator);
+	*tree = (ZRSimpleTree ) { //
+		.strategy = strategy, //
 		.nodes = nodes, //
 		.objSize = objSize, //
 		.allocator = allocator, //
 		};
-	return tree;
+	return (ZRTree*)tree;
 }

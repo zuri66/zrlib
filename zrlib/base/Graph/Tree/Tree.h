@@ -6,6 +6,8 @@
 #ifndef ZRTREE_H
 #define ZRTREE_H
 
+#include "../Graph.h"
+
 #include <zrlib/syntax_pad.h>
 
 #include <stdlib.h>
@@ -22,46 +24,25 @@ typedef struct ZRTreeEdgeS ZRTreeEdge;
 
 // ============================================================================
 
-typedef void* _____ (*ZRTreeNode_fgetObj_t)(______ ZRTree*, ZRTreeNode*);
-typedef ZRTreeNode* (*ZRTreeNode_fgetParent_t)(___ ZRTree*, ZRTreeNode*);
-typedef ZRTreeNode* (*ZRTreeNode_fgetChild_t)(____ ZRTree*, ZRTreeNode*, size_t pos);
-typedef size_t ____ (*ZRTreeNode_fgetNbChilds_t)(_ ZRTree*, ZRTreeNode*);
-typedef size_t ____ (*ZRTreeNode_fgetNChilds_t)(__ ZRTree*, ZRTreeNode*, ZRTreeNode **nodes_out, size_t maxNbOut);
-
-typedef size_t (*ZRTree_fgetNNodes_t)(__ ZRTree*, ZRTreeNode **nodes_out, size_t maxNbOut);
-typedef void _ (*ZRTree_fdone_t)(__ ZRTree*);
-typedef void _ (*ZRTree_fdestroy_t)(ZRTree*);
+typedef ZRTreeNode* (*ZRTreeNode_fgetTheParent_t)(ZRTree*, ZRTreeNode*);
 
 #define ZRTREESTRATEGY_MEMBERS() \
-	size_t (*fsdataSize)(ZRTree *tree); \
-	size_t (*fstrategySize)(void); \
-	\
-	ZRTreeNode_fgetObj_t fNodeGetObj; \
-	ZRTreeNode_fgetParent_t fNodeGetParent; \
-	ZRTreeNode_fgetChild_t fNodeGetChild; \
-	ZRTreeNode_fgetNbChilds_t fNodeGetNbChilds; \
-	ZRTreeNode_fgetNChilds_t fNodeGetNChilds; \
-	\
-	ZRTree_fgetNNodes_t fgetNNodes; \
-	ZRTree_fdone_t fdone; \
-	\
-	/** @Optional */ \
-	ZRTree_fdestroy_t fdestroy
+	ZRGRAPHSTRATEGY_MEMBERS(); \
+	ZRTreeNode_fgetTheParent_t fNodeGetTheParent;
 
 struct ZRTreeStrategyS
 {
-	ZRTREESTRATEGY_MEMBERS();
+	ZRTREESTRATEGY_MEMBERS()
 };
+
+#define ZRTREE_MEMBERS(TYPE_STRATEGY) \
+	ZRGRAPH_MEMBERS(TYPE_STRATEGY) \
+	ZRTreeNode *root
 
 struct ZRTreeS
 {
-	size_t nbNodes;
-
-	ZRTreeNode *root;
-
-	ZRTreeStrategy *strategy;
-
-	char sdata[];
+	ZRTREE_MEMBERS(ZRTreeStrategy)
+	;
 };
 
 // ============================================================================
@@ -74,14 +55,97 @@ void ZRTree_destroy(ZRTree *tree);
 size_t ZRTree_getNbNodes(_ ZRTree *tree);
 size_t ZRTree_getNNodes(__ ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut);
 
+
 // ============================================================================
 // NODE
 // ============================================================================
 
 void* _____ ZRTreeNode_getObj(______ ZRTree *tree, ZRTreeNode *node);
-ZRTreeNode* ZRTreeNode_getParent(___ ZRTree *tree, ZRTreeNode *node);
+ZRTreeNode* ZRTreeNode_getTheParent(ZRTree *tree, ZRTreeNode *node);
+ZRTreeNode* ZRTreeNode_getParent(___ ZRTree *tree, ZRTreeNode *node, size_t pos);
 ZRTreeNode* ZRTreeNode_getChild(____ ZRTree *tree, ZRTreeNode *node, size_t pos);
 size_t ____ ZRTreeNode_getNbChilds(_ ZRTree *tree, ZRTreeNode *node);
 size_t ____ ZRTreeNode_getNChilds(__ ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbOut);
+
+
+// ============================================================================
+
+
+// ============================================================================
+// TREE
+// ============================================================================
+
+static inline void ZRTREE_DONE(ZRTree *tree)
+{
+	ZRGRAPH_DONE((ZRGraph*)tree);
+}
+
+static inline void ZRTREE_DESTROY(ZRTree *tree)
+{
+	ZRGRAPH_DESTROY((ZRGraph*)tree);
+}
+
+static inline size_t ZRTREE_GETNBNODES(ZRTree *tree)
+{
+	return ZRGRAPH_GETNBNODES((ZRGraph*)tree);
+}
+
+static inline size_t ZRTREE_GETNNODES(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut)
+{
+	return ZRGRAPH_GETNNODES((ZRGraph*)tree, (ZRGraphNode**)nodes_out, maxNbOut);
+}
+
+// ============================================================================
+// EDGE
+// ============================================================================
+
+static inline void* ZRTREEEDGE_GETOBJ(ZRTree *tree, ZRGraphNode *a, ZRGraphNode *b)
+{
+	return ZRGRAPHEDGE_GETOBJ((ZRGraph*)tree, a, b);
+}
+
+// ============================================================================
+// NODE
+// ============================================================================
+
+static inline void* ZRTREENODE_GETOBJ(ZRTree *tree, ZRGraphNode *node)
+{
+	return ZRGRAPHNODE_GETOBJ((ZRGraph*)tree, node);
+}
+
+static inline ZRTreeNode* ZRTREENODE_GETTHEPARENT(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetTheParent(tree, node);
+}
+
+static inline ZRTreeNode* ZRTREENODE_GETPARENT(ZRTree *tree, ZRTreeNode *node, size_t pos)
+{
+	return ZRGRAPHNODE_GETPARENT((ZRGraph*)tree, node, pos);
+}
+
+static inline ZRTreeNode* ZRTREENODE_GETCHILD(ZRTree *tree, ZRTreeNode *node, size_t pos)
+{
+	return ZRGRAPHNODE_GETCHILD((ZRGraph*)tree, node, pos);
+}
+
+static inline size_t ZRTREENODE_GETNBPARENTS(ZRTree *tree, ZRTreeNode *node)
+{
+	return ZRGRAPHNODE_GETNBPARENTS((ZRGraph*)tree, node);
+}
+
+static inline size_t ZRTREENODE_GETNBCHILDS(ZRTree *tree, ZRTreeNode *node)
+{
+	return ZRGRAPHNODE_GETNBCHILDS((ZRGraph*)tree, node);
+}
+
+static inline size_t ZRTREENODE_GETNPARENTS(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbOut)
+{
+	return ZRGRAPHNODE_GETNPARENTS((ZRGraph*)tree, (ZRGraphNode*)node, (ZRGraphNode*)nodes_out, maxNbOut);
+}
+
+static inline size_t ZRTREENODE_GETNCHILDS(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbOut)
+{
+	return ZRGRAPHNODE_GETNCHILDS((ZRGraph*)tree, (ZRGraphNode*)node, (ZRGraphNode*)nodes_out, maxNbOut);
+}
 
 #endif

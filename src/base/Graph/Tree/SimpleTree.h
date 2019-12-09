@@ -3,13 +3,7 @@
  * @date mercredi 4 décembre 2019, 23:53:30 (UTC+0100)
  */
 
-#define STRATEGY(TREE) ((ZRSimpleTreeStrategy*)(TREE)->strategy)
-#define DATA(TREE) ((ZRSimpleTreeData*)(TREE)->sdata)
-
-// ============================================================================
-//Data
-
-typedef struct ZRSimpleTreeDataS ZRSimpleTreeData;
+typedef struct ZRSimpleTreeS ZRSimpleTree;
 typedef struct ZRSimpleTreeStrategyS ZRSimpleTreeStrategy;
 
 struct ZRSimpleTreeStrategyS
@@ -17,8 +11,10 @@ struct ZRSimpleTreeStrategyS
 	ZRTREESTRATEGY_MEMBERS();
 };
 
-struct ZRSimpleTreeDataS
+struct ZRSimpleTreeS
 {
+	ZRTREE_MEMBERS(ZRSimpleTreeStrategy);
+
 	size_t objSize;
 
 	ZRAllocator *allocator;
@@ -42,6 +38,6 @@ struct NAME{ \
 }
 
 #define TYPEDEF_NODE_AUTO(TREE) typedef STRUCT_NODE_AUTO(TREE) ZRSimpleTreeNodeInstance
-#define STRUCT_NODE_AUTO(TREE) STRUCT_NODE(DATA(TREE)->objSize)
+#define STRUCT_NODE_AUTO(TREE) STRUCT_NODE(((ZRSimpleTree*)TREE)->objSize)
 
 STRUCT_NODE_NAME(ZRSimpleTreeNodeS,);

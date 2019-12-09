@@ -45,23 +45,22 @@ ZRTreeNode* ZRTree_getRoot(ZRTree *tree)
 
 void ZRTree_done(ZRTree *tree)
 {
-	tree->strategy->fdone(tree);
+	ZRTREE_DONE(tree);
 }
 
 void ZRTree_destroy(ZRTree *tree)
 {
-	if (tree->strategy->fdestroy)
-		tree->strategy->fdestroy(tree);
+	ZRTREE_DESTROY(tree);
 }
 
 size_t ZRTree_getNbNodes(ZRTree *tree)
 {
-	return tree->nbNodes;
+	return ZRTREE_GETNBNODES(tree);
 }
 
 size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut)
 {
-	return tree->strategy->fgetNNodes(tree, nodes_out, maxNbOut);
+	return ZRTREE_GETNNODES(tree, nodes_out, maxNbOut);
 }
 
 // ============================================================================
@@ -70,25 +69,31 @@ size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut)
 
 void* ZRTreeNode_getObj(ZRTree *tree, ZRTreeNode *node)
 {
-	return tree->strategy->fNodeGetObj(tree, node);
+	return ZRTREENODE_GETOBJ(tree, node);
 }
 
-ZRTreeNode* ZRTreeNode_getParent(ZRTree *tree, ZRTreeNode *node)
+ZRTreeNode* ZRTreeNode_getParent(ZRTree *tree, ZRTreeNode *node, size_t pos)
 {
-	return tree->strategy->fNodeGetParent(tree, node);
+	return ZRTREENODE_GETPARENT(tree, node, pos);
+}
+
+ZRTreeNode* ZRTreeNode_getTheParent(ZRTree *tree, ZRTreeNode *node)
+{
+	return ZRTREENODE_GETTHEPARENT(tree, node);
 }
 
 ZRTreeNode* ZRTreeNode_getChild(ZRTree *tree, ZRTreeNode *node, size_t pos)
 {
-	return tree->strategy->fNodeGetChild(tree, node, pos);
+	return ZRTREENODE_GETCHILD(tree, node, pos);
 }
 
 size_t ZRTreeNode_getNbChilds(ZRTree *tree, ZRTreeNode *node)
 {
-	return tree->strategy->fNodeGetNbChilds(tree, node);
+	return ZRTREENODE_GETNBCHILDS(tree, node);
 }
 
 size_t ZRTreeNode_getNChilds(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbOut)
 {
-	return tree->strategy->fNodeGetNChilds(tree, node, nodes_out, maxNbOut);
+	return ZRTREENODE_GETNCHILDS(tree, node, nodes_out, maxNbOut);
 }
+
