@@ -17,6 +17,7 @@ set(SRCS
 	src/base/Bits/Bits.c
 	src/base/List/List.c
 	src/base/MemoryOp.c
+	src/base/Graph/Graph.c
 	src/base/Graph/Tree/SimpleTree.c
 	src/base/Graph/Tree/SimpleTreeBuilder.c
 	src/base/Graph/Tree/Tree.c
@@ -39,6 +40,7 @@ set(HEADERS
 	zrlib/base/macro.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
+	zrlib/base/Graph/Graph.h
 	zrlib/base/Graph/Tree/SimpleTree.h
 	zrlib/base/Graph/Tree/Tree.h
 	zrlib/base/Vector/Vector.h
