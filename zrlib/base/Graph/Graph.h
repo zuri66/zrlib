@@ -12,10 +12,10 @@
 
 // ============================================================================
 
-typedef struct ZRGraphS ZRGraph;
-typedef struct ZRGraphEdgeS ZRGraphEdge;
+typedef struct ZRGraphS _______ ZRGraph;
+typedef struct ZRGraphEdgeS ___ ZRGraphEdge;
 typedef struct ZRGraphStrategyS ZRGraphStrategy;
-typedef void ZRGraphNode;
+typedef struct ZRGraphNodeS ___ ZRGraphNode;
 
 // ============================================================================
 
@@ -67,11 +67,18 @@ struct ZRGraphStrategyS
 	size_t nbNodes; \
 	size_t nbEdges; \
 	\
-	TYPE_STRATEGY *strategy; \
+	TYPE_STRATEGY *strategy
 
 struct ZRGraphS
 {
 	ZRGRAPH_MEMBERS(ZRGraphStrategy);
+};
+
+#define ZRGRAPHNODE_MEMBERS()
+
+struct SRGraphNodeS
+{
+	ZRGRAPHNODE_MEMBERS();
 };
 
 struct ZRGraphEdgeS
