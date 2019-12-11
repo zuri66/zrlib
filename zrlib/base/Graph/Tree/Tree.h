@@ -36,7 +36,7 @@ struct ZRTreeStrategyS
 };
 
 #define ZRTREE_MEMBERS(TYPE_STRATEGY) \
-	ZRGRAPH_MEMBERS(TYPE_STRATEGY) \
+	ZRGRAPH_MEMBERS(TYPE_STRATEGY); \
 	ZRTreeNode *root
 
 struct ZRTreeS
@@ -112,9 +112,9 @@ static inline void* ZRTREEEDGE_GETOBJ(ZRTree *tree, ZRGraphNode *a, ZRGraphNode 
 // NODE
 // ============================================================================
 
-static inline void* ZRTREENODE_GETOBJ(ZRTree *tree, ZRGraphNode *node)
+static inline void* ZRTREENODE_GETOBJ(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRGRAPHNODE_GETOBJ((ZRGraph*)tree, node);
+	return ZRGRAPHNODE_GETOBJ((ZRGraph*)tree, (ZRGraphNode*)node);
 }
 
 static inline ZRTreeNode* ZRTREENODE_GETTHEPARENT(ZRTree *tree, ZRTreeNode *node)
@@ -124,22 +124,22 @@ static inline ZRTreeNode* ZRTREENODE_GETTHEPARENT(ZRTree *tree, ZRTreeNode *node
 
 static inline ZRTreeNode* ZRTREENODE_GETPARENT(ZRTree *tree, ZRTreeNode *node, size_t pos)
 {
-	return ZRGRAPHNODE_GETPARENT((ZRGraph*)tree, node, pos);
+	return (ZRTreeNode*)ZRGRAPHNODE_GETPARENT((ZRGraph*)tree, (ZRGraphNode*)node, pos);
 }
 
 static inline ZRTreeNode* ZRTREENODE_GETCHILD(ZRTree *tree, ZRTreeNode *node, size_t pos)
 {
-	return ZRGRAPHNODE_GETCHILD((ZRGraph*)tree, node, pos);
+	return (ZRTreeNode*)ZRGRAPHNODE_GETCHILD((ZRGraph*)tree, (ZRGraphNode*)node, pos);
 }
 
 static inline size_t ZRTREENODE_GETNBPARENTS(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRGRAPHNODE_GETNBPARENTS((ZRGraph*)tree, node);
+	return ZRGRAPHNODE_GETNBPARENTS((ZRGraph*)tree, (ZRGraphNode*)node);
 }
 
 static inline size_t ZRTREENODE_GETNBCHILDS(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRGRAPHNODE_GETNBCHILDS((ZRGraph*)tree, node);
+	return ZRGRAPHNODE_GETNBCHILDS((ZRGraph*)tree, (ZRGraphNode*)node);
 }
 
 static inline size_t ZRTREENODE_GETNPARENTS(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut)
