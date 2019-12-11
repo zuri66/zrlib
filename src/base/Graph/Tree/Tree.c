@@ -62,6 +62,10 @@ size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t offset, siz
 {
 	return ZRTREE_GETNNODES(tree, nodes_out, offset, maxNbOut);
 }
+
+size_t ZRTree_getNObjs(ZRTree *tree, void *objs_out, size_t offset, size_t maxNbOut)
+{
+	return ZRTREE_GETNOBJS(tree, objs_out, offset, maxNbOut);
 }
 
 // ============================================================================
@@ -98,3 +102,7 @@ size_t ZRTreeNode_getNChilds(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_
 	return ZRTREENODE_GETNCHILDS(tree, node, nodes_out, offset, maxNbOut);
 }
 
+size_t ZRTreeNode_getNObjs(ZRTree *tree, ZRTreeNode *node, void *objs_out, size_t offset, size_t maxNbOut)
+{
+	return ZRTREENODE_GETNOBJS(tree, node, objs_out, offset, maxNbOut);
+}

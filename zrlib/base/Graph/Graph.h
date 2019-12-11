@@ -28,8 +28,10 @@ typedef size_t _____ (*ZRGraphNode_fgetNbParents_t)(_ ZRGraph*, ZRGraphNode*);
 typedef size_t _____ (*ZRGraphNode_fgetNbChilds_t)(__ ZRGraph*, ZRGraphNode*);
 typedef size_t _____ (*ZRGraphNode_fgetNParents_t)(__ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 typedef size_t _____ (*ZRGraphNode_fgetNChilds_t)(___ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+typedef size_t _____ (*ZRGraphNode_fgetNObjs_t)(_____ ZRGraph*, ZRGraphNode*, ZRGraphNode *objs_out, _ size_t offset, size_t maxNbOutBytes);
 
 typedef size_t (*ZRGraph_fgetNNodes_t)(_ ZRGraph*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+typedef size_t (*ZRGraph_fgetNObjs_t)(__ ZRGraph*, ________ void *objs_out, size_t offset, size_t maxNbOutBytes);
 typedef void _ (*ZRGraph_fdone_t)(______ ZRGraph*);
 typedef void _ (*ZRGraph_fdestroy_t)(___ ZRGraph*);
 
@@ -46,8 +48,10 @@ typedef void _ (*ZRGraph_fdestroy_t)(___ ZRGraph*);
 	ZRGraphNode_fgetNbChilds_t fNodeGetNbChilds; \
 	ZRGraphNode_fgetNParents_t fNodeGetNParents; \
 	ZRGraphNode_fgetNChilds_t fNodeGetNChilds; \
+	ZRGraphNode_fgetNObjs_t fNodeGetNObjs; \
 	\
 	ZRGraph_fgetNNodes_t fgetNNodes; \
+	ZRGraph_fgetNObjs_t fgetNObjs; \
 	ZRGraph_fdone_t fdone; \
 	\
 	/** @Optional */ \
@@ -86,6 +90,7 @@ void ZRGraph_destroy(ZRGraph *graph);
 
 size_t ZRGraph_getNbNodes(_ ZRGraph *graph);
 size_t ZRGraph_getNNodes(__ ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+size_t ZRGraph_getNObjs(___ ZRGraph *graph, void *objs_out, size_t offset, size_t maxNbOut);
 
 // ============================================================================
 // EDGE
@@ -104,10 +109,9 @@ size_t _____ ZRGraphNode_getNbParents(_ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNbChilds(__ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNParents(__ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t _____ ZRGraphNode_getNChilds(___ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+size_t _____ ZRGraphNode_getNObjs(_____ ZRGraph *graph, ZRGraphNode *node, ________ void *objs_out, size_t offset, size_t maxNbOutBytes);
 
 // ============================================================================
-
-
 
 // ============================================================================
 // TREE
@@ -133,6 +137,10 @@ static inline size_t ZRGRAPH_GETNNODES(ZRGraph *graph, ZRGraphNode **nodes_out, 
 {
 	return graph->strategy->fgetNNodes(graph, nodes_out, offset, maxNbOut);
 }
+
+static inline size_t ZRGRAPH_GETNOBJS(ZRGraph *graph, void *objs_out, size_t offset, size_t maxNbOut)
+{
+	return graph->strategy->fgetNObjs(graph, objs_out, offset, maxNbOut);
 }
 
 // ============================================================================
@@ -182,6 +190,10 @@ static inline size_t ZRGRAPHNODE_GETNCHILDS(ZRGraph *graph, ZRGraphNode *node, Z
 {
 	return graph->strategy->fNodeGetNChilds(graph, node, nodes_out, offset, maxNbOut);
 }
+
+static inline size_t ZRGRAPHNODE_GETNOBJS(ZRGraph *graph, ZRGraphNode *node, void *objs_out, size_t offset, size_t maxNbOutBytes)
+{
+	return graph->strategy->fNodeGetNObjs(graph, node, objs_out, offset, maxNbOutBytes);
 }
 
 #endif

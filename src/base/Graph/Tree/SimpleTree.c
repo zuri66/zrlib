@@ -37,6 +37,28 @@ static size_t fgetNNodes(ZRSimpleTree *tree, ZRTreeNode **nodes_out, size_t offs
 	return nb;
 }
 
+static size_t fgetNObjs(ZRSimpleTree *tree, void *objs_out, size_t offset, size_t maxNbBytes)
+{
+	TYPEDEF_NODE_AUTO(tree);
+
+	if (offset >= tree->nbNodes)
+		return 0;
+
+	size_t const objSize = tree->objSize;
+	size_t const nbObjs = tree->nbNodes - offset;
+	size_t const maxNbObjs = maxNbBytes / objSize;
+	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)tree->root + offset;
+	size_t const nb = nbObjs < maxNbObjs ? nbObjs : maxNbObjs;
+	size_t i;
+
+	for (i = offset; i < nb; i++, nodes++)
+	{
+		memcpy(objs_out, nodes->obj, objSize);
+		objs_out = (char*)objs_out + objSize;
+	}
+	return nb;
+}
+
 static void fdone(ZRSimpleTree *tree)
 {
 	ZRVector2SideStrategy_destroy(tree->nodes);
@@ -103,6 +125,28 @@ static size_t fNode_getNChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node, ZRTre
 	return nb;
 }
 
+static size_t fNode_getNObjs(ZRSimpleTree *tree, ZRSimpleTreeNode *node, void *objs_out, size_t offset, size_t maxNbBytes)
+{
+	TYPEDEF_NODE_AUTO(tree);
+
+	if (offset >= node->nbChilds)
+		return 0;
+
+	size_t const objSize = tree->objSize;
+	size_t const nbObjs = node->nbChilds - offset;
+	size_t const maxNbObjs = maxNbBytes / objSize;
+	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)nodes + offset;
+	size_t const nb = nbObjs < maxNbObjs ? nbObjs : maxNbObjs;
+	size_t i;
+
+	for (i = offset; i < nb; i++, nodes++)
+	{
+		memcpy(objs_out, nodes->obj, objSize);
+		objs_out = (char*)objs_out + objSize;
+	}
+	return nb;
+}
+
 // ============================================================================
 
 static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
@@ -115,7 +159,9 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 		.fNodeGetChild = (ZRGraphNode_fgetChild_t)fNode_getChild, //
 		.fNodeGetNbChilds = (ZRGraphNode_fgetNbChilds_t)fNode_getNbChilds, //
 		.fNodeGetNChilds = (ZRGraphNode_fgetNChilds_t)fNode_getNChilds, //
+		.fNodeGetNObjs = (ZRGraphNode_fgetNObjs_t)fNode_getNObjs, //
 		.fgetNNodes = (ZRGraph_fgetNNodes_t)fgetNNodes, //
+		.fgetNObjs = (ZRGraph_fgetNObjs_t)fgetNObjs, //
 		.fdone = (ZRGraph_fdone_t)fdone, //
 //		.fdestroy = (ZRGraph_fdestroy_t)fdestroy, //
 		};
