@@ -29,9 +29,9 @@ size_t ZRGraph_getNbNodes(ZRGraph *graph)
 	return ZRGRAPH_GETNBNODES(graph);
 }
 
-size_t ZRGraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t maxNbOut)
+size_t ZRGraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return ZRGRAPH_GETNNODES(graph, nodes_out, maxNbOut);
+	return ZRGRAPH_GETNNODES(graph, nodes_out, offset, maxNbOut);
 }
 
 // ============================================================================
@@ -72,12 +72,13 @@ size_t ZRGraphNode_getNbChilds(ZRGraph *graph, ZRGraphNode *node)
 	return ZRGRAPHNODE_GETNBCHILDS(graph, node);
 }
 
-size_t ZRGraphNode_getNParents(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut)
+size_t ZRGraphNode_getNParents(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return ZRGRAPHNODE_GETNPARENTS(graph, node, nodes_out, maxNbOut);
+	return ZRGRAPHNODE_GETNPARENTS(graph, node, nodes_out, offset, maxNbOut);
 }
 
-size_t ZRGraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut)
+size_t ZRGraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return ZRGRAPHNODE_GETNCHILDS(graph, node, nodes_out, maxNbOut);
+	return ZRGRAPHNODE_GETNCHILDS(graph, node, nodes_out, offset, maxNbOut);
+}
 }

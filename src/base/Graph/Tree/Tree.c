@@ -58,9 +58,10 @@ size_t ZRTree_getNbNodes(ZRTree *tree)
 	return ZRTREE_GETNBNODES(tree);
 }
 
-size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t maxNbOut)
+size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return ZRTREE_GETNNODES(tree, nodes_out, maxNbOut);
+	return ZRTREE_GETNNODES(tree, nodes_out, offset, maxNbOut);
+}
 }
 
 // ============================================================================
@@ -92,8 +93,8 @@ size_t ZRTreeNode_getNbChilds(ZRTree *tree, ZRTreeNode *node)
 	return ZRTREENODE_GETNBCHILDS(tree, node);
 }
 
-size_t ZRTreeNode_getNChilds(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbOut)
+size_t ZRTreeNode_getNChilds(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return ZRTREENODE_GETNCHILDS(tree, node, nodes_out, maxNbOut);
+	return ZRTREENODE_GETNCHILDS(tree, node, nodes_out, offset, maxNbOut);
 }
 

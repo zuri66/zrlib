@@ -19,15 +19,19 @@ static size_t fstrategySize(void)
 	return sizeof(ZRSimpleTreeStrategy);
 }
 
-static size_t fgetNNodes(ZRSimpleTree *tree, ZRTreeNode **nodes_out, size_t maxNbNodes)
+static size_t fgetNNodes(ZRSimpleTree *tree, ZRTreeNode **nodes_out, size_t offset, size_t maxNbNodes)
 {
 	TYPEDEF_NODE_AUTO(tree);
-	size_t const nbNodes = tree->nbNodes;
-	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)tree->root;
+
+	if (offset >= tree->nbNodes)
+		return 0;
+
+	size_t const nbNodes = tree->nbNodes - offset;
+	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)tree->root + offset;
 	size_t const nb = nbNodes < maxNbNodes ? nbNodes : maxNbNodes;
 	size_t i;
 
-	for (i = 0; i < nb; i++, nodes++, nodes_out++)
+	for (i = offset; i < nb; i++, nodes++, nodes_out++)
 		*nodes_out = (ZRTreeNode*)nodes;
 
 	return nb;
@@ -81,15 +85,19 @@ static size_t fNode_getNbChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node)
 	return node->nbChilds;
 }
 
-static size_t fNode_getNChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node, ZRTreeNode **nodes_out, size_t maxNbNodes)
+static size_t fNode_getNChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbNodes)
 {
 	TYPEDEF_NODE_AUTO(tree);
-	size_t const nbNodes = node->nbChilds;
-	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)nodes;
+
+	if (offset >= node->nbChilds)
+		return 0;
+
+	size_t const nbNodes = node->nbChilds - offset;
+	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)nodes + offset;
 	size_t const nb = nbNodes < maxNbNodes ? nbNodes : maxNbNodes;
 	size_t i;
 
-	for (i = 0; i < nb; i++, nodes++, nodes_out++)
+	for (i = offset; i < nb; i++, nodes++, nodes_out++)
 		*nodes_out = (ZRTreeNode*)nodes;
 
 	return nb;

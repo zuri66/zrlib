@@ -26,12 +26,12 @@ typedef ZRGraphNode* (*ZRGraphNode_fgetParent_t)(____ ZRGraph*, ZRGraphNode*, si
 typedef ZRGraphNode* (*ZRGraphNode_fgetChild_t)(_____ ZRGraph*, ZRGraphNode*, size_t pos);
 typedef size_t _____ (*ZRGraphNode_fgetNbParents_t)(_ ZRGraph*, ZRGraphNode*);
 typedef size_t _____ (*ZRGraphNode_fgetNbChilds_t)(__ ZRGraph*, ZRGraphNode*);
-typedef size_t _____ (*ZRGraphNode_fgetNParents_t)(__ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t maxNbOut);
-typedef size_t _____ (*ZRGraphNode_fgetNChilds_t)(___ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t maxNbOut);
+typedef size_t _____ (*ZRGraphNode_fgetNParents_t)(__ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+typedef size_t _____ (*ZRGraphNode_fgetNChilds_t)(___ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 
-typedef size_t (*ZRGraph_fgetNNodes_t)(ZRGraph*, ZRGraphNode **nodes_out, size_t maxNbOut);
-typedef void _ (*ZRGraph_fdone_t)(__ ZRGraph*);
-typedef void _ (*ZRGraph_fdestroy_t)(ZRGraph*);
+typedef size_t (*ZRGraph_fgetNNodes_t)(_ ZRGraph*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+typedef void _ (*ZRGraph_fdone_t)(______ ZRGraph*);
+typedef void _ (*ZRGraph_fdestroy_t)(___ ZRGraph*);
 
 #define ZRGRAPHSTRATEGY_MEMBERS() \
 	size_t (*fsdataSize)(ZRGraph *graph); \
@@ -85,7 +85,7 @@ void ZRGraph_done(__ ZRGraph *graph);
 void ZRGraph_destroy(ZRGraph *graph);
 
 size_t ZRGraph_getNbNodes(_ ZRGraph *graph);
-size_t ZRGraph_getNNodes(__ ZRGraph *graph, ZRGraphNode **nodes_out, size_t maxNbOut);
+size_t ZRGraph_getNNodes(__ ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 
 // ============================================================================
 // EDGE
@@ -102,10 +102,8 @@ ZRGraphNode* ZRGraphNode_getParent(____ ZRGraph *graph, ZRGraphNode *node, size_
 ZRGraphNode* ZRGraphNode_getChild(_____ ZRGraph *graph, ZRGraphNode *node, size_t pos);
 size_t _____ ZRGraphNode_getNbParents(_ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNbChilds(__ ZRGraph *graph, ZRGraphNode *node);
-size_t _____ ZRGraphNode_getNParents(__ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut);
-size_t _____ ZRGraphNode_getNChilds(___ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut);
-
-
+size_t _____ ZRGraphNode_getNParents(__ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+size_t _____ ZRGraphNode_getNChilds(___ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 
 // ============================================================================
 
@@ -131,9 +129,10 @@ static inline size_t ZRGRAPH_GETNBNODES(ZRGraph *graph)
 	return graph->nbNodes;
 }
 
-static inline size_t ZRGRAPH_GETNNODES(ZRGraph *graph, ZRGraphNode **nodes_out, size_t maxNbOut)
+static inline size_t ZRGRAPH_GETNNODES(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return graph->strategy->fgetNNodes(graph, nodes_out, maxNbOut);
+	return graph->strategy->fgetNNodes(graph, nodes_out, offset, maxNbOut);
+}
 }
 
 // ============================================================================
@@ -174,14 +173,15 @@ static inline size_t ZRGRAPHNODE_GETNBCHILDS(ZRGraph *graph, ZRGraphNode *node)
 	return graph->strategy->fNodeGetNbChilds(graph, node);
 }
 
-static inline size_t ZRGRAPHNODE_GETNPARENTS(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut)
+static inline size_t ZRGRAPHNODE_GETNPARENTS(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return graph->strategy->fNodeGetNParents(graph, node, nodes_out, maxNbOut);
+	return graph->strategy->fNodeGetNParents(graph, node, nodes_out, offset, maxNbOut);
 }
 
-static inline size_t ZRGRAPHNODE_GETNCHILDS(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t maxNbOut)
+static inline size_t ZRGRAPHNODE_GETNCHILDS(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
-	return graph->strategy->fNodeGetNChilds(graph, node, nodes_out, maxNbOut);
+	return graph->strategy->fNodeGetNChilds(graph, node, nodes_out, offset, maxNbOut);
+}
 }
 
 #endif
