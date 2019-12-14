@@ -68,6 +68,10 @@ size_t ____ ZRTreeNode_getNbChilds(_ ZRTree *tree, ZRTreeNode *node);
 size_t ____ ZRTreeNode_getNChilds(__ ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t ____ ZRTreeNode_getNObjs(____ ZRTree *tree, ZRTreeNode *node, _______ void *objs_out, size_t offset, size_t maxNbOut);
 
+// Help
+#define ZRTREENODE_FROMARRAYCOORDINATE(tree,array) ZRTreeNode_getNodeFromCoordinate(tree, ZRCARRAY_NBOBJ(array), array)
+ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coord[nb]);
+
 // ============================================================================
 
 // ============================================================================

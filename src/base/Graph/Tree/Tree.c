@@ -106,3 +106,20 @@ size_t ZRTreeNode_getNObjs(ZRTree *tree, ZRTreeNode *node, void *objs_out, size_
 {
 	return ZRTREENODE_GETNOBJS(tree, node, objs_out, offset, maxNbOut);
 }
+
+// Help
+
+
+ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coord[nb])
+{
+	ZRTreeNode *current = tree->root;
+
+	for(size_t i = 0 ; i < nb ; i++)
+	{
+		current = ZRTREENODE_GETCHILD(tree, current, coord[i]);
+
+		if(current == NULL)
+			return NULL;
+	}
+	return current;
+}
