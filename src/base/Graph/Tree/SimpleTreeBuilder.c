@@ -85,7 +85,7 @@ static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
 
 static void* fBuilder_currentNode(ZRSimpleTreeBuilder *builder)
 {
-	return ZRVECTOR_GET(builder->nodeStack, ZRVECTOR_NBOBJ(builder->nodeStack) - 1);
+	return *(void**)ZRVECTOR_GET(builder->nodeStack, ZRVECTOR_NBOBJ(builder->nodeStack) - 1);
 }
 
 static void* fBuilder_currentObj(ZRSimpleTreeBuilder *builder)
