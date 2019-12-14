@@ -8,6 +8,7 @@
 #include <zrlib/base/MemoryPool/MPoolDynamicStrategy.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 #include <zrlib/base/ArrayOp.h>
+#include <zrlib/base/ReserveOp_bits.h>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -84,11 +85,6 @@ struct ZRMPoolDynamicDataS
 #define INITIAL_BUCKET_SIZE   1024
 #define INITIAL_BITS_SPACE ((1024*64)/ZRBITS_NBOF)
 
-#define BIT_BLOCKISEMPTY 1
-#define BIT_BLOCKISLOCKD 0
-#define BIT_FULLEMPTY ZRBITS_MASK_FULL
-#define BIT_FULLLOCKD 0
-
 // ============================================================================
 // Internal functions
 
@@ -124,11 +120,11 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	bucket->nbZRBits = nbZRBits;
 	bucket->nbBlocks = nbBlocksToAlloc;
 	bucket->nbAvailables = nbBlocksToAlloc;
-	pool->nbBlock += nbBlocksToAlloc;
+	pool->nbBlocks += nbBlocksToAlloc;
 	data->nbAvailables += nbBlocksToAlloc;
 	data->nbFreeBuckets++;
 
-	ZRARRAYOP_FILL(bucket->bits, sizeof(ZRBits), nbZRBits, &((ZRBits ) { BIT_FULLEMPTY } ));
+	ZRARRAYOP_FILL(bucket->bits, sizeof(ZRBits), nbZRBits, &((ZRBits ) { ZRRESERVEOPBITS_FULLEMPTY } ));
 	return bucket;
 }
 
@@ -147,48 +143,38 @@ size_t fstrategySize(void)
 
 void finitPool(ZRMemoryPool *pool)
 {
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
 	data->nbFreeBuckets = 0;
 	data->nbAvailables = 0;
 	data->buckets = ZRMPOOL_STRATEGY(pool)->fcreateBuckets(pool);
 	addBucket(pool, 0);
 }
 
-void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bucket *bucket)
+static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bucket *bucket)
 {
 	if (nb > bucket->nbAvailables)
 		return NULL ;
 
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
 	ZRBits *bits;
-	size_t pos;
-
-	ZRBits_searchFixedPattern(bucket->bits, 0, bucket->nbZRBits, nb, &bits, &pos);
-
-	if (bits == NULL)
-		return NULL ;
-
-	ZRBits set[bucket->nbZRBits];
-	memset(set, BIT_FULLLOCKD, bucket->nbZRBits * sizeof(ZRBits));
-	ZRBits_copy(set, 0, nb, bits, pos);
+	size_t pos  = ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(bucket->bits, bucket->nbZRBits, nb);
 
 	if (bucket->nbAvailables == bucket->nbBlocks)
 		data->nbFreeBuckets--;
 
 	data->nbAvailables -= nb;
 	bucket->nbAvailables -= nb;
-	pos += (bits - bucket->bits) * ZRBITS_NBOF;
 	return ZRARRAYOP_GET(bucket->blocks, pool->blockSize, pos);
 }
 
 void* freserve(ZRMemoryPool *pool, size_t nb)
 {
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
 	size_t const nbBuckets = data->buckets->nbObj;
 
 	for (int i = 0; i < nbBuckets; i++)
 	{
-		ZRMPoolDS_bucket *bucket = *(ZRMPoolDS_bucket **)ZRVECTOR_GET(data->buckets, i);
+		ZRMPoolDS_bucket *bucket = *(ZRMPoolDS_bucket**)ZRVECTOR_GET(data->buckets, i);
 		void *ret = freserveInBucket(pool, nb, bucket);
 
 		if (ret == NULL)
@@ -201,7 +187,7 @@ void* freserve(ZRMemoryPool *pool, size_t nb)
 
 static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket, size_t bucket_i, void *firstBlock, size_t nb)
 {
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
 
 	if (bucket->blocks > (char*)firstBlock || (char*)firstBlock >= &bucket->blocks[pool->blockSize * bucket->nbBlocks])
 		return false;
@@ -211,26 +197,25 @@ static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket
 
 	if (bucket->nbAvailables == bucket->nbBlocks)
 	{
+		// Clean the bucket
 		if (data->nbFreeBuckets == ZRMPOOL_STRATEGY(pool)->maxFreeBuckets)
 		{
 			data->nbAvailables -= bucket->nbBlocks;
-			pool->nbBlock -= bucket->nbBlocks;
+			pool->nbBlocks -= bucket->nbBlocks;
 			ZRFREE(ZRMPOOL_STRATEGY(pool)->allocator, bucket);
 			ZRVECTOR_DELETE(data->buckets, bucket_i);
 			return true;
 		}
 		data->nbFreeBuckets++;
 	}
-	size_t blockPos = ((char*)firstBlock - bucket->blocks) / pool->blockSize;
-	ZRBits set[bucket->nbZRBits];
-	memset(set, (int)BIT_FULLEMPTY, bucket->nbZRBits * sizeof(ZRBits));
-	ZRBits_copy(set, 0, nb, bucket->bits, blockPos);
+	size_t const blockPos = ((char*)firstBlock - bucket->blocks) / pool->blockSize;
+	ZRRESERVEOPBITS_RELEASENB(bucket->bits, blockPos, nb);
 	return true;
 }
 
 void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
 	size_t const nb_i = data->buckets->nbObj;
 
 	for (size_t i = 0; i < nb_i; i++)
@@ -248,14 +233,14 @@ void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
  */
 void fdone(ZRMemoryPool *pool)
 {
-	ZRMPoolDynamicData * const data = ZRMPOOL_DATA(pool);
-	ZRAllocator * const allocator = ZRMPOOL_STRATEGY(pool)->allocator;
-	ZRVector * const buckets = data->buckets;
+	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRAllocator *const allocator = ZRMPOOL_STRATEGY(pool)->allocator;
+	ZRVector *const buckets = data->buckets;
 	size_t const nbBuckets = ZRVECTOR_NBOBJ(buckets);
 
 	for (size_t i = 0; i < nbBuckets; i++)
 	{
-		ZRMPoolDS_bucket * const bucket = *(ZRMPoolDS_bucket **)ZRVECTOR_GET(buckets, i);
+		ZRMPoolDS_bucket *const bucket = *(ZRMPoolDS_bucket**)ZRVECTOR_GET(buckets, i);
 		ZRFREE(allocator, bucket);
 	}
 	ZRMPOOL_STRATEGY(pool)->fdestroyBuckets(buckets);
@@ -263,7 +248,7 @@ void fdone(ZRMemoryPool *pool)
 
 // ============================================================================
 
-static ZRVector *fcreateBuckets(ZRMemoryPool *pool)
+static ZRVector* fcreateBuckets(ZRMemoryPool *pool)
 {
 	return ZRVector2SideStrategy_createDynamic(INITIAL_BUCKETS_SPACE, sizeof(ZRMPoolDS_bucket*), ZRMPOOL_STRATEGY(pool)->allocator);
 }

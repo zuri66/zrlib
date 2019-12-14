@@ -47,6 +47,7 @@ struct ZRVectorS
 {
 	size_t objSize;
 	size_t nbObj;
+	size_t capacity;
 
 	/*
 	 * The strategy for memory management and insertion/deletion routines.
@@ -66,11 +67,17 @@ struct ZRVectorS
 
 // ============================================================================
 
+static inline void ZRVECTOR_ADD_NB(ZRVector *vec, size_t nb, void *restrict src);
+static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec);
+
+// ============================================================================
+
 static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 {
 	*vec = (ZRVector ) { //
 		.objSize = objSize, //
 		.nbObj = 0, //
+		.capacity = 0, //
 		.strategy = strategy, //
 		};
 
@@ -79,6 +86,17 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy
 	 */
 	if (strategy->finitVec)
 		strategy->finitVec(vec);
+}
+
+static inline void ZRVECTOR_COPY(ZRVector *dest, ZRVector *src)
+{
+	ZRVECTOR_DELETE_ALL(dest);
+	*dest = (ZRVector ) { //
+		.objSize = src->objSize, //
+		.nbObj = 0, //
+		};
+
+	ZRVECTOR_ADD_NB(dest, src->nbObj, src->array);
 }
 
 static inline void ZRVECTOR_DONE(ZRVector *vec)
@@ -132,6 +150,11 @@ static inline void ZRVECTOR_FILL(ZRVector *vec, size_t pos, size_t nb, void *res
 {
 	vec->strategy->finsert(vec, pos, nb);
 	ZRARRAYOP_FILL(ZRVECTOR_GET(vec, pos), vec->objSize, nb, obj);
+}
+
+static inline void ZRVECTOR_RESERVE(ZRVector *vec, size_t pos, size_t nb)
+{
+	vec->strategy->finsert(vec, pos, nb);
 }
 
 static inline void ZRVECTOR_DELETE(ZRVector *vec, size_t pos)
@@ -216,16 +239,18 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict
 // ============================================================================
 
 void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
+void ZRVector_copy(ZRVector *dest, ZRVector *src);
 void ZRVector_done(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 
-void*_ ZRVector_get(__ ZRVector *vec, size_t pos);
+void * ZRVector_get(__ ZRVector *vec, size_t pos);
 void _ ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest);
 void _ ZRVector_set(__ ZRVector *vec, size_t pos, __________ void *obj);
 void _ ZRVector_set_nb(ZRVector *vec, size_t pos, size_t nb, void *src);
 void _ ZRVector_fill(_ ZRVector *vec, size_t pos, size_t nb, void *obj);
+void _ ZRVector_reserve(ZRVector *vec, size_t pos, size_t nb);
 
 void ZRVector_insert(__ ZRVector *vec, size_t pos, __________ void *obj);
 void ZRVector_insert_nb(ZRVector *vec, size_t pos, size_t nb, void *src);

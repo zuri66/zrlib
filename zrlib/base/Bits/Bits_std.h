@@ -315,6 +315,51 @@ static inline void ZRBITS_COPY_STD(ZRBits const * restrict bits, size_t pos, siz
 	std_ZRBits_copy_posLTOutPos(bits, pos, nbBits, out, outPos);
 }
 
+static inline int ZRBITS_CMP_STD(ZRBits *a, ZRBits *b, size_t pos, size_t nb)
+{
+	// ADJUSTPOS
+	if (pos >= ZRBITS_NBOF)
+	{
+		size_t const shift = pos / ZRBITS_NBOF;
+		a += shift;
+		b += shift;
+		pos %= ZRBITS_NBOF;
+	}
+	size_t const nbAddPos = nb + pos;
+	size_t const rest = nbAddPos % ZRBITS_NBOF;
+	size_t const nbZRBits = nbAddPos / ZRBITS_NBOF + (rest ? 1 : 0);
+
+	if (nbZRBits == 1)
+		return ZRBITS_BEXTR(*a, pos, nb) - ZRBITS_BEXTR(*b, pos, nb);
+	else
+	{
+		int cmp;
+
+		// First cmp
+		{
+			size_t const nbBits = ZRBITS_NBOF - pos;
+			cmp = ZRBITS_BEXTR(*a, pos, nbBits) - ZRBITS_BEXTR(*b, pos, nbBits);
+		}
+
+		if (cmp)
+			return cmp;
+
+		if (nbZRBits > 2)
+		{
+			size_t const nbZRBits2 = nbZRBits - 2;
+			a++, b++;
+			cmp = memcmp(a, b, (nbZRBits2) * sizeof(ZRBits));
+
+			if (cmp)
+				return cmp;
+
+			a += nbZRBits2;
+			b += nbZRBits2;
+		}
+		return ZRBITS_BEXTR(*a, 0, rest) - ZRBITS_BEXTR(*b, 0, rest);
+	}
+}
+
 static inline void ZRBITS_INARRAYRSHIFT_STD(ZRBits *bits, size_t nbZRBits, size_t shift)
 {
 	assert(nbZRBits > 0);
@@ -394,7 +439,7 @@ static inline size_t ZRBITS_1RPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
 	if (nbZRBits == 1)
 		return ZRBITS_NBOF;
 
-	ZRBits * const last = bits;
+	ZRBits *const last = bits;
 
 	while (--nbZRBits && !*--bits)
 		;
@@ -424,7 +469,7 @@ static inline size_t ZRBITS_1LPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
 	if (nbZRBits == 1)
 		return ZRBITS_NBOF;
 
-	ZRBits * const first = bits;
+	ZRBits *const first = bits;
 
 	while (--nbZRBits && !*++bits)
 		;
@@ -435,7 +480,8 @@ static inline size_t ZRBITS_1LPOS_STD(ZRBits *bits, size_t nbZRBits, size_t pos)
 
 static inline void ZRBITS_SEARCHFIXEDPATTERN_STD(ZRBits *bits, size_t pos, size_t nbZRBits, size_t nbBits, ZRBits **dest, size_t *outPos)
 {
-	ADJUST_POS(bits, pos);
+	assert(pos < (nbZRBits * ZRBITS_NBOF));
+	ADJUST_POS_NB(bits, pos, nbZRBits);
 
 	if (nbBits == 1)
 	{

@@ -15,9 +15,9 @@ void ZRMPool_done(ZRMemoryPool *pool)
 	ZRMPOOL_DONE(pool);
 }
 
-size_t ZRMPool_nbBlock(_ ZRMemoryPool *pool)
+size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool)
 {
-	return ZRMPOOL_NBBLOCK(pool);
+	return ZRMPOOL_NBBLOCKS(pool);
 }
 
 size_t ZRMPool_blockSize(ZRMemoryPool *pool)

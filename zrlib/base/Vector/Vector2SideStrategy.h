@@ -58,6 +58,7 @@ void ZRVector2SideStrategy_destroy(ZRVector *vec);
 // ============================================================================
 // SPACE STRATEGIES
 
+bool mustGrowSimple(size_t totalSpace, size_t usedSpace, ZRVector *vec);
 bool mustGrowTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
 size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
 

@@ -10,6 +10,11 @@ void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 	ZRVECTOR_INIT(vec, objSize, strategy);
 }
 
+void ZRVector_copy(ZRVector *dest, ZRVector *src)
+{
+	ZRVECTOR_COPY(dest, src);
+}
+
 void ZRVector_done(ZRVector *vec)
 {
 	ZRVECTOR_DONE(vec);
@@ -68,6 +73,16 @@ void ZRVector_set(ZRVector *vec, size_t pos, void *obj)
 void ZRVector_set_nb(ZRVector *vec, size_t pos, size_t nb, void *src)
 {
 	ZRVECTOR_SET_NB(vec, pos, nb, src);
+}
+
+void ZRVector_fill(_ ZRVector *vec, size_t pos, size_t nb, void *obj)
+{
+	ZRVECTOR_FILL(vec, pos, nb, obj);
+}
+
+void ZRVector_reserve(ZRVector *vec, size_t pos, size_t nb)
+{
+	ZRVECTOR_RESERVE(vec, pos, nb);
 }
 
 void ZRVector_add(ZRVector *vec, void *obj)

@@ -22,7 +22,7 @@ typedef struct ZRMemoryPoolStrategyS ZRMemoryPoolStrategy;
 struct ZRMemoryPoolS
 {
 	size_t blockSize;
-	size_t nbBlock;
+	size_t nbBlocks;
 
 	/**
 	 * The strategy for memory management and operations on the pool
@@ -69,9 +69,9 @@ static inline void ZRMPOOL_DONE(ZRMemoryPool *pool)
 	pool->strategy->fdone(pool);
 }
 
-static inline size_t ZRMPOOL_NBBLOCK(ZRMemoryPool *pool)
+static inline size_t ZRMPOOL_NBBLOCKS(ZRMemoryPool *pool)
 {
-	return pool->nbBlock;
+	return pool->nbBlocks;
 }
 
 static inline size_t ZRMPOOL_BLOCKSIZE(ZRMemoryPool *pool)
@@ -104,7 +104,7 @@ static inline void ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size
 void ZRMPool_init(ZRMemoryPool *pool, size_t objSize, ZRMemoryPoolStrategy *strategy);
 void ZRMPool_done(ZRMemoryPool *pool);
 
-size_t ZRMPool_nbBlock(_ ZRMemoryPool *pool);
+size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
 size_t ZRMPool_blockSize(ZRMemoryPool *pool);
 
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);

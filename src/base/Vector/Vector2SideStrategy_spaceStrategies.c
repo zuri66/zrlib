@@ -1,3 +1,9 @@
+bool mustGrowSimple(size_t total, size_t used, ZRVector *vec)
+{
+	size_t const free = total - used;
+	return free < used;
+}
+
 bool mustGrowTwice(size_t total, size_t used, ZRVector *vec)
 {
 	size_t const free = total - used;
