@@ -40,7 +40,7 @@ void ZRTreeBuilder_done(ZRTreeBuilder *builder)
 
 ZRTreeNode* ZRTree_getRoot(ZRTree *tree)
 {
-	return tree->root;
+	return ZRTREE_GETROOT(tree);
 }
 
 void ZRTree_done(ZRTree *tree)

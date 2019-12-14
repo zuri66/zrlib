@@ -74,6 +74,11 @@ size_t ____ ZRTreeNode_getNObjs(____ ZRTree *tree, ZRTreeNode *node, _______ voi
 // TREE
 // ============================================================================
 
+static inline ZRTreeNode* ZRTREE_GETROOT(ZRTree *tree)
+{
+	return tree->root;
+}
+
 static inline void ZRTREE_DONE(ZRTree *tree)
 {
 	ZRGRAPH_DONE((ZRGraph*)tree);
