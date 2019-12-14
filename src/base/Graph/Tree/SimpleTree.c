@@ -97,6 +97,8 @@ static ZRTreeNode* fNode_getParent(ZRSimpleTree *tree, ZRSimpleTreeNode *node, s
 
 static ZRTreeNode* fNode_getChild(ZRSimpleTree *tree, ZRSimpleTreeNode *node, size_t pos)
 {
+	if (pos >= node->nbChilds)
+		return NULL ;
 	TYPEDEF_NODE_AUTO(tree);
 	ZRSimpleTreeNodeInstance *childs = (ZRSimpleTreeNodeInstance*)(node->childs);
 	return (ZRTreeNode*)(childs + pos);
