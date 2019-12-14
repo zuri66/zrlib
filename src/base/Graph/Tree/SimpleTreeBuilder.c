@@ -30,7 +30,7 @@ ZRSimpleTreeBuilder_node;
 
 typedef struct
 {
-	ZRTREEBUILDER_STRUCT()
+	ZRTREEBUILDER_MEMBERS(ZRSimpleTreeBuilderStrategy);
 	;
 	size_t nodeSize;
 	size_t objSize;
@@ -184,7 +184,7 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 	size_t const nodeSize = objSize + sizeof(ZRSimpleTreeBuilder_node);
 
 	*builder = (ZRSimpleTreeBuilder ) { //
-		.strategy = (ZRTreeBuilderStrategy*)strategy, //
+		.strategy = strategy, //
 		.nbNodes = 0, //
 		.objSize = objSize, //
 		.nodeSize = nodeSize, //

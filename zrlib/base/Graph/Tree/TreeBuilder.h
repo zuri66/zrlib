@@ -43,15 +43,17 @@ struct ZRTreeBuilderStrategyS
 	;
 };
 
-#define ZRTREEBUILDER_STRUCT(SDATASIZE) ZRTREEBUILDER_STRUCT_NAME(,SDATASIZE)
-#define ZRTREEBUILDER_STRUCT_NAME(NAME, SDATASIZE) \
+#define ZRTREEBUILDER_MEMBERS(TYPE_STRATEGY) \
+	TYPE_STRATEGY *strategy
+
+#define ZRTREEBUILDER_STRUCT(TYPE_STRATEGY) ZRTREEBUILDER_STRUCT_NAME(,TYPE_STRATEGY)
+#define ZRTREEBUILDER_STRUCT_NAME(NAME, TYPE_STRATEGY) \
 struct NAME \
 { \
-	ZRTreeBuilderStrategy *strategy; \
-	char sdata[SDATASIZE]; \
+	ZRTREEBUILDER_MEMBERS(TYPE_STRATEGY); \
 }
 
-ZRTREEBUILDER_STRUCT_NAME(ZRTreeBuilderS,);
+ZRTREEBUILDER_STRUCT_NAME(ZRTreeBuilderS, ZRTreeBuilderStrategy);
 
 // ============================================================================
 
