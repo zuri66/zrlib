@@ -24,15 +24,18 @@ typedef struct ZRTreeEdgeS ZRTreeEdge;
 
 // ============================================================================
 
+typedef ZRTreeBuilder* (*ZRTree_fnewTreeBuilder_t)(ZRTree*, ZRTreeNode*);
 typedef ZRTreeNode* (*ZRTreeNode_fgetTheParent_t)(ZRTree*, ZRTreeNode*);
 
 #define ZRTREESTRATEGY_MEMBERS() \
 	ZRGRAPHSTRATEGY_MEMBERS(); \
-	ZRTreeNode_fgetTheParent_t fNodeGetTheParent;
+	ZRTree_fnewTreeBuilder_t fnewTreeBuilder; \
+	ZRTreeNode_fgetTheParent_t fNodeGetTheParent
 
 struct ZRTreeStrategyS
 {
 	ZRTREESTRATEGY_MEMBERS()
+	;
 };
 
 #define ZRTREE_MEMBERS(TYPE_STRATEGY) \
@@ -48,6 +51,8 @@ struct ZRTreeS
 // ============================================================================
 
 ZRTreeNode* ZRTree_getRoot(ZRTree *tree);
+
+ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode);
 
 void ZRTree_done(__ ZRTree *tree);
 void ZRTree_destroy(ZRTree *tree);
@@ -81,6 +86,11 @@ ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coo
 static inline ZRTreeNode* ZRTREE_GETROOT(ZRTree *tree)
 {
 	return tree->root;
+}
+
+static inline ZRTreeBuilder* ZRTREE_NEWBUILDER(ZRTree *tree, ZRTreeNode *currentBuilderNode)
+{
+	return tree->strategy->fnewTreeBuilder(tree, currentBuilderNode);
 }
 
 static inline void ZRTREE_DONE(ZRTree *tree)

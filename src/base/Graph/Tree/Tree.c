@@ -43,6 +43,11 @@ ZRTreeNode* ZRTree_getRoot(ZRTree *tree)
 	return ZRTREE_GETROOT(tree);
 }
 
+ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode)
+{
+	return ZRTREE_NEWBUILDER(tree, currentBuilderNode);
+}
+
 void ZRTree_done(ZRTree *tree)
 {
 	ZRTREE_DONE(tree);
