@@ -21,6 +21,7 @@ typedef struct
 #define STRUCT_BUILDER_NODE_NAME(NAME,OBJSIZE) \
 struct NAME \
 { \
+	void *parent; \
 	ZRVector *childs; \
 	char obj[OBJSIZE]; \
 }
@@ -44,7 +45,7 @@ typedef struct
 
 // ============================================================================
 
-static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
+static void ZRSimpleTreeBuilder_nodeParent(ZRSimpleTreeBuilder *builder, void *data, ZRSimpleTreeBuilder_node *parent)
 {
 	size_t const objSize = builder->objSize;
 	size_t const stackNb = ZRVECTOR_NBOBJ(builder->nodeStack);
@@ -67,6 +68,7 @@ static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
 		ZRVECTOR_RESERVE(current->childs, nodePos, 1);
 		node = ZRVECTOR_GET(current->childs, nodePos);
 	}
+	node->parent = parent;
 	node->childs = ZRVector2SideStrategy_createDynamic(512, builder->nodeSize, allocator);
 
 	if (data != NULL)
@@ -74,6 +76,11 @@ static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
 
 	ZRVECTOR_ADD(builder->nodeStack, &node);
 	builder->nbNodes++;
+}
+
+static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
+{
+	ZRSimpleTreeBuilder_nodeParent(builder, data, NULL);
 }
 
 static void* fBuilder_currentNode(ZRSimpleTreeBuilder *builder)
@@ -192,6 +199,52 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 		.nodeStack = ZRVector2SideStrategy_createDynamic(512, sizeof(void*), allocator), //
 		.root = NULL , //
 		};
+}
+
+static void ZRSimpleTreeBuilder_fromSimpleTreeRec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *bnodeParent, ZRTree *tree, ZRTreeNode *currentTNode, ZRTreeNode *currentForStack)
+{
+	fBuilder_node(builder, ZRTreeNode_getObj(tree, currentTNode));
+
+	ZRSimpleTreeBuilder_node *currentBNode = fBuilder_currentNode(builder);
+	size_t const nbChilds = ZRTreeNode_getNbChilds(tree, currentTNode);
+	size_t i;
+
+	for (i = 0; i < nbChilds; i++)
+		ZRSimpleTreeBuilder_fromSimpleTreeRec(builder, currentBNode, tree, ZRTreeNode_getChild(tree, currentTNode, i), currentForStack);
+
+	/*
+	 * The current node is add to the first place of the stack.
+	 * We can use it at the end of the recursion.
+	 */
+	if (currentForStack == currentTNode)
+		ZRVECTOR_ADDFIRST(builder->nodeStack, &currentBNode);
+
+	fBuilder_end(builder);
+}
+
+ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(ZRTree *tree, ZRTreeNode *currentForStack, size_t objSize, ZRAllocator *allocator)
+{
+	ZRSimpleTreeBuilderStrategy *strategy = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilderStrategy));
+	ZRSimpleTreeBuilderS_init(strategy);
+	size_t const bnodeSize = sizeof(STRUCT_NODE(objSize)
+	);
+	ZRSimpleTreeBuilder *builder = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilder) + bnodeSize);
+	ZRSimpleTreeBuilder_init(builder, strategy, objSize, allocator);
+	ZRSimpleTreeBuilder_fromSimpleTreeRec(builder, NULL, tree, tree->root, currentForStack);
+
+	// Get all the node from currentForStack to the root
+	ZRSimpleTreeBuilder_node *current = *(void**)ZRVECTOR_GET(builder->nodeStack, 0);
+
+	while (NULL != (current = current->parent))
+		ZRVECTOR_ADD(builder->nodeStack, &current);
+
+	ZRARRAYOP_REVERSE(builder->nodeStack->array, builder->nodeStack->objSize, ZRVECTOR_NBOBJ(builder->nodeStack));
+	return (ZRTreeBuilder*)builder;
+}
+
+ZRTreeBuilder* ZRSimpleTreeBuilder_fromSimpleTree(ZRSimpleTree *tree, ZRSimpleTreeNode *currentForStack)
+{
+	return ZRSimpleTreeBuilder_fromTree((ZRTree*)tree, (ZRTreeNode*)currentForStack, tree->objSize, tree->allocator);
 }
 
 ZRTreeBuilder* ZRSimpleTreeBuilder_create(size_t objSize, ZRAllocator *allocator)

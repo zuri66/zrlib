@@ -4,6 +4,7 @@
  */
 
 #include <zrlib/base/Graph/Tree/Tree.h>
+#include <zrlib/base/Graph/Tree/SimpleTree.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 
 #include <assert.h>
@@ -17,6 +18,11 @@
 static size_t fstrategySize(void)
 {
 	return sizeof(ZRSimpleTreeStrategy);
+}
+
+static ZRTreeBuilder* fnewTreeBuilder(ZRSimpleTree *tree, ZRSimpleTreeNode *currentForBuilder)
+{
+	return ZRSimpleTreeBuilder_fromSimpleTree(tree, currentForBuilder);
 }
 
 static size_t fgetNNodes(ZRSimpleTree *tree, ZRTreeNode **nodes_out, size_t offset, size_t maxNbNodes)
@@ -99,6 +105,7 @@ static ZRTreeNode* fNode_getChild(ZRSimpleTree *tree, ZRSimpleTreeNode *node, si
 {
 	if (pos >= node->nbChilds)
 		return NULL ;
+
 	TYPEDEF_NODE_AUTO(tree);
 	ZRSimpleTreeNodeInstance *childs = (ZRSimpleTreeNodeInstance*)(node->childs);
 	return (ZRTreeNode*)(childs + pos);
@@ -162,6 +169,7 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 		.fNodeGetNbChilds = (ZRGraphNode_fgetNbChilds_t)fNode_getNbChilds, //
 		.fNodeGetNChilds = (ZRGraphNode_fgetNChilds_t)fNode_getNChilds, //
 		.fNodeGetNObjs = (ZRGraphNode_fgetNObjs_t)fNode_getNObjs, //
+		.fnewTreeBuilder = (ZRTree_fnewTreeBuilder_t)fnewTreeBuilder, //
 		.fgetNNodes = (ZRGraph_fgetNNodes_t)fgetNNodes, //
 		.fgetNObjs = (ZRGraph_fgetNObjs_t)fgetNObjs, //
 		.fdone = (ZRGraph_fdone_t)fdone, //
