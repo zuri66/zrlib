@@ -21,6 +21,7 @@ ZRMap* ZRHashTable_create(size_t keySize, size_t objSize, size_t nbfhash, fhash_
 
 	ZRMapStrategy *strategy = ZRALLOC(allocator, sizeof(ZRHashTableStrategy));
 	ZRHashTableStrategy_init(strategy, allocator);
+	strategy->fdestroy = ZRHashTable_destroy;
 	ZRMap *htable = ZRHashTable_alloc(nbfhash, allocator);
 
 	ZRHashTable_init(htable, nbfhash, fhash, table);
