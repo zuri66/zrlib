@@ -78,13 +78,13 @@ size_t ZRTree_getNObjs(___ ZRTree *tree, void *objs_out, size_t offset, size_t m
 // NODE
 // ============================================================================
 
-void* _____ ZRTreeNode_getObj(______ ZRTree *tree, ZRTreeNode *node);
-ZRTreeNode* ZRTreeNode_getTheParent(ZRTree *tree, ZRTreeNode *node);
-ZRTreeNode* ZRTreeNode_getParent(___ ZRTree *tree, ZRTreeNode *node, size_t pos);
-ZRTreeNode* ZRTreeNode_getChild(____ ZRTree *tree, ZRTreeNode *node, size_t pos);
-size_t ____ ZRTreeNode_getNbChilds(_ ZRTree *tree, ZRTreeNode *node);
-size_t ____ ZRTreeNode_getNChilds(__ ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut);
-size_t ____ ZRTreeNode_getNObjs(____ ZRTree *tree, ZRTreeNode *node, _______ void *objs_out, size_t offset, size_t maxNbOut);
+void* _____ ZRTreeNode_getObj(_______ ZRTree *tree, ZRTreeNode *node);
+ZRTreeNode* ZRTreeNode_getTheParent(_ ZRTree *tree, ZRTreeNode *node);
+ZRTreeNode* ZRTreeNode_getParent(____ ZRTree *tree, ZRTreeNode *node, size_t pos);
+ZRTreeNode* ZRTreeNode_getChild(_____ ZRTree *tree, ZRTreeNode *node, size_t pos);
+size_t ____ ZRTreeNode_getNbChilds(__ ZRTree *tree, ZRTreeNode *node);
+size_t ____ ZRTreeNode_getNChilds(___ ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut);
+size_t ____ ZRTreeNode_getNObjs(_____ ZRTree *tree, ZRTreeNode *node, _______ void *objs_out, size_t offset, size_t maxNbOut);
 
 ZRIterator* ZRTreeNode_getChilds(______ ZRTree *tree, ZRTreeNode *node);
 ZRIterator* ZRTreeNode_getAscendants(__ ZRTree *tree, ZRTreeNode *node);
