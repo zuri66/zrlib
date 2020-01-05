@@ -29,6 +29,8 @@ typedef struct ZRSimpleTreeNodeS ZRSimpleTreeNode;
 #define STRUCT_NODE(OBJSIZE) STRUCT_NODE_NAME(,OBJSIZE)
 #define STRUCT_NODE_NAME(NAME,OBJSIZE) \
 struct NAME{ \
+	size_t nbAscendants; \
+	size_t nbDescendants; \
 	size_t nbChilds; \
 	ZRTreeNode *parent; \
 	ZRTreeNode *childs; \

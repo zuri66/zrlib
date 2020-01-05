@@ -111,11 +111,13 @@ static inline void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 	memcpy(((ZRSimpleTreeNodeInstance*)treeNode_out)->obj, currentBNodes->obj, builder->objSize);
 }
 
-static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNode, ZRSimpleTree *tree, ZRSimpleTreeNode *currentTreeNode)
+static size_t fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNode, ZRSimpleTree *tree, ZRSimpleTreeNode *currentTreeNode, size_t level)
 {
 	ZRVector *const treeNodes = tree->nodes;
 	size_t const nbChilds = ZRVECTOR_NBOBJ(currentBNode->childs);
 	size_t const nbNodes = builder->build_nbNodes;
+	size_t const levelAdd1 = level + 1;
+	size_t nbDescendants = 0;
 	size_t i;
 
 	for (i = 0; i < nbChilds; i++)
@@ -123,7 +125,9 @@ static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder
 		ZRSimpleTreeBuilder_node *const bchild = ZRVECTOR_GET(currentBNode->childs, i);
 		ZRSimpleTreeNode *const treeChild = ZRVECTOR_GET(treeNodes, nbNodes + i);
 		treeNodeFromBNode(builder, bchild, tree, currentTreeNode, treeChild);
+		treeChild->nbAscendants = levelAdd1;
 	}
+	nbDescendants += nbChilds;
 	builder->build_nbNodes += nbChilds;
 
 	for (i = 0; i < nbChilds; i++)
@@ -132,8 +136,12 @@ static void fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder
 		ZRSimpleTreeNode *const treeChild = ZRVECTOR_GET(treeNodes, nbNodes + i);
 
 		treeChild->childs = ZRVECTOR_GET(treeNodes, builder->build_nbNodes);
-		fBuilder_build_rec(builder, child, tree, treeChild);
+		size_t const nodeNbDescendants = fBuilder_build_rec(builder, child, tree, treeChild, levelAdd1);
+		treeChild->nbAscendants = levelAdd1;
+		treeChild->nbDescendants = nodeNbDescendants;
+		nbDescendants += nodeNbDescendants;
 	}
+	return nbDescendants;
 }
 
 static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRSimpleTree *tree)
@@ -151,7 +159,7 @@ static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRSimpleTree *tree)
 	treeNodeFromBNode(builder, builder->root, tree, NULL, treeRoot);
 	treeRoot->childs = ZRVECTOR_GET(treeNodes, 1);
 	builder->build_nbNodes = 1;
-	fBuilder_build_rec(builder, builder->root, tree, treeRoot);
+	((ZRSimpleTreeNode*)(tree->root))->nbDescendants = fBuilder_build_rec(builder, builder->root, tree, treeRoot, 0);
 
 	tree->nbNodes = builder->nbNodes;
 	tree->nbEdges = builder->nbNodes ? builder->nbNodes - 1 : 0;
