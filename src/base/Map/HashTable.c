@@ -114,7 +114,6 @@ static inline bool insert(ZRMap *htable, void *key, void *obj, enum InsertModeE 
 
 			memcpy(bucket->key, key, htable->keySize);
 			memcpy(bucket->obj, obj, htable->objSize);
-//			add_updateBuckets(htable, bucket);
 			ZRRESERVEOPLIST_RESERVENB(data->table->array, sizeof(ZRHashTableBucket), data->table->nbObj, offsetof(ZRHashTableBucket, nextUnused), pos, 1);
 			goto end;
 		}
@@ -158,7 +157,7 @@ static bool freplace(ZRMap *htable, void *key, void *obj)
 	return insert(htable, key, obj, REPLACE);
 }
 
-static inline size_t getBucket(ZRMap *htable, void *key, size_t *outPos)
+static inline void* getBucket(ZRMap *htable, void *key, size_t *outPos)
 {
 	TYPEDEF_BUCKET(htable->keySize, htable->objSize);
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
