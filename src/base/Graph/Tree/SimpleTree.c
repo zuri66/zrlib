@@ -124,7 +124,7 @@ static size_t fNode_getNChilds(ZRSimpleTree *tree, ZRSimpleTreeNode *node, ZRTre
 		return 0;
 
 	size_t const nbNodes = node->nbChilds - offset;
-	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)nodes + offset;
+	ZRSimpleTreeNodeInstance *nodes = (ZRSimpleTreeNodeInstance*)node->childs + offset;
 	size_t const nb = nbNodes < maxNbNodes ? nbNodes : maxNbNodes;
 	size_t i;
 
