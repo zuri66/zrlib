@@ -66,6 +66,7 @@ struct ZRGraphStrategyS
 #define ZRGRAPH_MEMBERS(TYPE_STRATEGY) \
 	size_t nbNodes; \
 	size_t nbEdges; \
+	size_t objSize; \
 	\
 	TYPE_STRATEGY *strategy
 
@@ -89,6 +90,7 @@ struct ZRGraphEdgeS
 
 // ============================================================================
 
+size_t ZRGraph_objSize(ZRGraph *graph);
 size_t ZRGraph_getNbNodes(ZRGraph *graph);
 size_t ZRGraph_getNbEdges(ZRGraph *graph);
 
@@ -97,7 +99,7 @@ void ZRGraph_destroy(ZRGraph *graph);
 
 size_t ZRGraph_getNbNodes(_ ZRGraph *graph);
 size_t ZRGraph_getNNodes(__ ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
-size_t ZRGraph_getNObjs(___ ZRGraph *graph, void *objs_out, size_t offset, size_t maxNbOut);
+size_t ZRGraph_getNObjs(___ ZRGraph *graph, void ______ __*objs_out, size_t offset, size_t maxNbOut);
 
 // ============================================================================
 // EDGE
@@ -133,6 +135,11 @@ static inline void ZRGRAPH_DESTROY(ZRGraph *graph)
 {
 	if (graph->strategy->fdestroy)
 		graph->strategy->fdestroy(graph);
+}
+
+static inline size_t ZRGRAPH_OBJSIZE(ZRGraph *graph)
+{
+	return graph->objSize;
 }
 
 static inline size_t ZRGRAPH_GETNBNODES(ZRGraph *graph)

@@ -10,7 +10,7 @@
 // ============================================================================
 
 // ============================================================================
-// TREE
+// GRAPH
 // ============================================================================
 
 void ZRGraph_done(ZRGraph *graph)
@@ -21,6 +21,11 @@ void ZRGraph_done(ZRGraph *graph)
 void ZRGraph_destroy(ZRGraph *graph)
 {
 	ZRGRAPH_DESTROY(graph);
+}
+
+size_t ZRGraph_objSize(ZRGraph *graph)
+{
+	return ZRGRAPH_OBJSIZE(graph);
 }
 
 size_t ZRGraph_getNbNodes(ZRGraph *graph)
