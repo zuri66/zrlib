@@ -22,11 +22,6 @@ struct ZRHashTableStrategyS
 	size_t nbfhash;
 
 	fhash_t fhash;
-
-	/**
-	 * @optional
-	 */
-	void (*ftable_destroy)(ZRVector*);
 };
 
 // ============================================================================
@@ -85,10 +80,7 @@ static void fdone(ZRMap *htable)
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
 	TYPEDEF_SDATA(strategy->nbfhash);
 	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
-	ZRVector_done(data->table);
-
-	if (strategy->ftable_destroy)
-		strategy->ftable_destroy(data->table);
+	ZRVector_destroy(data->table);
 }
 
 enum InsertModeE
@@ -225,7 +217,7 @@ static bool fdelete(ZRMap *htable, void *key)
 
 // ============================================================================
 
-static void ZRHashTableStrategy_init(ZRMapStrategy *strategy, void (*ftable_destroy)(ZRVector*), ZRAllocator *allocator)
+static void ZRHashTableStrategy_init(ZRMapStrategy *strategy, ZRAllocator *allocator)
 {
 	*(ZRHashTableStrategy*)strategy = (ZRHashTableStrategy ) { //
 		.strategy = { //
@@ -240,7 +232,6 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy, void (*ftable_dest
 			.fdone = fdone, //
 			},//
 		.allocator = allocator, //
-		.ftable_destroy = ftable_destroy, //
 		};
 }
 

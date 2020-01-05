@@ -189,7 +189,7 @@ typedef BFNodeIterator DFNodeIterator;
 
 static void BFNodeIterator_fdestroy(BFNodeIterator *iterator)
 {
-	ZRVector2SideStrategy_destroy(iterator->queue);
+	ZRVector_destroy(iterator->queue);
 	ZRFREE(iterator->allocator, iterator);
 }
 

@@ -68,14 +68,14 @@ static size_t fgetNObjs(ZRSimpleTree *tree, void *objs_out, size_t offset, size_
 
 static void fdone(ZRSimpleTree *tree)
 {
-	ZRVector2SideStrategy_destroy(tree->nodes);
+	ZRVector_destroy(tree->nodes);
 	ZRFREE(tree->allocator, tree->strategy);
 }
 
 static void fdestroy(ZRSimpleTree *tree)
 {
 	ZRAllocator *allocator = tree->allocator;
-	ZRVector2SideStrategy_destroy(tree->nodes);
+	ZRVector_destroy(tree->nodes);
 	ZRFREE(allocator, tree->strategy);
 	ZRFREE(allocator, tree);
 }

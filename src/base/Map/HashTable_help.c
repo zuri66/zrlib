@@ -14,15 +14,13 @@ size_t ZRHashTable_bucketSize(size_t keySize, size_t valueSize)
 	return sizeof(STRUCT_BUCKET(keySize, valueSize));
 }
 
-ZRMap* ZRHashTable_create(size_t keySize, size_t objSize, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, void (*ftable_destroy)(ZRVector*), ZRAllocator *allocator)
+ZRMap* ZRHashTable_create(size_t keySize, size_t objSize, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
 {
 	if (table == NULL)
-	{
 		table = ZRVector2SideStrategy_createDynamic(1024, ZRHashTable_bucketSize(keySize, objSize), allocator);
-		ftable_destroy = ZRVector2SideStrategy_destroy;
-	}
+
 	ZRMapStrategy *strategy = ZRALLOC(allocator, sizeof(ZRHashTableStrategy));
-	ZRHashTableStrategy_init(strategy, ftable_destroy, allocator);
+	ZRHashTableStrategy_init(strategy, allocator);
 	ZRMap *htable = ZRHashTable_alloc(nbfhash, allocator);
 
 	ZRHashTable_init(htable, nbfhash, fhash, table);

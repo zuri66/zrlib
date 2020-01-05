@@ -269,7 +269,7 @@ ZRTreeBuilder* ZRSimpleTreeBuilder_create(size_t objSize, ZRAllocator *allocator
 
 void ZRSimpleTreeBuilder_done(ZRTreeBuilder *builder)
 {
-	ZRVector2SideStrategy_destroy(((ZRSimpleTreeBuilder*)builder)->nodeStack);
+	ZRVector_destroy(((ZRSimpleTreeBuilder*)builder)->nodeStack);
 }
 
 static void ZRSimpleTreeBuilder_destroyNode(ZRSimpleTreeBuilder *sbuilder, ZRSimpleTreeBuilder_node *node)
@@ -280,7 +280,7 @@ static void ZRSimpleTreeBuilder_destroyNode(ZRSimpleTreeBuilder *sbuilder, ZRSim
 	for (i = 0; i < nb; i++)
 		ZRSimpleTreeBuilder_destroyNode(sbuilder, ZRVECTOR_GET(node->childs, i));
 
-	ZRVector2SideStrategy_destroy(node->childs);
+	ZRVector_destroy(node->childs);
 }
 
 void ZRSimpleTreeBuilder_destroy(ZRTreeBuilder *builder)

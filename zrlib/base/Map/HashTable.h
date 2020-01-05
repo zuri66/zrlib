@@ -19,7 +19,6 @@ ZRMap* ZRHashTable_create( //
 	size_t nbfhash, //
 	fhash_t fhash[nbfhash], //
 	ZRVector *table, //
-	void (*ftable_destroy)(ZRVector*), //
 	ZRAllocator *allocator //
 	);
 size_t ZRHashTable_bucketSize(size_t keySize, size_t valueSize);
