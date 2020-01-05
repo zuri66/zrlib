@@ -14,6 +14,7 @@ ZRVector* ZRVector2SideStrategy_createFixed(size_t initialSpace, size_t objSize,
 {
 	ZRVectorStrategy *strategy = ZRALLOC(allocator, sizeof(ZRVector2SideStrategy));
 	ZRVector2SideStrategy_init(strategy, allocator, initialSpace, 0);
+	strategy->fdestroy = ZRVector2SideStrategy_destroy;
 	ZRVector *vec = ZRVector2SideStrategy_alloc(initialSpace, objSize, allocator);
 	ZRVector_init(vec, objSize, strategy);
 	return vec;
@@ -30,6 +31,7 @@ ZRVector* ZRVector2SideStrategy_createFixedM(size_t initialArraySpace, size_t in
 {
 	ZRVectorStrategy *strategy = ZRALLOC(allocator, sizeof(ZRVector2SideStrategy));
 	ZRVector2SideStrategy_init(strategy, allocator, initialArraySpace, initialMemorySpace);
+	strategy->fdestroy = ZRVector2SideStrategy_destroy;
 	ZRVector *vec = ZRVector2SideStrategy_alloc(initialArraySpace, objSize, allocator);
 	ZRVector_init(vec, objSize, strategy);
 	return vec;
