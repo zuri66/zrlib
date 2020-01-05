@@ -6,9 +6,13 @@
 #ifndef ZRTREE_H
 #define ZRTREE_H
 
+#include <zrlib/config.h>
+#include <zrlib/base/Allocator/Allocator.h>
+#include <zrlib/base/Iterator/Iterator.h>
+#include <zrlib/syntax_pad.h>
+
 #include "../Graph.h"
 
-#include <zrlib/syntax_pad.h>
 
 #include <stdlib.h>
 
@@ -27,15 +31,25 @@ typedef struct ZRTreeEdgeS ZRTreeEdge;
 typedef ZRTreeBuilder* (*ZRTree_fnewTreeBuilder_t)(ZRTree*, ZRTreeNode*);
 typedef ZRTreeNode* (*ZRTreeNode_fgetTheParent_t)(ZRTree*, ZRTreeNode*);
 
+typedef ZRIterator* (*ZRTreeNode_fgetChilds_t)(_________ ZRTree*, ZRTreeNode*);
+typedef ZRIterator* (*ZRTreeNode_fgetAscendants_t)(_____ ZRTree*, ZRTreeNode*);
+typedef ZRIterator* (*ZRTreeNode_fgetDescendants_t)(____ ZRTree*, ZRTreeNode*);
+typedef ZRIterator* (*ZRTreeNode_fgetDescendants_BF_t)(_ ZRTree*, ZRTreeNode*);
+typedef ZRIterator* (*ZRTreeNode_fgetDescendants_DF_t)(_ ZRTree*, ZRTreeNode*);
+
 #define ZRTREESTRATEGY_MEMBERS() \
 	ZRGRAPHSTRATEGY_MEMBERS(); \
 	ZRTree_fnewTreeBuilder_t fnewTreeBuilder; \
-	ZRTreeNode_fgetTheParent_t fNodeGetTheParent
+	ZRTreeNode_fgetTheParent_t fNodeGetTheParent; \
+	ZRTreeNode_fgetChilds_t fNodeGetChilds; \
+	ZRTreeNode_fgetAscendants_t fNodeGetAscendants; \
+	ZRTreeNode_fgetDescendants_t fNodeGetDescendants; \
+	ZRTreeNode_fgetDescendants_BF_t fNodeGetDescendants_BF; \
+	ZRTreeNode_fgetDescendants_DF_t fNodeGetDescendants_DF
 
 struct ZRTreeStrategyS
 {
-	ZRTREESTRATEGY_MEMBERS()
-	;
+	ZRTREESTRATEGY_MEMBERS();
 };
 
 #define ZRTREE_MEMBERS(TYPE_STRATEGY) \
@@ -44,8 +58,7 @@ struct ZRTreeStrategyS
 
 struct ZRTreeS
 {
-	ZRTREE_MEMBERS(ZRTreeStrategy)
-	;
+	ZRTREE_MEMBERS(ZRTreeStrategy);
 };
 
 // ============================================================================
@@ -73,11 +86,31 @@ size_t ____ ZRTreeNode_getNbChilds(_ ZRTree *tree, ZRTreeNode *node);
 size_t ____ ZRTreeNode_getNChilds(__ ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t ____ ZRTreeNode_getNObjs(____ ZRTree *tree, ZRTreeNode *node, _______ void *objs_out, size_t offset, size_t maxNbOut);
 
+ZRIterator* ZRTreeNode_getChilds(______ ZRTree *tree, ZRTreeNode *node);
+ZRIterator* ZRTreeNode_getAscendants(__ ZRTree *tree, ZRTreeNode *node);
+ZRIterator* ZRTreeNode_getDescendants(_ ZRTree *tree, ZRTreeNode *node);
+
+/* Breadth first */
+ZRIterator* ZRTreeNode_getDescendants_BF(ZRTree *tree, ZRTreeNode *node);
+
+/* Depth first */
+ZRIterator* ZRTreeNode_getDescendants_DF(ZRTree *tree, ZRTreeNode *node);
+
+
+// ------
 // Help
+// ------
+
 #define ZRTREENODE_FROMARRAYCOORDINATE(tree,array) ZRTreeNode_getNodeFromCoordinate(tree, ZRCARRAY_NBOBJ(array), array)
 ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coord[nb]);
 
-// ============================================================================
+// -----
+// Std
+// -----
+
+ZRIterator* ZRTreeNode_std_getDescendants_BF(ZRTree *tree, ZRTreeNode *node, ZRAllocator *allocator);
+ZRIterator* ZRTreeNode_std_getDescendants_DF(ZRTree *tree, ZRTreeNode *node, ZRAllocator *allocator);
+
 
 // ============================================================================
 // TREE
@@ -116,6 +149,31 @@ static inline size_t ZRTREE_GETNNODES(ZRTree *tree, ZRTreeNode **nodes_out, size
 static inline size_t ZRTREE_GETNOBJS(ZRTree *tree, void *objs_out, size_t offset, size_t maxNbOutBytes)
 {
 	return ZRGRAPH_GETNOBJS((ZRGraph*)tree, objs_out, offset, maxNbOutBytes);
+}
+
+static inline ZRIterator* ZRTREENODE_GETCHILDS(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetChilds(tree, node);
+}
+
+static inline ZRIterator* ZRTREENODE_GETASCENDANTS(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetAscendants(tree, node);
+}
+
+static inline ZRIterator* ZRTREENODE_GETDESCENDANTS(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetDescendants(tree, node);
+}
+
+static inline ZRIterator* ZRTREENODE_GETDESCENDANTS_BF(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetDescendants_BF(tree, node);
+}
+
+static inline ZRIterator* ZRTREENODE_GETDESCENDANTS_DF(ZRTree *tree, ZRTreeNode *node)
+{
+	return tree->strategy->fNodeGetDescendants_DF(tree, node);
 }
 
 // ============================================================================
