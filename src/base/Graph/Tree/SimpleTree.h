@@ -15,8 +15,6 @@ struct ZRSimpleTreeS
 {
 	ZRTREE_MEMBERS(ZRSimpleTreeStrategy);
 
-	size_t objSize;
-
 	ZRAllocator *allocator;
 
 	ZRVector *nodes;
