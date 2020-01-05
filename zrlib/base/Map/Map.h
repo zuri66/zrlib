@@ -45,6 +45,11 @@ struct ZRMapStrategyS
 	 * The map MUST NOT be used after this call.
 	 */
 	void (*fdone)(ZRMap *map);
+
+	/**
+	 * (optional)
+	 */
+	void (*fdestroy)(ZRMap *map);
 };
 
 struct ZRMapS
@@ -84,6 +89,11 @@ static inline void ZRMAP_INIT(ZRMap *map, size_t keySize, size_t objSize, ZRMapS
 static inline void ZRMAP_DONE(ZRMap *map)
 {
 	map->strategy->fdone(map);
+}
+
+static inline void ZRMAP_DESTROY(ZRMap *map)
+{
+	map->strategy->fdestroy(map);
 }
 
 static inline size_t ZRMAP_NBOBJ(ZRMap *map)
@@ -130,6 +140,7 @@ static inline bool ZRMAP_DELETE(ZRMap *map, void *key)
 
 void ZRMap_init(ZRMap *map, size_t keySize, size_t objSize, ZRMapStrategy *strategy);
 void ZRMap_done(ZRMap *map);
+void ZRMap_destroy(ZRMap *map);
 
 size_t ZRMap_nbObj(_ ZRMap *map);
 size_t ZRMap_keySize(ZRMap *map);

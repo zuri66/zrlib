@@ -15,6 +15,11 @@ void ZRMap_done(ZRMap *map)
 	ZRMAP_DONE(map);
 }
 
+void ZRMap_destroy(ZRMap *map)
+{
+	ZRMAP_DESTROY(map);
+}
+
 size_t ZRMap_nbObj(ZRMap *map)
 {
 	return ZRMAP_NBOBJ(map);
