@@ -15,6 +15,7 @@ set(SRCS
 	src/base/ReserveOp_bits.c
 	src/base/ReserveOp_list.c
 	src/base/Bits/Bits.c
+	src/base/Iterator/Iterator.c
 	src/base/List/List.c
 	src/base/MemoryOp.c
 	src/base/Graph/Graph.c
@@ -37,6 +38,7 @@ set(HEADERS
 	zrlib/base/ReserveOp_bits.h
 	zrlib/base/ReserveOp_list.h
 	zrlib/base/Bits/Bits.h
+	zrlib/base/Iterator/Iterator.h
 	zrlib/base/macro.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
