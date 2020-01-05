@@ -20,6 +20,11 @@ void ZRVector_done(ZRVector *vec)
 	ZRVECTOR_DONE(vec);
 }
 
+void ZRVector_destroy(ZRVector *vec)
+{
+	ZRVECTOR_DESTROY(vec);
+}
+
 size_t ZRVector_nbObj(ZRVector *vec)
 {
 	return ZRVECTOR_NBOBJ(vec);
