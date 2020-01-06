@@ -149,3 +149,27 @@ void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *restrict dest)
 {
 	ZRVECTOR_POPFIRST_NB(vec, nb, dest);
 }
+
+// ============================================================================
+// Pointer help functions
+
+void ZRVector_setPtr_nb(ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_SETPTR_NB(vec, pos, nb, src, srcObjSize);
+}
+
+void ZRVector_insertPtr_nb(ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_INSERTPTR_NB(vec, pos, nb, src, srcObjSize);
+}
+
+void ZRVector_addPtr_nb(ZRVector *vec, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_ADDPTR_NB(vec, nb, src, srcObjSize);
+}
+
+void ZRVector_addFirstPtr_nb(ZRVector *vec, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_ADDFIRSTPTR_NB(vec, nb, src, srcObjSize);
+}
+

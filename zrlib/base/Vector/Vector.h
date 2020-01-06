@@ -10,6 +10,7 @@
 #include <zrlib/base/ArrayOp.h>
 #include <zrlib/base/Allocator/Allocator.h>
 
+#include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -247,6 +248,36 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *restrict
 	ZRVECTOR_DECFIRST_NB(vec, nb);
 }
 
+
+// Pointer help functions
+
+static inline void ZRVECTOR_SETPTR_NB(ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize)
+{
+	assert(vec->objSize == sizeof(void*));
+
+	for (; nb; nb--, pos++)
+	{
+		ZRVECTOR_SET(vec, pos, &src);
+		src = (char*)src + srcObjSize;
+	}
+}
+
+static inline void ZRVECTOR_INSERTPTR_NB(ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize)
+{
+	vec->strategy->finsert(vec, pos, nb);
+	ZRVECTOR_SETPTR_NB(vec, pos, nb, src, srcObjSize);
+}
+
+static inline void ZRVECTOR_ADDPTR_NB(ZRVector *vec, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_INSERTPTR_NB(vec, vec->nbObj, nb, src, srcObjSize);
+}
+
+static inline void ZRVECTOR_ADDFIRSTPTR_NB(ZRVector *vec, size_t nb, void *src, size_t srcObjSize)
+{
+	ZRVECTOR_INSERTPTR_NB(vec, 0, nb, src, srcObjSize);
+}
+
 // ============================================================================
 
 void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
@@ -285,5 +316,14 @@ void ZRVector_pop(_______ ZRVector *vec, __________ void *restrict dest);
 void ZRVector_pop_nb(____ ZRVector *vec, size_t nb, void *restrict dest);
 void ZRVector_popFirst(__ ZRVector *vec, __________ void *restrict dest);
 void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *restrict dest);
+
+
+// ============================================================================
+// Pointer help functions
+
+void ZRVector_setPtr_nb(____ ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize);
+void ZRVector_insertPtr_nb(_ ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize);
+void ZRVector_addPtr_nb(____ ZRVector *vec, ___________ size_t nb, void *src, size_t srcObjSize);
+void ZRVector_addFirstPtr_nb(ZRVector *vec, ___________ size_t nb, void *src, size_t srcObjSize);
 
 #endif
