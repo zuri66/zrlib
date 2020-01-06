@@ -59,6 +59,29 @@ static inline void ZRARRAYOP_REVERSE(void *offset, size_t objSize, size_t nbObj)
 	}
 }
 
+static inline void ZRARRAYOP_WALK(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
+{
+	while (nbObj--)
+	{
+		fconsume(offset);
+		offset = (char*)offset + objSize;
+	}
+}
+
+static inline void ZRARRAYOP_MAP(
+	void *restrict offset, size_t objSize, size_t nbObj,
+	void (*fmap)(___ void *restrict item, void *restrict out),
+	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
+)
+{
+	while(nbObj-- && dest_nbObj--)
+	{
+		fmap(offset, dest);
+		offset = (char*)offset + objSize;
+		dest = (char*)dest + dest_objSize;
+	}
+}
+
 // ============================================================================
 
 void*_ ZRArrayOp_get(__ void _________*offset, size_t objSize, size_t pos);
@@ -73,5 +96,13 @@ void ZRArrayOp_deplace(_ void _________*offset, size_t objSize, size_t nbObj, vo
 void ZRArrayOp_shift(___ void *offset, size_t objSize, size_t nbObj, size_t shift,_ bool toTheRight);
 void ZRArrayOp_rotate(__ void *offset, size_t objSize, size_t nbObj, size_t rotate, bool toTheRight);
 void ZRArrayOp_reverse(_ void *offset, size_t objSize, size_t nbObj);
+
+void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item));
+
+void ZRArrayOp_map(
+	void *restrict offset, size_t objSize, size_t nbObj,
+	void (*fmap)(void *restrict item, void *restrict out),
+	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
+);
 
 #endif

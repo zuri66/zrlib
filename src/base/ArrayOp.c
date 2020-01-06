@@ -52,3 +52,13 @@ void ZRArrayOp_reverse(void *offset, size_t objSize, size_t nbObj)
 {
 	ZRARRAYOP_REVERSE(offset, objSize, nbObj);
 }
+
+void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
+{
+	ZRARRAYOP_WALK(offset, objSize, nbObj, fconsume);
+}
+
+void ZRArrayOp_map(void *restrict offset, size_t objSize, size_t nbObj, void (*fmap)(void *restrict item, void *restrict out), void *restrict dest, size_t dest_objSize, size_t dest_nbObj)
+{
+	ZRARRAYOP_MAP(offset, objSize, nbObj, fmap, dest, dest_objSize, dest_nbObj);
+}
