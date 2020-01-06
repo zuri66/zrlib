@@ -10,7 +10,7 @@ void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
 	ZRVECTOR_INIT(vec, objSize, strategy);
 }
 
-void ZRVector_copy(ZRVector *dest, ZRVector *src)
+void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src)
 {
 	ZRVECTOR_COPY(dest, src);
 }
@@ -65,7 +65,7 @@ void* ZRVector_get(ZRVector *vec, size_t pos)
 	return ZRVECTOR_GET(vec, pos);
 }
 
-void ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest)
+void ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *dest)
 {
 	return ZRVECTOR_GET_NB(vec, pos, nb, dest);
 }
@@ -130,22 +130,22 @@ void ZRVector_decFirst_nb(ZRVector *vec, size_t nb)
 	ZRVECTOR_DECFIRST_NB(vec, nb);
 }
 
-void ZRVector_pop(ZRVector *vec, void *restrict dest)
+void ZRVector_pop(ZRVector *vec, void *dest)
 {
 	ZRVECTOR_POP(vec, dest);
 }
 
-void ZRVector_pop_nb(ZRVector *vec, size_t nb, void *restrict dest)
+void ZRVector_pop_nb(ZRVector *vec, size_t nb, void *dest)
 {
 	ZRVECTOR_POP_NB(vec, nb, dest);
 }
 
-void ZRVector_popFirst(ZRVector *vec, void *restrict dest)
+void ZRVector_popFirst(ZRVector *vec, void *dest)
 {
 	ZRVECTOR_POPFIRST(vec, dest);
 }
 
-void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *restrict dest)
+void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *dest)
 {
 	ZRVECTOR_POPFIRST_NB(vec, nb, dest);
 }
