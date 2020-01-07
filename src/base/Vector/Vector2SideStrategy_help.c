@@ -3,9 +3,14 @@
  * @date samedi 26 octobre 2019, 18:24:01 (UTC+0200)
  */
 
+size_t ZRVector2SideStrategy_vectorSize(size_t initialSpace, size_t objSize)
+{
+	return sizeof(ZRVector) + sizeof(ZRVector2SideData) + (initialSpace * objSize);
+}
+
 ZRVector* ZRVector2SideStrategy_alloc(size_t initialSpace, size_t objSize, ZRAllocator *allocator)
 {
-	size_t const vecSize = sizeof(ZRVector) + sizeof(ZRVector2SideData) + (initialSpace * objSize);
+	size_t const vecSize = ZRVector2SideStrategy_vectorSize(initialSpace, objSize);
 	ZRVector *ret = ZRALLOC(allocator, vecSize);
 	return ret;
 }
@@ -49,7 +54,7 @@ ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t 
  */
 void ZRVector2SideStrategy_destroy(ZRVector *vec)
 {
-	ZRAllocator * const allocator = ZRVECTOR_STRATEGY(vec)->allocator;
+	ZRAllocator *const allocator = ZRVECTOR_STRATEGY(vec)->allocator;
 	ZRVector_done(vec);
 	ZRFREE(allocator, vec->strategy);
 	ZRFREE(allocator, vec);
