@@ -20,6 +20,8 @@ typedef void ZRTreeBuilderNode;
 
 // ============================================================================
 
+//TODO ADD PREFIX for f#function
+
 typedef ZRTreeBuilderNode* //
 ______________(*fcurrentNode_t)(_ ZRTreeBuilder *builder);
 typedef void* (*fcurrentObj_t)(__ ZRTreeBuilder *builder);
@@ -29,31 +31,20 @@ typedef void __ (*fend_t)(__ ZRTreeBuilder *builder);
 typedef ZRTree* (*fnew_t)(__ ZRTreeBuilder *builder);
 typedef void __ (*fdone_t)(_ ZRTreeBuilder *builder);
 
-#define ZRTREEBUILDERSTRATEGY_MEMBERS() \
-	fcurrentNode_t fcurrentNode; \
-	fcurrentObj_t fcurrentObj; \
-	fnode_t fnode; \
-	fend_t fend; \
-	fnew_t fnew; \
-	fdone_t fdone
-
 struct ZRTreeBuilderStrategyS
 {
-	ZRTREEBUILDERSTRATEGY_MEMBERS()
-	;
+	fcurrentNode_t fcurrentNode;
+	fcurrentObj_t fcurrentObj;
+	fnode_t fnode;
+	fend_t fend;
+	fnew_t fnew;
+	fdone_t fdone;
 };
 
-#define ZRTREEBUILDER_MEMBERS(TYPE_STRATEGY) \
-	TYPE_STRATEGY *strategy
-
-#define ZRTREEBUILDER_STRUCT(TYPE_STRATEGY) ZRTREEBUILDER_STRUCT_NAME(,TYPE_STRATEGY)
-#define ZRTREEBUILDER_STRUCT_NAME(NAME, TYPE_STRATEGY) \
-struct NAME \
-{ \
-	ZRTREEBUILDER_MEMBERS(TYPE_STRATEGY); \
-}
-
-ZRTREEBUILDER_STRUCT_NAME(ZRTreeBuilderS, ZRTreeBuilderStrategy);
+struct ZRTreeBuilderS
+{
+	ZRTreeBuilderStrategy *strategy;
+};
 
 // ============================================================================
 

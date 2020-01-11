@@ -8,31 +8,26 @@
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 
 #include <assert.h>
+#include <stdalign.h>
 
 #include "SimpleTree.h"
 
 typedef struct
 {
-	ZRTREEBUILDERSTRATEGY_MEMBERS()
-	;
+	ZRTreeBuilderStrategy treeBuilder;
 } ZRSimpleTreeBuilderStrategy;
 
-#define STRUCT_BUILDER_NODE(OBJSIZE) STRUCT_BUILDER_NODE_NAME(,OBJSIZE)
-#define STRUCT_BUILDER_NODE_NAME(NAME,OBJSIZE) \
-struct NAME \
-{ \
-	void *parent; \
-	ZRVector *childs; \
-	char obj[OBJSIZE]; \
+typedef struct
+{
+	void *parent;
+	ZRVector *childs;
+	alignas(max_align_t) char obj[];
 }
-
-typedef STRUCT_BUILDER_NODE()
 ZRSimpleTreeBuilder_node;
 
 typedef struct
 {
-	ZRTREEBUILDER_MEMBERS(ZRSimpleTreeBuilderStrategy);
-	;
+	ZRTreeBuilder treeBuilder;
 	size_t nodeSize;
 	size_t objSize;
 	size_t nbNodes;
@@ -40,8 +35,14 @@ typedef struct
 	ZRAllocator *allocator;
 	ZRVector *nodeStack;
 	ZRSimpleTreeBuilder_node *root;
-	char rootSpace[];
+	alignas(max_align_t) char rootSpace[];
 } ZRSimpleTreeBuilder;
+
+#define ZRSTREEBUILDERNODE_SIZE(OBJSIZE)    ((OBJSIZE) + sizeof(ZRSimpleTreeBuilder_node))
+
+#define ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER) (&STREEBUILDER->treeBuilder)
+#define ZRSTREEBUILDER_STRATEGY(STREEBUILDER)    ((ZRSimpleTreeBuilderStrategy*)ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER)->strategy)
+#define ZRSTREEBUILDER_NODESIZE(STREEBUILDER)    ZRTREEBUILDERNODE_SIZE((STREEBUILDER)->objSize)
 
 // ============================================================================
 
@@ -51,18 +52,16 @@ static void ZRSimpleTreeBuilder_nodeParent(ZRSimpleTreeBuilder *builder, void *d
 	size_t const stackNb = ZRVECTOR_NBOBJ(builder->nodeStack);
 	ZRAllocator *const allocator = builder->allocator;
 
-	typedef STRUCT_BUILDER_NODE(objSize)
-	bnode_t;
-	bnode_t *node;
+	ZRSimpleTreeBuilder_node *node;
 
 	if (stackNb == 0)
 	{
-		node = (bnode_t*)builder->rootSpace;
+		node = (ZRSimpleTreeBuilder_node*)builder->rootSpace;
 		builder->root = (ZRSimpleTreeBuilder_node*)node;
 	}
 	else
 	{
-		bnode_t *current = *(void**)ZRVECTOR_GET(builder->nodeStack, stackNb - 1);
+		ZRSimpleTreeBuilder_node *current = *(void**)ZRVECTOR_GET(builder->nodeStack, stackNb - 1);
 		size_t const nodePos = ZRVECTOR_NBOBJ(current->childs);
 
 		ZRVECTOR_RESERVE(current->childs, nodePos, 1);
@@ -78,37 +77,39 @@ static void ZRSimpleTreeBuilder_nodeParent(ZRSimpleTreeBuilder *builder, void *d
 	builder->nbNodes++;
 }
 
-static void fBuilder_node(ZRSimpleTreeBuilder *builder, void *data)
+static void fBuilder_node(ZRTreeBuilder *tbuilder, void *data)
 {
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	ZRSimpleTreeBuilder_nodeParent(builder, data, NULL);
 }
 
-static void* fBuilder_currentNode(ZRSimpleTreeBuilder *builder)
+static void* fBuilder_currentNode(ZRTreeBuilder *tbuilder)
 {
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	return *(void**)ZRVECTOR_GET(builder->nodeStack, ZRVECTOR_NBOBJ(builder->nodeStack) - 1);
 }
 
-static void* fBuilder_currentObj(ZRSimpleTreeBuilder *builder)
+static void* fBuilder_currentObj(ZRTreeBuilder *tbuilder)
 {
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	ZRSimpleTreeBuilder_node **current = ZRVECTOR_GET(builder->nodeStack, ZRVECTOR_NBOBJ(builder->nodeStack) - 1);
 	return (*current)->obj;
 }
 
-static void fBuilder_end(ZRSimpleTreeBuilder *builder)
+static void fBuilder_end(ZRTreeBuilder *tbuilder)
 {
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	assert(ZRVECTOR_NBOBJ(builder->nodeStack) > 0);
 	ZRVECTOR_DEC(builder->nodeStack);
 }
 
-static inline void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNodes, ZRSimpleTree *tree, ZRSimpleTreeNode *parent, ZRSimpleTreeNode *treeNode_out)
+static void treeNodeFromBNode(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNodes, ZRSimpleTree *tree, ZRSimpleTreeNode *parent, ZRSimpleTreeNode *treeNode_out)
 {
 	*treeNode_out = (ZRSimpleTreeNode ) { //
 		.nbChilds = ZRVECTOR_NBOBJ(currentBNodes->childs), //
-		.parent = (ZRTreeNode*)parent, //
+		.parent = parent, //
 		};
-	TYPEDEF_NODE_AUTO(tree)
-	;
-	memcpy(((ZRSimpleTreeNodeInstance*)treeNode_out)->obj, currentBNodes->obj, builder->objSize);
+	memcpy(treeNode_out->obj, currentBNodes->obj, builder->objSize);
 }
 
 static size_t fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *currentBNode, ZRSimpleTree *tree, ZRSimpleTreeNode *currentTreeNode, size_t level)
@@ -144,36 +145,39 @@ static size_t fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuild
 	return nbDescendants;
 }
 
-static void fBuilder_build(ZRSimpleTreeBuilder *builder, ZRSimpleTree *tree)
+static void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree)
 {
-	size_t const nodeSize = sizeof(STRUCT_NODE(builder->objSize)
-	);
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
+	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
+	size_t const nodeSize = ZRSTREENODE_SIZE(builder->objSize);
 	ZRVector *const treeNodes = ZRVector2SideStrategy_createFixed(builder->nbNodes, nodeSize, builder->allocator);
 
-	tree->nodes = treeNodes;
+	stree->nodes = treeNodes;
 	ZRVECTOR_RESERVE(treeNodes, 0, builder->nbNodes);
 
 	ZRSimpleTreeNode *const treeRoot = ZRVECTOR_GET(treeNodes, 0);
-	tree->root = (ZRTreeNode*)treeRoot;
+	stree->tree.root = (ZRTreeNode*)treeRoot;
 
-	treeNodeFromBNode(builder, builder->root, tree, NULL, treeRoot);
+	treeNodeFromBNode(builder, builder->root, stree, NULL, treeRoot);
 	treeRoot->childs = ZRVECTOR_GET(treeNodes, 1);
 	builder->build_nbNodes = 1;
-	((ZRSimpleTreeNode*)(tree->root))->nbDescendants = fBuilder_build_rec(builder, builder->root, tree, treeRoot, 0);
+	((ZRSimpleTreeNode*)(stree->tree.root))->nbDescendants = fBuilder_build_rec(builder, builder->root, stree, treeRoot, 0);
 
-	tree->nbNodes = builder->nbNodes;
-	tree->nbEdges = builder->nbNodes ? builder->nbNodes - 1 : 0;
+	stree->tree.graph.nbNodes = builder->nbNodes;
+	stree->tree.graph.nbEdges = builder->nbNodes ? builder->nbNodes - 1 : 0;
 }
 
-static ZRSimpleTree* fBuilder_new(ZRSimpleTreeBuilder *builder)
+static ZRTree* fBuilder_new(ZRTreeBuilder *tbuilder)
 {
-	ZRSimpleTree *tree = (ZRSimpleTree*)ZRSimpleTree_create(builder->objSize, builder->allocator, NULL);
-	fBuilder_build(builder, tree);
-	return tree;
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
+	ZRSimpleTree *stree = (ZRSimpleTree*)ZRSimpleTree_create(builder->objSize, builder->allocator, NULL);
+	fBuilder_build(ZRSTREEBUILDER_TREEBUILDER(builder), ZRSTREE_TREE(stree));
+	return ZRSTREE_TREE(stree);
 }
 
-static void fBuilder_done(ZRSimpleTreeBuilder *builder)
+static void fBuilder_done(ZRTreeBuilder *tbuilder)
 {
+	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	ZRAllocator *allocator = builder->allocator;
 	ZRFREE(allocator, builder->nodeStack);
 }
@@ -185,12 +189,14 @@ static void fBuilder_done(ZRSimpleTreeBuilder *builder)
 static void ZRSimpleTreeBuilderS_init(ZRSimpleTreeBuilderStrategy *strategy)
 {
 	*strategy = (ZRSimpleTreeBuilderStrategy ) { //
-		.fcurrentNode = (fcurrentNode_t)fBuilder_currentNode, //
-		.fcurrentObj = (fcurrentObj_t)fBuilder_currentObj, //
-		.fnode = (fnode_t)fBuilder_node, //
-		.fend = (fend_t)fBuilder_end, //
-		.fnew = (fnew_t)fBuilder_new, //
-		.fdone = (fdone_t)fBuilder_done, //
+		.treeBuilder = (ZRTreeBuilderStrategy ) { //
+			.fcurrentNode = fBuilder_currentNode, //
+			.fcurrentObj = fBuilder_currentObj, //
+			.fnode = fBuilder_node, //
+			.fend = fBuilder_end, //
+			.fnew = fBuilder_new, //
+			.fdone = fBuilder_done, //
+			} , //
 		};
 }
 
@@ -199,7 +205,9 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 	size_t const nodeSize = objSize + sizeof(ZRSimpleTreeBuilder_node);
 
 	*builder = (ZRSimpleTreeBuilder ) { //
-		.strategy = strategy, //
+		.treeBuilder = (ZRTreeBuilder ) { //
+			.strategy = (ZRTreeBuilderStrategy*)strategy, //
+			},//
 		.nbNodes = 0, //
 		.objSize = objSize, //
 		.nodeSize = nodeSize, //
@@ -211,9 +219,9 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 
 static void ZRSimpleTreeBuilder_fromSimpleTreeRec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilder_node *bnodeParent, ZRTree *tree, ZRTreeNode *currentTNode, ZRTreeNode *currentForStack)
 {
-	fBuilder_node(builder, ZRTreeNode_getObj(tree, currentTNode));
+	fBuilder_node(ZRSTREEBUILDER_TREEBUILDER(builder), ZRTreeNode_getObj(tree, currentTNode));
 
-	ZRSimpleTreeBuilder_node *currentBNode = fBuilder_currentNode(builder);
+	ZRSimpleTreeBuilder_node *currentBNode = fBuilder_currentNode(ZRSTREEBUILDER_TREEBUILDER(builder));
 	size_t const nbChilds = ZRTreeNode_getNbChilds(tree, currentTNode);
 	size_t i;
 
@@ -227,15 +235,14 @@ static void ZRSimpleTreeBuilder_fromSimpleTreeRec(ZRSimpleTreeBuilder *builder, 
 	if (currentForStack == currentTNode)
 		ZRVECTOR_ADDFIRST(builder->nodeStack, &currentBNode);
 
-	fBuilder_end(builder);
+	fBuilder_end(ZRSTREEBUILDER_TREEBUILDER(builder));
 }
 
 ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(ZRTree *tree, ZRTreeNode *currentForStack, size_t objSize, ZRAllocator *allocator)
 {
 	ZRSimpleTreeBuilderStrategy *strategy = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilderStrategy));
 	ZRSimpleTreeBuilderS_init(strategy);
-	size_t const bnodeSize = sizeof(STRUCT_NODE(objSize)
-	);
+	size_t const bnodeSize = ZRSTREEBUILDERNODE_SIZE(objSize);
 	ZRSimpleTreeBuilder *builder = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilder) + bnodeSize);
 	ZRSimpleTreeBuilder_init(builder, strategy, objSize, allocator);
 	ZRSimpleTreeBuilder_fromSimpleTreeRec(builder, NULL, tree, tree->root, currentForStack);
@@ -252,7 +259,7 @@ ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(ZRTree *tree, ZRTreeNode *currentFor
 
 ZRTreeBuilder* ZRSimpleTreeBuilder_fromSimpleTree(ZRSimpleTree *tree, ZRSimpleTreeNode *currentForStack)
 {
-	return ZRSimpleTreeBuilder_fromTree((ZRTree*)tree, (ZRTreeNode*)currentForStack, tree->objSize, tree->allocator);
+	return ZRSimpleTreeBuilder_fromTree((ZRTree*)tree, (ZRTreeNode*)currentForStack, tree->tree.graph.objSize, tree->allocator);
 }
 
 ZRTreeBuilder* ZRSimpleTreeBuilder_create(size_t objSize, ZRAllocator *allocator)
@@ -260,8 +267,7 @@ ZRTreeBuilder* ZRSimpleTreeBuilder_create(size_t objSize, ZRAllocator *allocator
 	ZRSimpleTreeBuilderStrategy *strategy = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilderStrategy));
 	ZRSimpleTreeBuilderS_init(strategy);
 
-	size_t const bnodeSize = sizeof(STRUCT_NODE(objSize)
-	);
+	size_t const bnodeSize = ZRSTREEBUILDERNODE_SIZE(objSize);
 	ZRSimpleTreeBuilder *builder = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilder) + bnodeSize);
 	ZRSimpleTreeBuilder_init(builder, strategy, objSize, allocator);
 	return (ZRTreeBuilder*)builder;
