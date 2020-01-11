@@ -11,6 +11,7 @@
 #include <zrlib/base/Allocator/Allocator.h>
 
 #include <assert.h>
+#include <stdalign.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -68,7 +69,7 @@ struct ZRVectorS
 	/*
 	 * Data for Strategy purpose.
 	 */
-	char sdata[];
+	alignas(max_align_t) char sdata[];
 };
 
 // ============================================================================
