@@ -7,6 +7,7 @@
 #include <zrlib/base/Allocator/Allocator.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdalign.h>
 
 #define INITIAL_SIZE 512
 
@@ -62,7 +63,7 @@ struct ZRVector2SideDataS
 
 	unsigned char *allocatedMemory;
 
-	unsigned char initialArray[];
+	alignas(max_align_t) unsigned char initialArray[];
 };
 
 // ============================================================================
