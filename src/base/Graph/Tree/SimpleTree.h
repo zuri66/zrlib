@@ -5,7 +5,7 @@
 
 #include <stdalign.h>
 
-#include <zrlib/base/macro.h>
+#include <zrlib/base/struct.h>
 
 typedef struct ZRSimpleTreeS ZRSimpleTree;
 typedef struct ZRSimpleTreeStrategyS ZRSimpleTreeStrategy;
