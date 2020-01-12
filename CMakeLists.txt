@@ -42,6 +42,7 @@ set(HEADERS
 	zrlib/base/Iterator/FilterIterator.h
 	zrlib/base/Iterator/Iterator.h
 	zrlib/base/macro.h
+	zrlib/base/struct.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
 	zrlib/base/Graph/Graph.h
