@@ -56,7 +56,9 @@ struct ZRMapStrategyS
 struct ZRMapS
 {
 	size_t keySize;
+	size_t keyAlignment;
 	size_t objSize;
+	size_t objAlignment;
 	size_t nbObj;
 
 	/*
