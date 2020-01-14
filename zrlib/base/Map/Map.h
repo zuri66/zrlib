@@ -9,6 +9,7 @@
 #include <zrlib/syntax_pad.h>
 #include <zrlib/config.h>
 
+#include <stdalign.h>
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -55,7 +56,9 @@ struct ZRMapStrategyS
 struct ZRMapS
 {
 	size_t keySize;
+	size_t keyAlignment;
 	size_t objSize;
+	size_t objAlignment;
 	size_t nbObj;
 
 	/*
@@ -66,7 +69,7 @@ struct ZRMapS
 	/*
 	 * Data for Strategy purpose.
 	 */
-	char sdata[];
+	alignas(max_align_t) char sdata[];
 };
 
 // ============================================================================

@@ -5,26 +5,17 @@
 
 ZRMap* ZRHashTable_alloc(size_t nbfhash, ZRAllocator *allocator)
 {
-	TYPEDEF_SDATA(nbfhash);
-	return ZRALLOC(allocator, sizeof(ZRMap) + sizeof(ZRHashTableData));
+	return ZRALLOC(allocator, sizeof(ZRMap) + ZRHASHTABLEDATA_SIZE(nbfhash));
 }
 
-size_t ZRHashTable_bucketSize(size_t keySize, size_t valueSize)
+ZRMap* ZRHashTable_create(size_t keySize, size_t keyAlignment, size_t objSize, size_t objAlignment, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
 {
-	return sizeof(STRUCT_BUCKET(keySize, valueSize));
-}
-
-ZRMap* ZRHashTable_create(size_t keySize, size_t objSize, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
-{
-	if (table == NULL)
-		table = ZRVector2SideStrategy_createDynamic(1024, ZRHashTable_bucketSize(keySize, objSize), allocator);
-
 	ZRMapStrategy *strategy = ZRALLOC(allocator, sizeof(ZRHashTableStrategy));
-	ZRHashTableStrategy_init(strategy, allocator);
+	ZRHashTableStrategy_init(strategy);
 	strategy->fdestroy = ZRHashTable_destroy;
 	ZRMap *htable = ZRHashTable_alloc(nbfhash, allocator);
 
-	ZRHashTable_init(htable, nbfhash, fhash, table);
+	ZRHashTable_init(keySize, keyAlignment, objSize, objAlignment, htable, nbfhash, fhash, table, allocator);
 	ZRMap_init(htable, keySize, objSize, strategy);
 	return htable;
 }
@@ -32,7 +23,7 @@ ZRMap* ZRHashTable_create(size_t keySize, size_t objSize, size_t nbfhash, fhash_
 void ZRHashTable_destroy(ZRMap *htable)
 {
 	ZRMap_done(htable);
-	ZRAllocator *allocator = ZRHASHTABLE_STRATEGY(htable)->allocator;
+	ZRAllocator *allocator = ZRHASHTABLE_DATA(htable)->allocator;
 	ZRFREE(allocator, htable->strategy);
 	ZRFREE(allocator, htable);
 }

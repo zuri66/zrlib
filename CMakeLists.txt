@@ -19,6 +19,7 @@ set(SRCS
 	src/base/Iterator/Iterator.c
 	src/base/List/List.c
 	src/base/MemoryOp.c
+	src/base/struct.c
 	src/base/Graph/Graph.c
 	src/base/Graph/Tree/SimpleTree.c
 	src/base/Graph/Tree/SimpleTreeBuilder.c
@@ -42,6 +43,7 @@ set(HEADERS
 	zrlib/base/Iterator/FilterIterator.h
 	zrlib/base/Iterator/Iterator.h
 	zrlib/base/macro.h
+	zrlib/base/struct.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
 	zrlib/base/Graph/Graph.h

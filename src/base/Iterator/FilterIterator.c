@@ -12,32 +12,28 @@
 
 // ============================================================================
 
-#define FILTERITERATORHEAD_MEMBERS() \
-	ZRITERATOR_MEMBERS(ZRIteratorStrategy); \
-	size_t nbFilters; \
-	void *data; \
-	ZRAllocator *allocator; \
-	ZRIterator *subject; \
-	ZRIteratorStrategy strategyArea; \
-	unsigned hasNextComputed : 2
+#define ZRFILTERITERATOR_ITERATOR(FIT) (&(FIT)->iterator)
+#define ZRFILTERITERATORSIZE(NBFILTERS) (sizeof(ZRFilterIterator) + (sizeof(ZRFilterIterator_fvalidate_t) * NBFILTERS))
 
-struct ZRFilterIteratorHeadS
+typedef struct ZRFilterIteratorS ZRFilterIterator;
+
+struct ZRFilterIteratorS
 {
-	FILTERITERATORHEAD_MEMBERS()
-	;
+	ZRIterator iterator;
+	ZRIteratorStrategy strategyArea;
+	size_t nbFilters;
+	void *data;
+	ZRAllocator *allocator;
+	ZRIterator *subject;
+	unsigned hasNextComputed :2;
+	ZRFilterIterator_fvalidate_t fvalidates[];
 };
 
-#define STRUCT_FILTERITERATOR(NBFILTERS) STRUCT_FILTERITERATOR_NAME(, NBFILTERS)
-#define STRUCT_FILTERITERATOR_NAME(NAME, NBFILTERS) \
-struct NAME \
-{ \
-	FILTERITERATORHEAD_MEMBERS(); \
-	ZRFilterIterator_fvalidate_t fvalidates[NBFILTERS]; \
-}
-
-static bool fhasNext_OR(struct ZRFilterIteratorHeadS *iterator)
+static bool fhasNext_OR(ZRIterator *iterator)
 {
-	switch (iterator->hasNextComputed)
+	ZRFilterIterator *const fiterator = (ZRFilterIterator*)iterator;
+
+	switch (fiterator->hasNextComputed)
 	{
 	// Subject consumed
 	case 0b10:
@@ -46,38 +42,40 @@ static bool fhasNext_OR(struct ZRFilterIteratorHeadS *iterator)
 		return true;
 	case 0:
 	{
-		size_t const nbFilters = iterator->nbFilters;
-		void *const data = iterator->data;
-		typedef STRUCT_FILTERITERATOR(nbFilters)
-		ZRFilterIterator;
-		ZRFilterIterator_fvalidate_t *const fvalidates = ((ZRFilterIterator*)iterator)->fvalidates;
+		size_t const nbFilters = fiterator->nbFilters;
+		void *const data = fiterator->data;
+		ZRFilterIterator_fvalidate_t *const fvalidates = fiterator->fvalidates;
 
 		for (;;)
 		{
-			if (!ZRIterator_hasNext(iterator->subject))
+			if (!ZRIterator_hasNext(fiterator->subject))
 			{
-				iterator->hasNextComputed = 0b10;
+				fiterator->hasNextComputed = 0b10;
 				return false;
 			}
-			ZRIterator_next(iterator->subject);
-			void *current = ZRIterator_current(iterator->subject);
+			ZRIterator_next(fiterator->subject);
+			void *current = ZRIterator_current(fiterator->subject);
 
 			for (size_t i = 0; i < nbFilters; i++)
 			{
 				if (fvalidates[i](current, data))
 				{
-					iterator->hasNextComputed = 1;
+					fiterator->hasNextComputed = 1;
 					return true;
 				}
 			}
 		}
 	}
 	}
+	// Normally never happen
+	return false;
 }
 
-static bool fhasNext_AND(struct ZRFilterIteratorHeadS *iterator)
+static bool fhasNext_AND(ZRIterator *iterator)
 {
-	switch (iterator->hasNextComputed)
+	ZRFilterIterator *const fiterator = (ZRFilterIterator*)iterator;
+
+	switch (fiterator->hasNextComputed)
 	{
 	// Subject consumed
 	case 0b10:
@@ -86,28 +84,26 @@ static bool fhasNext_AND(struct ZRFilterIteratorHeadS *iterator)
 		return true;
 	case 0:
 	{
-		size_t const nbFilters = iterator->nbFilters;
-		void *const data = iterator->data;
-		typedef STRUCT_FILTERITERATOR(nbFilters)
-		ZRFilterIterator;
-		ZRFilterIterator_fvalidate_t *const fvalidates = ((ZRFilterIterator*)iterator)->fvalidates;
+		size_t const nbFilters = fiterator->nbFilters;
+		void *const data = fiterator->data;
+		ZRFilterIterator_fvalidate_t *const fvalidates = fiterator->fvalidates;
 
 		for (;;)
 		{
-			if (!ZRIterator_hasNext(iterator->subject))
+			if (!ZRIterator_hasNext(fiterator->subject))
 			{
-				iterator->hasNextComputed = 0b10;
+				fiterator->hasNextComputed = 0b10;
 				return false;
 			}
-			ZRIterator_next(iterator->subject);
-			void *current = ZRIterator_current(iterator->subject);
+			ZRIterator_next(fiterator->subject);
+			void *current = ZRIterator_current(fiterator->subject);
 
 			for (size_t i = 0; i < nbFilters; i++)
 			{
 				if (!fvalidates[i](current, data))
 					goto END;
 			}
-			iterator->hasNextComputed = 1;
+			fiterator->hasNextComputed = 1;
 			return true;
 			END:
 			;
@@ -115,46 +111,52 @@ static bool fhasNext_AND(struct ZRFilterIteratorHeadS *iterator)
 		break;
 	}
 	}
+	// Normally never happen
+	return false;
 }
 
-static void fnext(struct ZRFilterIteratorHeadS *iterator)
+static void fnext(ZRIterator *iterator)
 {
-	switch (iterator->hasNextComputed)
+	ZRFilterIterator *const fiterator = (ZRFilterIterator*)iterator;
+
+	switch (fiterator->hasNextComputed)
 	{
 	case 0b10:
 		break;
 	case 0:
-		ZRITERATOR_HASNEXT((ZRIterator*)iterator);
-		fnext(iterator);
+		ZRITERATOR_HASNEXT((ZRIterator*)fiterator);
+		fnext(ZRFILTERITERATOR_ITERATOR(fiterator));
 		break;
 	case 1:
-		iterator->hasNextComputed = 0;
+		fiterator->hasNextComputed = 0;
 		break;
 	}
 }
 
-static void* fcurrent(struct ZRFilterIteratorHeadS *iterator)
+static void* fcurrent(ZRIterator *iterator)
 {
-	return ZRITERATOR_CURRENT(iterator->subject);
+	ZRFilterIterator *const fiterator = (ZRFilterIterator*)iterator;
+	return ZRITERATOR_CURRENT(fiterator->subject);
 }
 
-static void fdestroy(struct ZRFilterIteratorHeadS *iterator)
+static void fdestroy(ZRIterator *iterator)
 {
-	ZRITERATOR_DESTROY(iterator->subject);
-	ZRFREE(iterator->allocator, iterator);
+	ZRFilterIterator *const fiterator = (ZRFilterIterator*)iterator;
+	ZRITERATOR_DESTROY(fiterator->subject);
+	ZRFREE(fiterator->allocator, fiterator);
 }
 
 ZRIterator* ZRFilterIterator_create(ZRIterator *subject, void *data, size_t nbFilters, ZRFilterIterator_fvalidate_t fvalidates[nbFilters], enum ZRFilterIteratorOpE op, ZRAllocator *allocator)
 {
 	assert(nbFilters > 0);
-	typedef STRUCT_FILTERITERATOR(nbFilters)
-	ZRFilterIterator;
-	ZRFilterIterator *it = ZRALLOC(allocator, sizeof(ZRFilterIterator));
-	*((struct ZRFilterIteratorHeadS*)it) = (struct ZRFilterIteratorHeadS ) { //
+	ZRFilterIterator *it = ZRALLOC(allocator, ZRFILTERITERATORSIZE(nbFilters));
+	*it = (ZRFilterIterator ) { //
+		.iterator = { //
+			.strategy = &it->strategyArea, //
+			},//
 		.data = data, //
 		.nbFilters = nbFilters, //
 		.subject = subject, //
-		.strategy = &it->strategyArea, //
 		.allocator = allocator, //
 		.hasNextComputed = 0, //
 		};

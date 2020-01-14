@@ -9,6 +9,7 @@
 #include <zrlib/config.h>
 #include <zrlib/syntax_pad.h>
 
+#include <stdalign.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -32,7 +33,7 @@ struct ZRMemoryPoolS
 	/*
 	 * Data for Strategy purpose.
 	 */
-	char sdata[];
+	alignas(max_align_t) char sdata[];
 };
 
 struct ZRMemoryPoolStrategyS

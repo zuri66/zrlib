@@ -23,23 +23,17 @@ typedef void* _ (*ZRIterator_fcurrent_t)(ZRIterator*);
 typedef void __ (*ZRIterator_fnext_t)(__ ZRIterator*);
 typedef bool __ (*ZRIterator_fhasNext_t)(ZRIterator*);
 
-#define ZRITERATORSTRATEGY_MEMBERS() \
-	ZRIterator_fdestroy_t fdestroy; \
-	ZRIterator_fcurrent_t fcurrent; \
-	ZRIterator_fnext_t fnext; \
-	ZRIterator_fhasNext_t fhasNext
-
 struct ZRIteratorStrategyS
 {
-	ZRITERATORSTRATEGY_MEMBERS();
+	ZRIterator_fdestroy_t fdestroy;
+	ZRIterator_fcurrent_t fcurrent;
+	ZRIterator_fnext_t fnext;
+	ZRIterator_fhasNext_t fhasNext;
 };
-
-#define ZRITERATOR_MEMBERS(TYPE_STRATEGY) \
-	TYPE_STRATEGY *strategy
 
 struct ZRIteratorS
 {
-	ZRITERATOR_MEMBERS(ZRIteratorStrategy);
+	ZRIteratorStrategy *strategy;
 };
 
 // ============================================================================

@@ -10,12 +10,14 @@
 #include <zrlib/base/Map/Map.h>
 #include <zrlib/base/Vector/Vector.h>
 
+#define ZRHASHTABLE_CREATEMAXALIGN(KS,OS,NBFH,FH,TB,AL) ZRHashTable_create(KS, alignof(max_align_t), OS, alignof(max_align_t), NBFH FH, TB, AL)
+
 typedef size_t (*fhash_t)(void *key);
 
 ZRMap* ZRHashTable_alloc(size_t nbfhash, ZRAllocator *allocator);
 ZRMap* ZRHashTable_create( //
-	size_t keySize, //
-	size_t valueSize, //
+	size_t keySize, size_t keyAlignment, //
+	size_t objSize, size_t objAlignment, //
 	size_t nbfhash, //
 	fhash_t fhash[nbfhash], //
 	ZRVector *table, //

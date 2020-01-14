@@ -163,9 +163,12 @@ ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coo
 // Standard implementations
 // ============================================================================
 
+#define ZRTREEBFNODEITERATOR_ITERATOR(BFIT) &((BFIT)->iterator)
+#define ZRTREEDFNODEITERATOR_ITERATOR(DFIT) &((DFIT)->iterator)
+
 typedef struct
 {
-	ZRITERATOR_MEMBERS(ZRIteratorStrategy);
+	ZRIterator iterator;
 	ZRAllocator *allocator;
 	union
 	{
@@ -187,33 +190,37 @@ typedef struct
 
 typedef BFNodeIterator DFNodeIterator;
 
-static void BFNodeIterator_fdestroy(BFNodeIterator *iterator)
+static void BFNodeIterator_fdestroy(ZRIterator *iterator)
 {
-	ZRVector_destroy(iterator->queue);
-	ZRFREE(iterator->allocator, iterator);
+	BFNodeIterator *const bfiterator = (BFNodeIterator*)iterator;
+	ZRVector_destroy(bfiterator->queue);
+	ZRFREE(bfiterator->allocator, bfiterator);
 }
 
-static void* BFNodeIterator_fcurrent(BFNodeIterator *iterator)
+static void* BFNodeIterator_fcurrent(ZRIterator *iterator)
 {
-	return iterator->current;
+	BFNodeIterator *const bfiterator = (BFNodeIterator*)iterator;
+	return bfiterator->current;
 }
 
-static bool BFIterator_fhasNext(BFNodeIterator *iterator)
+static bool BFIterator_fhasNext(ZRIterator *iterator)
 {
-	return ZRVECTOR_NBOBJ(iterator->queue) > 0;
+	BFNodeIterator *const bfiterator = (BFNodeIterator*)iterator;
+	return ZRVECTOR_NBOBJ(bfiterator->queue) > 0;
 }
 
-static void BFIterator_fnext(BFNodeIterator *iterator)
+static void BFIterator_fnext(ZRIterator *iterator)
 {
-	assert(BFIterator_fhasNext(iterator));
-	ZRVECTOR_POPFIRST(iterator->queue, &iterator->current);
-	size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(iterator->subject_g, iterator->current_g);
+	BFNodeIterator *const bfiterator = (BFNodeIterator*)iterator;
+	assert(BFIterator_fhasNext(ZRTREEBFNODEITERATOR_ITERATOR(bfiterator)));
+	ZRVECTOR_POPFIRST(bfiterator->queue, &bfiterator->current);
+	size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(bfiterator->subject_g, bfiterator->current_g);
 
 	if (nbChilds > 0)
 	{
 		ZRGraphNode (*childs_g[nbChilds]);
-		ZRGraphNode_getNChilds(iterator->subject_g, iterator->current_g, childs_g, 0, nbChilds);
-		ZRVECTOR_ADD_NB(iterator->queue, nbChilds, childs_g);
+		ZRGraphNode_getNChilds(bfiterator->subject_g, bfiterator->current_g, childs_g, 0, nbChilds);
+		ZRVECTOR_ADD_NB(bfiterator->queue, nbChilds, childs_g);
 	}
 }
 
@@ -221,34 +228,37 @@ ZRIterator* ZRTreeNode_std_getDescendants_BF(ZRTree *tree, ZRTreeNode *node, ZRA
 {
 	BFNodeIterator *ret = ZRALLOC(allocator, sizeof(BFNodeIterator));
 	*ret = (BFNodeIterator ) { //
+		.iterator = (ZRIterator ) { //
+			.strategy = &ret->strategyArea, //
+			},//
 		.subject = tree, //
 		.allocator = allocator, //
-		.strategy = &ret->strategyArea, //
 		.queue = ZRVector2SideStrategy_createDynamic(256, sizeof(void*), allocator), //
 		};
 	ret->strategyArea = (ZRIteratorStrategy ) { //
-		.fdestroy = (ZRIterator_fdestroy_t)BFNodeIterator_fdestroy, //
-		.fcurrent = (ZRIterator_fcurrent_t)BFNodeIterator_fcurrent, //
-		.fhasNext = (ZRIterator_fhasNext_t)BFIterator_fhasNext, //
-		.fnext = (ZRIterator_fnext_t)BFIterator_fnext, //
+		.fdestroy = BFNodeIterator_fdestroy, //
+		.fcurrent = BFNodeIterator_fcurrent, //
+		.fhasNext = BFIterator_fhasNext, //
+		.fnext = BFIterator_fnext, //
 		};
 	ZRVECTOR_ADD(ret->queue, &node);
-	return (ZRIterator*)ret;
+	return ZRTREEBFNODEITERATOR_ITERATOR(ret);
 }
 
-static void DFIterator_fnext(DFNodeIterator *iterator)
+static void DFIterator_fnext(ZRIterator *iterator)
 {
-	assert(BFIterator_fhasNext(iterator));
-	ZRVECTOR_POP(iterator->queue, &iterator->current);
-	size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(iterator->subject_g, iterator->current_g);
+	DFNodeIterator *const dfiterator = (DFNodeIterator*)iterator;
+	assert(BFIterator_fhasNext(ZRTREEDFNODEITERATOR_ITERATOR(dfiterator)));
+	ZRVECTOR_POP(dfiterator->queue, &dfiterator->current);
+	size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(dfiterator->subject_g, dfiterator->current_g);
 
 	if (nbChilds > 0)
 	{
 		ZRGraphNode (*childs_g[nbChilds]);
-		ZRGraphNode_getNChilds(iterator->subject_g, iterator->current_g, childs_g, 0, nbChilds);
+		ZRGraphNode_getNChilds(dfiterator->subject_g, dfiterator->current_g, childs_g, 0, nbChilds);
 		// Reverse to respect the order of the childs in the stack
 		ZRARRAYOP_REVERSE(childs_g, sizeof(void*), nbChilds);
-		ZRVECTOR_ADD_NB(iterator->queue, nbChilds, childs_g);
+		ZRVECTOR_ADD_NB(dfiterator->queue, nbChilds, childs_g);
 	}
 }
 
@@ -256,17 +266,19 @@ ZRIterator* ZRTreeNode_std_getDescendants_DF(ZRTree *tree, ZRTreeNode *node, ZRA
 {
 	DFNodeIterator *ret = ZRALLOC(allocator, sizeof(DFNodeIterator));
 	*ret = (DFNodeIterator ) { //
+		.iterator = (ZRIterator ) { //
+			.strategy = &ret->strategyArea, //
+			},//
 		.subject = tree, //
 		.allocator = allocator, //
-		.strategy = &ret->strategyArea, //
 		.stack = ZRVector2SideStrategy_createDynamic(256, sizeof(void*), allocator), //
 		};
 	ret->strategyArea = (ZRIteratorStrategy ) { //
-		.fdestroy = (ZRIterator_fdestroy_t)BFNodeIterator_fdestroy, //
-		.fcurrent = (ZRIterator_fcurrent_t)BFNodeIterator_fcurrent, //
-		.fhasNext = (ZRIterator_fhasNext_t)BFIterator_fhasNext, //
-		.fnext = (ZRIterator_fnext_t)DFIterator_fnext, //
+		.fdestroy = BFNodeIterator_fdestroy, //
+		.fcurrent = BFNodeIterator_fcurrent, //
+		.fhasNext = BFIterator_fhasNext, //
+		.fnext = DFIterator_fnext, //
 		};
 	ZRVECTOR_ADD(ret->queue, &node);
-	return (ZRIterator*)ret;
+	return ZRTREEDFNODEITERATOR_ITERATOR(ret);
 }

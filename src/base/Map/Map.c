@@ -47,7 +47,7 @@ bool ZRMap_putIfAbsent(ZRMap *map, void *key, void *value)
 
 bool ZRMap_replace(ZRMap *map, void *key, void *value)
 {
-	ZRMAP_REPLACE(map, key, value);
+	return ZRMAP_REPLACE(map, key, value);
 }
 
 bool ZRMap_delete(ZRMap *map, void *key)
