@@ -7,6 +7,7 @@
 #define ZRSTRUCT_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/ArrayOp.h>
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -49,7 +50,6 @@ static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)
  */
 static inline void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
 {
-	size_t structSize = 0;
 	size_t offset = infos->offset;
 	size_t max_alignment = 0;
 
@@ -79,8 +79,7 @@ static int cmp_infos(const void *va, const void *vb)
 static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
 {
 	// Copy also the nb + 1 struct infos
-	for (size_t i = 0; i <= nb; i++)
-		pinfos[i] = &infos[i];
+	ZRARRAYOP_TOPOINTERS(pinfos, sizeof(void*), nb + 1, infos, sizeof(*infos));
 
 	qsort(pinfos, nb, sizeof(ZRObjAlignInfos*), cmp_infos);
 }

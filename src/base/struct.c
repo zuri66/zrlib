@@ -7,7 +7,6 @@
 
 #include <assert.h>
 
-
 void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos)
 {
 	assert(nb + 1 <= ZRSTRUCT_MAXFIELDS);
@@ -15,14 +14,10 @@ void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos)
 	ZRObjAlignInfos tmpInfos[ZRSTRUCT_MAXFIELDS];
 
 	ZRSTRUCT_BESTORDER(nb, infos, pinfos);
-
-	for (size_t i = 0; i < nb; i++)
-		memcpy(&tmpInfos[i], pinfos[i], sizeof(ZRObjAlignInfos));
+	ZRARRAYOP_FROMPOINTERSDATA(tmpInfos, sizeof(*tmpInfos), nb, pinfos, sizeof(*pinfos));
 
 	ZRSTRUCT_MAKEOFFSETS(nb, tmpInfos);
-
-	for (size_t i = 0; i <= nb; i++)
-		memcpy(pinfos[i], &tmpInfos[i], sizeof(ZRObjAlignInfos));
+	ZRARRAYOP_TOPOINTERSDATA(pinfos, sizeof(*pinfos), nb + 1, tmpInfos, sizeof(*tmpInfos));
 }
 
 size_t ZRStruct_alignOffset(size_t fieldOffset, size_t alignment)
