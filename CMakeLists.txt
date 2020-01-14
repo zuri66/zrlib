@@ -19,6 +19,7 @@ set(SRCS
 	src/base/Iterator/Iterator.c
 	src/base/List/List.c
 	src/base/MemoryOp.c
+	src/base/struct.c
 	src/base/Graph/Graph.c
 	src/base/Graph/Tree/SimpleTree.c
 	src/base/Graph/Tree/SimpleTreeBuilder.c

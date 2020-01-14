@@ -6,10 +6,15 @@
 #ifndef ZRSTRUCT_H
 #define ZRSTRUCT_H
 
-#include <assert.h>
+#include <zrlib/config.h>
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef ZRSTRUCT_MAXFIELDS
+#	define ZRSTRUCT_MAXFIELDS 128
+#endif
 
 typedef struct ZRObjAlignInfosS
 {
@@ -18,7 +23,7 @@ typedef struct ZRObjAlignInfosS
 	size_t size;
 } ZRObjAlignInfos;
 
-static size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
+static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 {
 	size_t rest = fieldOffset % alignment;
 
@@ -42,7 +47,7 @@ static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)
  * Each infos item represents a field in a struct.
  * The infos[nb+1] item represent the struct infos.
  */
-static void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
+static inline void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
 {
 	size_t structSize = 0;
 	size_t offset = infos->offset;
@@ -71,7 +76,7 @@ static int cmp_infos(const void *va, const void *vb)
 	return b->alignment - a->alignment;
 }
 
-static void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
+static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
 {
 	// Copy also the nb + 1 struct infos
 	for (size_t i = 0; i <= nb; i++)
@@ -80,20 +85,12 @@ static void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfo
 	qsort(pinfos, nb, sizeof(ZRObjAlignInfos*), cmp_infos);
 }
 
-static void ZRSTRUCT_BESTOFFSETS(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
-{
-	assert(nb + 1 <= 512);
-	ZRObjAlignInfos tmpInfos[512];
+// ============================================================================
 
-	ZRSTRUCT_BESTORDER(nb, infos, pinfos);
-
-	for (size_t i = 0; i < nb; i++)
-		memcpy(&tmpInfos[i], pinfos[i], sizeof(ZRObjAlignInfos));
-
-	ZRSTRUCT_MAKEOFFSETS(nb, tmpInfos);
-
-	for (size_t i = 0; i <= nb; i++)
-		memcpy(pinfos[i], &tmpInfos[i], sizeof(ZRObjAlignInfos));
-}
+size_t ZRStruct_alignOffset(size_t fieldOffset, size_t alignment);
+#define ZRStructSize_FAM_pad ZRStruct_alignOffset
+void ZRStruct_makeOffsets(size_t nb, ZRObjAlignInfos *infos);
+void ZRStruct_bestOrder(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos);
+void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos);
 
 #endif

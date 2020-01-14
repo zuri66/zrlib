@@ -68,9 +68,7 @@ static void bucketInfos(ZRObjAlignInfos *out, size_t keySize, size_t keyAlignmen
 	out[1] = (ZRObjAlignInfos ) { 0, keyAlignment, keySize };
 	out[2] = (ZRObjAlignInfos ) { 0, objAlignment, objSize };
 	out[3] = (ZRObjAlignInfos ) { };
-	ZRObjAlignInfos (*pinfos[ZRHASHTABLE_INFOS_NB]);
-
-	ZRSTRUCT_BESTOFFSETS(ZRHASHTABLE_INFOS_NB - 1, out, pinfos);
+	ZRStruct_bestOffsets(ZRHASHTABLE_INFOS_NB - 1, out);
 }
 
 // ============================================================================
