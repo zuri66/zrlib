@@ -101,11 +101,11 @@ static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, size_t objAlignm
 
 static inline void ZRVECTOR_COPY(ZRVector *restrict dest, ZRVector *restrict src)
 {
+	assert(dest->objAlignment == src->objAlignment);
 	ZRVECTOR_DELETE_ALL(dest);
-	*dest = (ZRVector ) { //
-		.objSize = src->objSize, //
-		.nbObj = 0, //
-		};
+// TODO: function changeSize()
+	dest->objSize = src->objSize,
+	dest->nbObj = 0;
 	ZRVECTOR_ADD_NB(dest, src->nbObj, src->array);
 }
 
