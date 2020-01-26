@@ -130,6 +130,11 @@ static inline size_t ZRVECTOR_OBJSIZE(ZRVector *vec)
 	return vec->objSize;
 }
 
+static inline size_t ZRVECTOR_CAPACITY(ZRVector *vec)
+{
+	return vec->capacity;
+}
+
 static inline size_t ZRVECTOR_OBJALIGNMENT(ZRVector *vec)
 {
 	return vec->objAlignment;
@@ -296,6 +301,7 @@ void ZRVector_destroy(ZRVector *vec);
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 size_t ZRVector_objAlignment(ZRVector *vec);
+size_t ZRVector_capacity(ZRVector *vec);
 
 void* ZRVector_get(__ ZRVector *vec, size_t pos);
 void _ ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest);

@@ -40,6 +40,11 @@ size_t ZRVector_objAlignment(ZRVector *vec)
 	return ZRVECTOR_OBJALIGNMENT(vec);
 }
 
+size_t ZRVector_capacity(ZRVector *vec)
+{
+	return ZRVECTOR_CAPACITY(vec);
+}
+
 void ZRVector_insert(ZRVector *vec, size_t pos, void *obj)
 {
 	ZRVECTOR_INSERT(vec, pos, obj);
