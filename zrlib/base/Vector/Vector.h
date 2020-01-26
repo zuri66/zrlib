@@ -53,6 +53,7 @@ struct ZRVectorStrategyS
 struct ZRVectorS
 {
 	size_t objSize;
+	size_t objAlignment;
 	size_t nbObj;
 	size_t capacity;
 
@@ -79,14 +80,17 @@ static inline void ZRVECTOR_DELETE_ALL(ZRVector *vec);
 
 // ============================================================================
 
-static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
+static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorStrategy *strategy)
 {
-	*vec = (ZRVector ) { //
-		.objSize = objSize, //
-		.nbObj = 0, //
-		.capacity = 0, //
-		.strategy = strategy, //
-		};
+	*vec = ((ZRVector)
+		{ //
+			.objSize = objSize,//
+			.objAlignment = objAlignment,//
+			.nbObj = 0,//
+			.capacity = 0,//
+			.strategy = strategy,//
+		})
+	;
 
 	/*
 	 * Initialisation of the vector
@@ -124,6 +128,11 @@ static inline size_t ZRVECTOR_NBOBJ(ZRVector *vec)
 static inline size_t ZRVECTOR_OBJSIZE(ZRVector *vec)
 {
 	return vec->objSize;
+}
+
+static inline size_t ZRVECTOR_OBJALIGNMENT(ZRVector *vec)
+{
+	return vec->objAlignment;
 }
 
 static inline void* ZRVECTOR_GET(ZRVector *vec, size_t pos)
@@ -248,7 +257,6 @@ static inline void ZRVECTOR_POPFIRST_NB(ZRVector *vec, size_t nb, void *dest)
 	ZRVECTOR_DECFIRST_NB(vec, nb);
 }
 
-
 // Pointer help functions
 
 static inline void ZRVECTOR_SETPTR_NB(ZRVector *vec, size_t pos, size_t nb, void *src, size_t srcObjSize)
@@ -280,13 +288,14 @@ static inline void ZRVECTOR_ADDFIRSTPTR_NB(ZRVector *vec, size_t nb, void *src, 
 
 // ============================================================================
 
-void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy);
+void ZRVector_init(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorStrategy *strategy);
 void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src);
 void ZRVector_done(ZRVector *vec);
 void ZRVector_destroy(ZRVector *vec);
 
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
+size_t ZRVector_objAlignment(ZRVector *vec);
 
 void* ZRVector_get(__ ZRVector *vec, size_t pos);
 void _ ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest);
@@ -316,7 +325,6 @@ void ZRVector_pop(_______ ZRVector *vec, __________ void *restrict dest);
 void ZRVector_pop_nb(____ ZRVector *vec, size_t nb, void *restrict dest);
 void ZRVector_popFirst(__ ZRVector *vec, __________ void *restrict dest);
 void ZRVector_popFirst_nb(ZRVector *vec, size_t nb, void *restrict dest);
-
 
 // ============================================================================
 // Pointer help functions
