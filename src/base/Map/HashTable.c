@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 typedef struct ZRHashTableBucketS ZRHashTableBucket;
-typedef struct ZRHashTableDataS ZRHashTableData;
+typedef struct ZRHashTableS ZRHashTable;
 typedef struct ZRHashTableStrategyS ZRHashTableStrategy;
 
 struct ZRHashTableStrategyS
@@ -25,10 +25,10 @@ struct ZRHashTableStrategyS
 
 // ============================================================================
 
-#define ZRHASHTABLE_STRATEGY(htable) ((ZRHashTableStrategy*)((htable)->strategy))
-#define ZRHASHTABLE_DATA(htable) ((ZRHashTableData*)((htable)->sdata))
-#define ZRHASHTABLEDATA_SIZE(NBFHASH) (sizeof(ZRHashTableData) + ((NBFHASH + 1) * sizeof(fhash_t)))
-#define ZRHASHTABLE_DATASIZE(HTABLE) ZRHASHTABLEDATA_SIZE(ZRHASHTABLE_DATA(HTABLE)->nbfhash)
+#define ZRHASHTABLE_STRATEGY(HTABLE) ((ZRHashTableStrategy*)((HTABLE)->strategy))
+#define ZRHASHTABLE(HTABLE) ((ZRHashTable*)(HTABLE))
+#define ZRHASHTABLEDATA_SIZE(NBFHASH) (sizeof(ZRHashTable) + ((NBFHASH + 1) * sizeof(fhash_t)))
+#define ZRHASHTABLE_DATASIZE(HTABLE) ZRHASHTABLEDATA_SIZE(ZRHASHTABLE(HTABLE)->nbfhash)
 
 #define ZRHASHTABLE_INFOS_NB 4
 typedef enum
@@ -36,8 +36,9 @@ typedef enum
 	ZRHashTableInfos_nextUnused, ZRHashTableInfos_key, ZRHashTableInfos_obj, ZRHashTableInfos_struct
 } ZRHashTableInfos;
 
-struct ZRHashTableDataS
+struct ZRHashTableS
 {
+	ZRMap map;
 	ZRObjAlignInfos infos[ZRHASHTABLE_INFOS_NB];
 	ZRAllocator *allocator;
 	ZRVector *table;
@@ -57,7 +58,7 @@ struct ZRHashTableBucketS
 //#define bucket_offsetof(offset, alignment) \
 //	return ZRSTRUCT_ALIGNOFFSET(offset, alignment);
 
-#define bucket_get(HTABLE,BUCKET,FIELD) ((char*)bucket + ZRHASHTABLE_DATA(HTABLE)->infos[FIELD].offset)
+#define bucket_get(HTABLE,BUCKET,FIELD) ((char*)bucket + ZRHASHTABLE(HTABLE)->infos[FIELD].offset)
 #define bucket_key(HTABLE,BUCKET) bucket_get(HTABLE,BUCKET,ZRHashTableInfos_key)
 #define bucket_obj(HTABLE,BUCKET) bucket_get(HTABLE,BUCKET,ZRHashTableInfos_obj)
 #define bucket_nextUnused(HTABLE,BUCKET) (*(ZRReserveNextUnused*)bucket_get(HTABLE,BUCKET,ZRHashTableInfos_nextUnused))
@@ -73,11 +74,6 @@ static void bucketInfos(ZRObjAlignInfos *out, size_t keySize, size_t keyAlignmen
 
 // ============================================================================
 
-static size_t fsdataSize(ZRMap *htable)
-{
-	return ZRHASHTABLE_DATASIZE(htable);
-}
-
 static size_t fstrategySize()
 {
 	return sizeof(ZRHashTableStrategy);
@@ -86,7 +82,7 @@ static size_t fstrategySize()
 static void finitMap(ZRMap *htable)
 {
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 	size_t const bucketSize = data->infos[ZRHashTableInfos_struct].size;
 	alignas (max_align_t)
 	char bucket[bucketSize];
@@ -97,7 +93,7 @@ static void finitMap(ZRMap *htable)
 static void fdone(ZRMap *htable)
 {
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 	ZRVector_destroy(data->table);
 }
 
@@ -109,7 +105,7 @@ enum InsertModeE
 static inline bool insert(ZRMap *htable, void *key, void *obj, enum InsertModeE mode)
 {
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 
 // TODO mustgrow
 
@@ -176,7 +172,7 @@ static bool freplace(ZRMap *htable, void *key, void *obj)
 static inline void* getBucket(ZRMap *htable, void *key, size_t *outPos)
 {
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 	fhash_t *fhash = data->fhash;
 
 	while (*fhash)
@@ -218,7 +214,7 @@ static bool fdelete(ZRMap *htable, void *key)
 		return false;
 
 	ZRHashTableStrategy *strategy = ZRHASHTABLE_STRATEGY(htable);
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 
 	ZRRESERVEOPLIST_RELEASENB(data->table->array, data->infos[ZRHashTableInfos_struct].size, data->table->nbObj, data->infos[ZRHashTableInfos_nextUnused].offset, pos, 1);
 	htable->nbObj--;
@@ -231,7 +227,6 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 {
 	*(ZRHashTableStrategy*)strategy = (ZRHashTableStrategy ) { //
 		.strategy = { //
-			.fsdataSize = fsdataSize, //
 			.fstrategySize = fstrategySize, //
 			.finitMap = finitMap, //
 			.fput = fput, //
@@ -246,7 +241,7 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 
 static void ZRHashTable_init(size_t keySize, size_t keyAlignment, size_t objSize, size_t objAlignment, ZRMap *htable, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
 {
-	ZRHashTableData *data = ZRHASHTABLE_DATA(htable);
+	ZRHashTable *data = ZRHASHTABLE(htable);
 	memcpy(data->fhash, fhash, nbfhash * sizeof(fhash_t));
 	data->nbfhash = nbfhash;
 	data->fhash[nbfhash] = NULL;

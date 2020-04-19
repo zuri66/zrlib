@@ -22,7 +22,6 @@ typedef struct ZRMapStrategyS ZRMapStrategy;
 
 struct ZRMapStrategyS
 {
-	size_t (*fsdataSize)(ZRMap *map);
 	size_t (*fstrategySize)();
 
 	/**
@@ -65,11 +64,6 @@ struct ZRMapS
 	 * The strategy for memory management and insertion/deletion routines.
 	 */
 	ZRMapStrategy *strategy;
-
-	/*
-	 * Data for Strategy purpose.
-	 */
-	alignas(max_align_t) char sdata[];
 };
 
 // ============================================================================
