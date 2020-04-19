@@ -133,12 +133,6 @@ static inline bool ZRVector2SideStrategy_memoryIsAllocated(ZRVector *vec)
 
 // ============================================================================
 
-size_t ZRVector2SideStrategy_sdataSize(ZRVector *vec)
-{
-	ZRVector2SideStrategy *twoSideStrategy = ZRVECTOR_STRATEGY(vec);
-	return sizeof(ZR2SSVector) + (twoSideStrategy->initialArraySize * vec->objSize);
-}
-
 size_t ZRVector2SideStrategy_size()
 {
 	return sizeof(ZRVector2SideStrategy);
@@ -150,7 +144,6 @@ void ZRVector2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocat
 		{ //
 		.strategy = { //
 			.finitVec = ZRVector2SideStrategy_finitVec, //
-			.fsdataSize __ = ZRVector2SideStrategy_sdataSize, //
 			.fstrategySize = ZRVector2SideStrategy_size, //
 			.finsert = ZRVector2SideStrategy_finsert, //
 			.fdelete = ZRVector2SideStrategy_fdelete, //
