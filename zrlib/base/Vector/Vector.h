@@ -66,11 +66,6 @@ struct ZRVectorS
 	 * The array of the vector's objects.
 	 */
 	void *array;
-
-	/*
-	 * Data for Strategy purpose.
-	 */
-	alignas(max_align_t) char sdata[];
 };
 
 // ============================================================================
