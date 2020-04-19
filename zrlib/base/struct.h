@@ -79,7 +79,7 @@ static int cmp_infos(const void *va, const void *vb)
 static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
 {
 	// Copy also the nb + 1 struct infos
-	ZRARRAYOP_TOPOINTERS(pinfos, sizeof(void*), nb + 1, infos, sizeof(*infos));
+	ZRARRAYOP_TOPOINTERS(pinfos, sizeof(*pinfos), nb + 1, infos, sizeof(*infos));
 
 	qsort(pinfos, nb, sizeof(ZRObjAlignInfos*), cmp_infos);
 }
