@@ -3,6 +3,7 @@
  * @date lundi 25 novembre 2019, 23:34:25 (UTC+0100)
  */
 
+#include <zrlib/base/struct.h>
 #include <zrlib/base/ReserveOp_list.h>
 #include <zrlib/base/MemoryPool/MPoolReserve.h>
 #include <zrlib/base/Allocator/Allocator.h>
@@ -16,179 +17,167 @@
 
 // ============================================================================
 
-// ============================================================================
-
-#define ZRMPOOL_STRATEGY(pool) ((ZRMPoolReserveStrategy*)((pool)->strategy))
+#define ZRMPOOL_STRATEGY(POOL) ((ZRMPoolReserveStrategy*)((POOL)->strategy))
 
 // ============================================================================
 // LIST
 
-typedef struct ZRMPoolReserveDataListHeadS ZRMPoolReserveDataListHead;
+typedef struct ZRMPoolRListS ZRMPoolRList;
 
-struct ZRMPoolReserveDataListHeadS
+#define ZRMPOOLRLIST_INFOS_NB 4
+
+typedef enum
 {
-	size_t const nbBlocks;
+	ZRMPoolRListInfos_base, ZRMPoolRListInfos_nextUnused, ZRMPoolRListInfos_reserve, ZRMPoolRListInfos_struct
+} ZRMPoolRListInfos;
+
+struct ZRMPoolRListS
+{
+	ZRMemoryPool pool;
+	ZRObjAlignInfos infos[ZRMPOOLRLIST_INFOS_NB];
+	size_t nbBlocks;
+//	ZRReserveNextUnused nextUnused[NBBLOCKS];
+// char reserve[(NBBLOCKS) * (BLOCKSIZE)];
 };
 
-#define ZRMPOOL_DATA_LIST_HEAD(pool) ((ZRMPoolReserveDataListHead*)((pool)->sdata))
-#define ZRMPOOL_DATA_LIST(pool) ((ZRMPoolReserveDataList*)((pool)->sdata))
+#define ZRMPOOLRLIST(POOL) ((ZRMPoolRList*)POOL)
+#define ZRMPOOLRLIST_GET(POOL,FIELD) ((char*)POOL + ZRMPOOLRLIST(POOL)->infos[FIELD].offset)
+#define ZRMPOOLRLIST_NEXTUNUSED(POOL) ((ZRReserveNextUnused*)ZRMPOOLRLIST_GET(POOL,ZRMPoolRListInfos_nextUnused))
+#define ZRMPOOLRLIST_RESERVE(POOL) ZRMPOOLRLIST_GET(POOL,ZRMPoolRListInfos_reserve)
 
-#define TYPEDEF_SDATA_LIST(BLOCKSIZE, NBBLOCKS) \
-	typedef STRUCT_SDATA_LIST(BLOCKSIZE, NBBLOCKS) ZRMPoolReserveDataList
-#define STRUCT_SDATA_LIST(BLOCKSIZE, NBBLOCKS) \
-struct \
-{ \
-	size_t nbBlocks; \
-	ZRReserveNextUnused nextUnused[NBBLOCKS]; \
-	char reserve[(NBBLOCKS) * (BLOCKSIZE)]; \
-}
-
-#define TYPEDEF_SDATA_LIST_AUTO(pool) TYPEDEF_SDATA_LIST_ALL(pool->blockSize, ZRMPOOL_DATA_LIST_HEAD(pool)->nbBlocks)
-#define TYPEDEF_SDATA_LIST_ALL(BLOCKSIZE, NBBLOCKS) \
-	TYPEDEF_SDATA_LIST(BLOCKSIZE, NBBLOCKS)
-
-static size_t fsdataSize_list(ZRMemoryPool *pool)
+static void MPoolRListInfos(ZRObjAlignInfos *out, size_t blockSize, size_t blockAlignment, size_t nbObj)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	return sizeof(ZRMPoolReserveDataList);
+	out[0] = (ZRObjAlignInfos ) { 0, alignof(ZRMPoolRList), sizeof(ZRMPoolRList) };
+	out[1] = (ZRObjAlignInfos ) { 0, alignof(ZRReserveNextUnused), sizeof(ZRReserveNextUnused) * nbObj };
+	out[2] = (ZRObjAlignInfos ) { 0, blockAlignment, blockSize * nbObj };
+	out[3] = (ZRObjAlignInfos ) { };
+	ZRStruct_bestOffsets(ZRMPOOLRLIST_INFOS_NB - 1, out);
 }
 
 static void finitPool_list(ZRMemoryPool *pool)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
-	memset((char*)data->nextUnused, (int)0, data->nbBlocks * sizeof(ZRReserveNextUnused));
-	memset((char*)data->reserve, (int)0, data->nbBlocks * pool->blockSize);
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
+	memset(ZRMPOOLRLIST_RESERVE(rlpool), __ (int)0, rlpool->nbBlocks * sizeof(ZRReserveNextUnused));
+	memset(ZRMPOOLRLIST_NEXTUNUSED(rlpool), (int)0, rlpool->nbBlocks * pool->blockSize);
 }
 
 static void* freserve_list(ZRMemoryPool *pool, size_t nb)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
 
-	if (nb > data->nbBlocks - pool->nbBlocks)
+	if (nb > rlpool->nbBlocks - pool->nbBlocks)
 		return NULL ;
 
-	size_t const offset = ZRReserveOpList_reserveFirstAvailables(data->nextUnused, sizeof(ZRReserveNextUnused), data->nbBlocks, 0, nb);
+	size_t const offset = ZRReserveOpList_reserveFirstAvailables(ZRMPOOLRLIST_NEXTUNUSED(rlpool), sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, nb);
 
 	if (offset == SIZE_MAX)
 		return NULL ;
 
 	pool->nbBlocks += nb;
-	return &data->reserve[offset * pool->blockSize];
+	return &ZRMPOOLRLIST_RESERVE(rlpool)[offset * pool->blockSize];
 }
 
 static void frelease_list(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
 
-	assert(nb <= data->nbBlocks);
-	assert((char* )firstBlock >= (char* )data->reserve);
-	assert((char* )firstBlock < (char* )&data->reserve[data->nbBlocks * pool->blockSize]);
+	assert(nb <= rlpool->nbBlocks);
+//	assert((char* )firstBlock >= (char* )data->reserve);
+//	assert((char* )firstBlock < (char* )&data->reserve[data->nbBlocks * pool->blockSize]);
 
-	size_t const pos = (size_t)((char*)firstBlock - (char*)data->reserve) / pool->blockSize;
-	ZRReserveOpList_releaseNb(data->nextUnused, sizeof(ZRReserveNextUnused), data->nbBlocks, 0, pos, nb);
+	size_t const pos = (size_t)((char*)firstBlock - (char*)ZRMPOOLRLIST_RESERVE(rlpool)) / pool->blockSize;
+	ZRReserveOpList_releaseNb(ZRMPOOLRLIST_NEXTUNUSED(rlpool), sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, pos, nb);
 	pool->nbBlocks -= nb;
 }
 
 static bool favailablePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
-	return ZRRESERVEOPLIST_AVAILABLES(data->nextUnused, sizeof(ZRReserveNextUnused), 0, pos, nb);
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
+	return ZRRESERVEOPLIST_AVAILABLES(ZRMPOOLRLIST_NEXTUNUSED(rlpool), sizeof(ZRReserveNextUnused), 0, pos, nb);
 }
 
 static void* freservePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
-	TYPEDEF_SDATA_LIST_AUTO(pool);
-	ZRMPoolReserveDataList *const data = ZRMPOOL_DATA_LIST(pool);
-	ZRRESERVEOPLIST_RESERVENB(data->nextUnused, sizeof(ZRReserveNextUnused), data->nbBlocks, 0, pos, nb);
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
+	ZRRESERVEOPLIST_RESERVENB(ZRMPOOLRLIST_NEXTUNUSED(rlpool), sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, pos, nb);
 	pool->nbBlocks += nb;
-	return &data->reserve[pos * pool->blockSize];
+	return &ZRMPOOLRLIST_RESERVE(rlpool)[pos * pool->blockSize];
 }
 
 // ============================================================================
 // BITS
+typedef struct ZRMPoolRBitsS ZRMPoolRBits;
 
-typedef struct ZRMPoolReserveDataBitsHeadS ZRMPoolReserveDataBitsHead;
-typedef struct ZRMPoolReserveDataBitsS ZRMPoolReserveDataBits;
+#define ZRMPOOLRBITS_INFOS_NB 4
 
-struct ZRMPoolReserveDataBitsHeadS
+typedef enum
 {
-	size_t const reserveSize;
-	size_t const nbZRBits;
+	ZRMPoolRBitsInfos_base, ZRMPoolRBitsInfos_bits, ZRMPoolRBitsInfos_reserve, ZRMPoolRBitsInfos_struct
+} ZRMPoolRBitsInfos;
+
+struct ZRMPoolRBitsS
+{
+	ZRMemoryPool pool;
+	ZRObjAlignInfos infos[ZRMPOOLRBITS_INFOS_NB];
+	size_t nbZRBits;
+//	ZRBits bits[NBZRBITS];
+//	char reserve[RESERVESIZE];
 };
 
-#define ZRMPOOL_DATA_BITS_HEAD(pool) ((ZRMPoolReserveDataBitsHead*)((pool)->sdata))
-#define ZRMPOOL_DATA_BITS(pool) ((ZRMPoolReserveDataBits*)((pool)->sdata))
+#define ZRMPOOLRBITS(POOL) ((ZRMPoolRBits*)POOL)
+#define ZRMPOOLRBITS_GET(POOL,FIELD) ((char*)POOL + ZRMPOOLRBITS(POOL)->infos[FIELD].offset)
+#define ZRMPOOLRBITS_BITS(POOL) ((ZRReserveNextUnused*)ZRMPOOLRBITS_GET(POOL,ZRMPoolRBitsInfos_bits))
+#define ZRMPOOLRBITS_RESERVE(POOL) ZRMPOOLRBITS_GET(POOL,ZRMPoolRBitsInfos_reserve)
 
-#define TYPEDEF_SDATA_BITS(NBZRBITS, RESERVESIZE) typedef STRUCT_SDATA_BITS(NBZRBITS, RESERVESIZE) ZRMPoolReserveDataBits
-#define STRUCT_SDATA_BITS(NBZRBITS, RESERVESIZE) \
-struct \
-{ \
-	size_t reserveSize; \
-	size_t nbZRBits; \
-	char reserve[RESERVESIZE]; \
-	ZRBits bits[NBZRBITS]; \
-}
-
-#define TYPEDEF_SDATA_BITS_AUTO(pool) \
-	size_t const nbZRBits = ZRMPOOL_DATA_BITS_HEAD(pool)->nbZRBits; \
-	size_t const reserveSize = ZRMPOOL_DATA_BITS_HEAD(pool)->reserveSize; \
-	TYPEDEF_SDATA_BITS(nbZRBits, reserveSize)
-
-static size_t fsdataSize_bits(ZRMemoryPool *pool)
+static void MPoolRBitsInfos(ZRObjAlignInfos *out, size_t blockSize, size_t blockAlignment, size_t nbObj, size_t nbZRBits)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	return sizeof(ZRMPoolReserveDataBits);
+	out[0] = (ZRObjAlignInfos ) { 0, alignof(ZRMPoolRBits), sizeof(ZRMPoolRBits) };
+	out[1] = (ZRObjAlignInfos ) { 0, alignof(ZRBits), sizeof(ZRBits) * nbZRBits };
+	out[2] = (ZRObjAlignInfos ) { 0, blockAlignment, blockSize * nbObj };
+	out[3] = (ZRObjAlignInfos ) { };
+	ZRStruct_bestOffsets(ZRMPOOLRBITS_INFOS_NB - 1, out);
 }
 
 static void finitPool_bits(ZRMemoryPool *pool)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
-	memset(data->bits, (int)ZRRESERVEOPBITS_FULLEMPTY, nbZRBits * sizeof(ZRBits));
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
+	memset(ZRMPOOLRBITS_BITS(rbpool), (int)ZRRESERVEOPBITS_FULLEMPTY, rbpool->nbZRBits * sizeof(ZRBits));
 }
 
 static void* freserve_bits(ZRMemoryPool *pool, size_t nb)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
-	size_t const offset = ZRReserveOpBits_reserveFirstAvailables(data->bits, nbZRBits, nb);
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
+	size_t const offset = ZRReserveOpBits_reserveFirstAvailables(ZRMPOOLRBITS_BITS(rbpool), rbpool->nbZRBits, nb);
 
 	if (offset == SIZE_MAX)
 		return NULL ;
 
 	pool->nbBlocks += nb;
-	return &data->reserve[offset * pool->blockSize];
+	return &ZRMPOOLRBITS_RESERVE(rbpool)[offset * pool->blockSize];
 }
 
 static void frelease_bits(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
 
-	assert((char* )firstBlock >= data->reserve);
-	assert((char* )firstBlock < &data->reserve[data->reserveSize]);
+//	assert((char* )firstBlock >= data->reserve);
+//	assert((char* )firstBlock < &data->reserve[data->reserveSize]);
 
-	size_t const pos = (size_t)((char*)firstBlock - data->reserve) / pool->blockSize;
-	ZRReserveOpBits_releaseNb(data->bits, pos, nb);
+	size_t const pos = (size_t)((char*)firstBlock - ZRMPOOLRBITS_RESERVE(rbpool)) / pool->blockSize;
+	ZRReserveOpBits_releaseNb(ZRMPOOLRBITS_BITS(rbpool), pos, nb);
 	pool->nbBlocks -= nb;
 }
 
 static bool favailablePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
-	return ZRRESERVEOPBITS_AVAILABLES(data->bits, pos, nb);
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
+	return ZRRESERVEOPBITS_AVAILABLES(ZRMPOOLRBITS_BITS(rbpool), pos, nb);
 }
 
 static void* freservePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
-	TYPEDEF_SDATA_BITS_AUTO(pool);
-	ZRMPoolReserveDataBits *const data = ZRMPOOL_DATA_BITS(pool);
-	ZRRESERVEOPBITS_RESERVENB(data->bits, pos, nb);
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
+	ZRRESERVEOPBITS_RESERVENB(ZRMPOOLRBITS_BITS(rbpool), pos, nb);
 	pool->nbBlocks += nb;
 }
 
@@ -212,7 +201,6 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 	if (bitStrategy)
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
 			.strategy = (ZRMemoryPoolStrategy ) { //
-				.fsdataSize = fsdataSize_bits, //
 				.fstrategySize = fstrategySize, //
 				.finit = finitPool_bits, //
 				.fdone = fdone, //
@@ -226,7 +214,6 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 	else
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
 			.strategy = (ZRMemoryPoolStrategy ) { //
-				.fsdataSize = fsdataSize_list, //
 				.fstrategySize = fstrategySize, //
 				.finit = finitPool_list, //
 				.fdone = fdone, //

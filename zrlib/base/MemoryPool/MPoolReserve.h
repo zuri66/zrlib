@@ -64,7 +64,7 @@ void* ZRMPoolReserve_reservePos(ZRMemoryPool *pool, size_t pos, bool checkAvaila
 // HELP
 // ============================================================================
 
-ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t nbBlocks, ZRAllocator *allocator, bool bitStrategy);
+ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t nbBlocks, ZRAllocator *allocator, bool bitStrategy);
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool);
 
 // ============================================================================
