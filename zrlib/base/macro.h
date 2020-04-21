@@ -16,6 +16,9 @@
 
 #define ZRMIN(a,b) ((a) < (b) ? (a) : (b))
 
+#define ZRISPOW2(I) (((I) & ((I) - 1)) == 0)
+#define ZRISPOW2SAFE(I) ((I) > 0 && ZRISPOW2(I))
+
 #define ZRCARRAY_NBOBJ(array) (sizeof(array)/sizeof(*array))
 
 #endif
