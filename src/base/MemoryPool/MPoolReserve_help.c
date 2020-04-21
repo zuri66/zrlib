@@ -35,14 +35,15 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 		rlpool->nbBlocks = nbBlocks;
 		pool = &rlpool->pool;
 	}
+	strategy->fdestroy = ZRMPoolReserve_destroy;
 	ZRMPOOL_INIT(pool, blockSize, strategy);
 	return pool;
 }
 
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool)
 {
-	ZRMPOOL_DONE(pool);
 	ZRAllocator *allocator = ZRMPOOL_STRATEGY(pool)->allocator;
+	ZRMPOOL_DONE(pool);
 	ZRFREE(allocator, pool->strategy);
 	ZRFREE(allocator, pool);
 }

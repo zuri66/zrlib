@@ -99,6 +99,7 @@ static inline void ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size
 
 void ZRMPool_init(ZRMemoryPool *pool, size_t objSize, ZRMemoryPoolStrategy *strategy);
 void ZRMPool_done(ZRMemoryPool *pool);
+void ZRMPool_destroy(ZRMemoryPool *pool);
 
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
 size_t ZRMPool_blockSize(ZRMemoryPool *pool);
