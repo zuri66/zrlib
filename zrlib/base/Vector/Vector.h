@@ -37,6 +37,9 @@ struct ZRVectorStrategyS
 	void (*finsert)(ZRVector *vec, size_t pos, size_t nb);
 	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
 
+
+	void (*fmemoryTrim)(ZRVector *vec);
+
 	/**
 	 * Clean the memory used by the vector.
 	 * The vector MUST NOT be used after this call.
@@ -171,6 +174,11 @@ static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void
 	ZRVECTOR_SET_NB(vec, pos, nb, src);
 }
 
+static inline void ZRVECTOR_MEMORYTRIM(ZRVector *vec)
+{
+	vec->strategy->fmemoryTrim(vec);
+}
+
 static inline void ZRVECTOR_FILL(ZRVector *vec, size_t pos, size_t nb, void *obj)
 {
 	vec->strategy->finsert(vec, pos, nb);
@@ -296,6 +304,7 @@ void ZRVector_init(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorS
 void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src);
 void ZRVector_done(ZRVector *vec);
 void ZRVector_destroy(ZRVector *vec);
+void ZRVector_memoryTrim(ZRVector *vec);
 
 size_t ZRVector_strategySize(ZRVector *vec);
 size_t ZRVector_nbObj(_ ZRVector *vec);

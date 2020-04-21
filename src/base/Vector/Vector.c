@@ -25,6 +25,11 @@ void ZRVector_destroy(ZRVector *vec)
 	ZRVECTOR_DESTROY(vec);
 }
 
+void ZRVector_memoryTrim(ZRVector *vec)
+{
+	ZRVECTOR_MEMORYTRIM(vec);
+}
+
 size_t ZRVector_strategySize(ZRVector *vec)
 {
 	return ZRVECTOR_STRATEGYSIZE(vec);

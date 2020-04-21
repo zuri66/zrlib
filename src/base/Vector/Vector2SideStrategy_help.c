@@ -9,7 +9,6 @@ ZRVector* ZRVector2SideStrategy_alloc(size_t initialSpace, size_t objSize, size_
 {
 	ZRObjAlignInfos infos[ZRVECTOR_INFOS_NB];
 	vectorInfos(infos, initialSpace, objSize, objAlignment);
-	size_t i = sizeof(infos);
 	size_t const vecSize = infos[ZRVectorInfos_struct].size;
 	ZRVector *ret = ZRALLOC(allocator, vecSize);
 	*ZRVECTOR_2SS(ret) = (ZR2SSVector ) { 0 };

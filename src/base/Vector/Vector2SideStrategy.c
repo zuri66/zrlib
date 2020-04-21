@@ -147,6 +147,7 @@ void ZRVector2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocat
 			.fstrategySize = ZRVector2SideStrategy_size, //
 			.finsert = ZRVector2SideStrategy_finsert, //
 			.fdelete = ZRVector2SideStrategy_fdelete, //
+			.fmemoryTrim = ZRVector2SideStrategy_memoryTrim, //
 			.fdone = ZRVector2SideStrategy_fdone //
 			},//
 		.allocator = allocator,  //
@@ -224,7 +225,20 @@ void ZRVector2SideStrategy_shrinkStrategy( //
 
 void ZRVector2SideStrategy_memoryTrim(ZRVector *vec)
 {
+	if (!ZRVector2SideStrategy_memoryIsAllocated(vec))
+		return;
 
+	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
+	void *lastSpace = svector->allocatedMemory;
+
+	ZRArrayOp_deplace(ZRVECTOR_FSPACE(vec), vec->objSize, vec->nbObj, ZRVECTOR_USPACE(vec));
+	svector->allocatedMemory = ZRREALLOC(ZRVECTOR_STRATEGY(vec)->allocator, svector->allocatedMemory, vec->objSize * vec->nbObj);
+
+	ZRVECTOR_FSPACE(vec) =
+	ZRVECTOR_USPACE(vec) = svector->allocatedMemory;
+	ZRVECTOR_OSPACE(vec) =
+	ZRVECTOR_ESPACE(vec) = (char*)svector->allocatedMemory + vec->nbObj * vec->objSize;
+	vec->capacity = vec->nbObj;
 }
 
 // ============================================================================
