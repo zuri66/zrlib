@@ -29,16 +29,10 @@ struct ZRMemoryPoolS
 	 * The strategy for memory management and operations on the pool
 	 */
 	ZRMemoryPoolStrategy *strategy;
-
-	/*
-	 * Data for Strategy purpose.
-	 */
-	alignas(max_align_t) char sdata[];
 };
 
 struct ZRMemoryPoolStrategyS
 {
-	size_t (*fsdataSize)(ZRMemoryPool *pool);
 	size_t (*fstrategySize)(void);
 
 	void (*finit)(ZRMemoryPool *pool);
@@ -47,11 +41,6 @@ struct ZRMemoryPoolStrategyS
 
 	void* (*freserve)(ZRMemoryPool *pool, size_t nb);
 	void _(*frelease)(ZRMemoryPool *pool, void *firstBlock, size_t nb);
-
-/**
- * Clean the memory used by the pool.
- * The pool MUST NOT be used after this call.
- */
 };
 
 // ============================================================================
