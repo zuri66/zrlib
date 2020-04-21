@@ -10,6 +10,7 @@ include_directories(${PROJECT_BINARY_DIR})
 add_compile_options(-mbmi -mlzcnt -Winline)
 
 set(SRCS
+	src/base/AddressOp.c
 	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
 	src/base/ReserveOp_bits.c
@@ -34,6 +35,7 @@ set(SRCS
     )
     
 set(HEADERS
+	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h
 	zrlib/base/Allocator/CAllocator.h
 	zrlib/base/ArrayOp.h
