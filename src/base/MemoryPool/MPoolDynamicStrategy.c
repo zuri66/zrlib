@@ -16,7 +16,7 @@
 // ============================================================================
 
 typedef struct ZRMPoolDynamicStrategyS ZRMPoolDynamicStrategy;
-typedef struct ZRMPoolDynamicDataS ZRMPoolDynamicData;
+typedef struct ZRMPoolDSS ZRMPoolDS;
 typedef struct ZRMPoolDS_bucketS ZRMPoolDS_bucket;
 
 // ============================================================================
@@ -66,8 +66,11 @@ struct ZRMPoolDynamicStrategyS
 
 // ============================================================================
 
-struct ZRMPoolDynamicDataS
+
+struct ZRMPoolDSS
 {
+	ZRMemoryPool pool;
+
 	size_t nbAvailables;
 
 	size_t nbFreeBuckets;
@@ -77,7 +80,7 @@ struct ZRMPoolDynamicDataS
 
 // ============================================================================
 
-#define ZRMPOOL_DATA(pool) ((ZRMPoolDynamicData*)((pool)->sdata))
+#define ZRMPOOLDS(pool) ((ZRMPoolDS*)(pool))
 #define ZRMPOOL_STRATEGY(pool) ((ZRMPoolDynamicStrategy*)((pool)->strategy))
 
 #define DEFAULT_MAX_FREE_BUCKETS 10
@@ -93,7 +96,7 @@ struct ZRMPoolDynamicDataS
  */
 inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 {
-	ZRMPoolDynamicData *data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *data = ZRMPOOLDS(pool);
 	ZRMPoolDynamicStrategy *strategy = ZRMPOOL_STRATEGY(pool);
 	size_t const initialBucketSize = strategy->initialBucketSize;
 	size_t nbBlocksToAlloc = initialBucketSize;
@@ -131,11 +134,6 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 // ============================================================================
 // MemoryPool functions
 
-size_t fsdataSize(ZRMemoryPool *pool)
-{
-	return 0;
-}
-
 size_t fstrategySize(void)
 {
 	return sizeof(ZRMPoolDynamicStrategy);
@@ -143,7 +141,7 @@ size_t fstrategySize(void)
 
 void finitPool(ZRMemoryPool *pool)
 {
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 	data->nbFreeBuckets = 0;
 	data->nbAvailables = 0;
 	data->buckets = ZRMPOOL_STRATEGY(pool)->fcreateBuckets(pool);
@@ -155,7 +153,7 @@ static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bu
 	if (nb > bucket->nbAvailables)
 		return NULL ;
 
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 	ZRBits *bits;
 	size_t pos  = ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(bucket->bits, bucket->nbZRBits, nb);
 
@@ -169,7 +167,7 @@ static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bu
 
 void* freserve(ZRMemoryPool *pool, size_t nb)
 {
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 	size_t const nbBuckets = data->buckets->nbObj;
 
 	for (int i = 0; i < nbBuckets; i++)
@@ -187,8 +185,9 @@ void* freserve(ZRMemoryPool *pool, size_t nb)
 
 static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket, size_t bucket_i, void *firstBlock, size_t nb)
 {
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 
+	// TODO : change this check of pointer bound. Not conform to standard.
 	if (bucket->blocks > (char*)firstBlock || (char*)firstBlock >= &bucket->blocks[pool->blockSize * bucket->nbBlocks])
 		return false;
 
@@ -215,7 +214,7 @@ static inline bool freleaseInBucket(ZRMemoryPool *pool, ZRMPoolDS_bucket *bucket
 
 void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 	size_t const nb_i = data->buckets->nbObj;
 
 	for (size_t i = 0; i < nb_i; i++)
@@ -233,7 +232,7 @@ void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
  */
 void fdone(ZRMemoryPool *pool)
 {
-	ZRMPoolDynamicData *const data = ZRMPOOL_DATA(pool);
+	ZRMPoolDS *const data = ZRMPOOLDS(pool);
 	ZRAllocator *const allocator = ZRMPOOL_STRATEGY(pool)->allocator;
 	ZRVector *const buckets = data->buckets;
 	size_t const nbBuckets = ZRVECTOR_NBOBJ(buckets);
@@ -262,7 +261,6 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 {
 	*(ZRMPoolDynamicStrategy*)strategy = (ZRMPoolDynamicStrategy ) { //
 		.strategy = (ZRMemoryPoolStrategy ) { //
-			.fsdataSize = fsdataSize, //
 			.fstrategySize = fstrategySize, //
 			.finit = finitPool, //
 			.fdone = fdone, //
