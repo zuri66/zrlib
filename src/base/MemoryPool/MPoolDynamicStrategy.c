@@ -240,7 +240,7 @@ void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 		memcpy(&p, (char*)firstBlock - sizeof(void*) * 2, sizeof(void*));
 		bucket = p;
 
-		if (bucket->pool != pool)
+		if ((void*)bucket->pool != (void*)pool)
 		{
 			fprintf(stderr, "The block %p does not belong to the pool %p", firstBlock, pool);
 			exit(1);
