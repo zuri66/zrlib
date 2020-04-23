@@ -20,6 +20,11 @@ void ZRMPool_destroy(ZRMemoryPool *pool)
 	ZRMPOOL_DESTROY(pool);
 }
 
+size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
+{
+	return ZRMPOOL_AREANBBLOCKS(pool, firstBlock);
+}
+
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool)
 {
 	return ZRMPOOL_NBBLOCKS(pool);

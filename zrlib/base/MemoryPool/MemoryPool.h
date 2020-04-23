@@ -41,6 +41,8 @@ struct ZRMemoryPoolStrategyS
 
 	void* (*freserve)(ZRMemoryPool *pool, size_t nb);
 	void _(*frelease)(ZRMemoryPool *pool, void *firstBlock, size_t nb);
+
+	size_t (*fareaNbBlocks)(ZRMemoryPool *pool, void *firstBlock);
 };
 
 // ============================================================================
@@ -51,7 +53,6 @@ static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPo
 		.blockSize = blockSize, //
 		.strategy = strategy, //
 		};
-
 	strategy->finit(pool);
 }
 
@@ -63,6 +64,11 @@ static inline void ZRMPOOL_DONE(ZRMemoryPool *pool)
 static inline void ZRMPOOL_DESTROY(ZRMemoryPool *pool)
 {
 	pool->strategy->fdestroy(pool);
+}
+
+static inline size_t ZRMPOOL_AREANBBLOCKS(ZRMemoryPool *pool, void *firstBlock)
+{
+	return pool->strategy->fareaNbBlocks(pool, firstBlock);
 }
 
 static inline size_t ZRMPOOL_NBBLOCKS(ZRMemoryPool *pool)
@@ -102,6 +108,7 @@ void ZRMPool_done(ZRMemoryPool *pool);
 void ZRMPool_destroy(ZRMemoryPool *pool);
 
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
+size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock);
 size_t ZRMPool_blockSize(ZRMemoryPool *pool);
 
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
