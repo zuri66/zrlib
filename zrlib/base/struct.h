@@ -76,12 +76,17 @@ static int cmp_infos(const void *va, const void *vb)
 	return b->alignment - a->alignment;
 }
 
-static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
+static inline void ZRSTRUCT_BESTORDERPOS(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos)
 {
 	// Copy also the nb + 1 struct infos
 	ZRARRAYOP_TOPOINTERS(pinfos, sizeof(*pinfos), nb + 1, infos, sizeof(*infos));
 
-	qsort(pinfos, nb, sizeof(ZRObjAlignInfos*), cmp_infos);
+	qsort(pinfos + pos, nb - pos, sizeof(ZRObjAlignInfos*), cmp_infos);
+}
+
+static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
+{
+	ZRSTRUCT_BESTORDERPOS(nb, infos, pinfos, 0);
 }
 
 // ============================================================================
@@ -90,6 +95,8 @@ size_t ZRStruct_alignOffset(size_t fieldOffset, size_t alignment);
 #define ZRStructSize_FAM_pad ZRStruct_alignOffset
 void ZRStruct_makeOffsets(size_t nb, ZRObjAlignInfos *infos);
 void ZRStruct_bestOrder(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos);
+void ZRStruct_bestOrderPos(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos);
 void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos);
+void ZRStruct_bestOffsetsPos(size_t nb, ZRObjAlignInfos *infos, size_t pos);
 
 #endif
