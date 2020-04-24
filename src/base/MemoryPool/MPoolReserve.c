@@ -19,6 +19,15 @@
 
 #define ZRMPOOL_STRATEGY(POOL) ((ZRMPoolReserveStrategy*)((POOL)->strategy))
 
+typedef struct
+{
+	size_t nbArea;
+	size_t nbBlocksTotal;
+	size_t nbAvailables;
+	size_t nbBlocksForAreaHead;
+	char *reserve;
+} ZRMPoolInfos;
+
 // ============================================================================
 // AREA HEAD
 
@@ -33,8 +42,8 @@ typedef struct
 
 static inline void ZRAreaHead_set(void *firstBlock, ZRAreaHead *areaHead)
 {
-	memcpy(firstBlock - sizeof(void*), (void*[] ) { ZRAREA_GUARD_P }, sizeof(void*));
-	memcpy(firstBlock - ZRAREA_HEAD_SIZE, areaHead, sizeof(ZRAreaHead));
+	memcpy((char*)firstBlock - sizeof(void*), (void*[] ) { ZRAREA_GUARD_P }, sizeof(void*));
+	memcpy((char*)firstBlock - ZRAREA_HEAD_SIZE, areaHead, sizeof(ZRAreaHead));
 }
 
 static inline bool ZRAreaHead_get(void *firstBlock, ZRAreaHead *areaHead)
@@ -53,7 +62,7 @@ static inline void ZRAreaHead_checkAndGet(ZRMemoryPool *pool, void *firstBlock, 
 {
 	if (!ZRAreaHead_get(firstBlock, areaHead))
 	{
-		fprintf(stderr, "The block %p seems not to be a area for the pool %p\n", firstBlock, pool);
+		fprintf(stderr, "The block %p seems not to be an area for the pool %p\n", firstBlock, pool);
 		exit(1);
 	}
 
@@ -64,25 +73,37 @@ static inline void ZRAreaHead_checkAndGet(ZRMemoryPool *pool, void *firstBlock, 
 	}
 }
 
-static inline void* freserve(ZRMemoryPool *pool, size_t nb, size_t nbBlocksForAreaHead, size_t offset, void *reserve, size_t *nbArea)
+static ZRMemoryPool* fareaPool(ZRMemoryPool *pool, void *firstBlock)
+{
+	ZRAreaHead areaHead;
+
+	if (!ZRAreaHead_get(firstBlock, &areaHead))
+		return NULL ;
+
+	return areaHead.pool;
+}
+
+static inline void* freserve(ZRMemoryPool *pool, ZRMPoolInfos *infos, size_t nb, size_t offset)
 {
 	if (offset == SIZE_MAX)
 		return NULL ;
 
-	nbArea++;
+	infos->nbArea++;
 	pool->nbBlocks += nb;
+	infos->nbAvailables -= nb;
 
-	void *firstBlock = ZRARRAYOP_GET(reserve, pool->blockSize, offset + nbBlocksForAreaHead);
+	void *firstBlock = ZRARRAYOP_GET(infos->reserve, pool->blockSize, offset + infos->nbBlocksForAreaHead);
 	ZRAreaHead areaHead = { .nbBlocks = nb, .pool = pool };
 	ZRAreaHead_set(firstBlock, &areaHead);
 	return firstBlock;
 }
 
-static inline void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb, size_t nbBlocksForAreaHead, void *reserve, size_t *nbArea, size_t *areaPos)
+static inline void frelease(ZRMemoryPool *pool, ZRMPoolInfos *infos, void *firstBlock, size_t *nb_p, size_t *areaPos)
 {
+	size_t nb = *nb_p;
 	assert(nb > 0);
 	ZRAreaHead areaHead;
-	nb += nbBlocksForAreaHead;
+	nb += infos->nbBlocksForAreaHead;
 
 //	assert(nb <= rlpool->nbBlocks);
 
@@ -90,25 +111,26 @@ static inline void frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb, siz
 
 	assert(nb <= areaHead.nbBlocks);
 
-	char *area = firstBlock - (nbBlocksForAreaHead * pool->blockSize);
-	*areaPos = (size_t)(area - (char*)reserve) / pool->blockSize;
+	char *area = firstBlock - (infos->nbBlocksForAreaHead * pool->blockSize);
+	*areaPos = (size_t)(area - infos->reserve) / pool->blockSize;
 
 // Delete the guard value
 	memset((char*)firstBlock - sizeof(void*), 0, sizeof(void*));
 
 // Remove the entire area
 	if (areaHead.nbBlocks == nb)
-	{
-		nbArea--;
-	}
+		infos->nbArea--;
 // Remove the beginning of the area
 	else
 	{
-		nb -= nbBlocksForAreaHead;
+		nb -= infos->nbBlocksForAreaHead;
 		char *const newFirstBlock = ZRARRAYOP_GET(firstBlock, pool->blockSize, nb);
 		areaHead.nbBlocks -= nb;
 		ZRAreaHead_set(newFirstBlock, &areaHead);
 	}
+	*nb_p = nb;
+	pool->nbBlocks -= nb;
+	infos->nbAvailables += nb;
 }
 
 // ============================================================================
@@ -127,12 +149,9 @@ struct ZRMPoolRListS
 {
 	ZRMemoryPool pool;
 
-	size_t nbArea;
-	size_t nbBlocks;
-	size_t nbBlocksForAreaHead;
+	ZRMPoolInfos infos;
 
 	ZRReserveNextUnused *nextUnused;
-	char *reserve;
 };
 
 #define ZRMPOOLRLIST(POOL) ((ZRMPoolRList*)POOL)
@@ -143,42 +162,42 @@ static void MPoolRListInfos(ZRObjAlignInfos *out, size_t blockSize, size_t block
 	out[1] = (ZRObjAlignInfos ) { 0, alignof(ZRReserveNextUnused), sizeof(ZRReserveNextUnused) * nbObj };
 	out[2] = (ZRObjAlignInfos ) { 0, blockAlignment, blockSize * nbObj };
 	out[3] = (ZRObjAlignInfos ) { };
-	ZRStruct_bestOffsets(ZRMPOOLRLIST_INFOS_NB - 1, out);
+	ZRStruct_bestOffsetsPos(ZRMPOOLRLIST_INFOS_NB - 1, out, 1);
 }
 
 static void finitPool_list(ZRMemoryPool *pool)
 {
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
-	memset(rlpool->nextUnused, (int)0, rlpool->nbBlocks * pool->blockSize);
-	memset(rlpool->reserve, __ (int)0, rlpool->nbBlocks * sizeof(ZRReserveNextUnused));
+	memset(rlpool->infos.reserve, __ (int)0, rlpool->infos.nbBlocksTotal * pool->blockSize);
+	memset(rlpool->nextUnused, (int)0, rlpool->infos.nbBlocksTotal * sizeof(ZRReserveNextUnused));
 }
 
 static size_t fareaNbBlocks_list(ZRMemoryPool *pool, void *firstBlock)
 {
 	ZRAreaHead areaHead;
 	ZRAreaHead_checkAndGet(pool, firstBlock, &areaHead);
-	return areaHead.nbBlocks - ZRMPOOLRLIST(pool)->nbBlocksForAreaHead;
+	return areaHead.nbBlocks - ZRMPOOLRLIST(pool)->infos.nbBlocksForAreaHead;
 }
 
 static void* freserve_list(ZRMemoryPool *pool, size_t nb)
 {
 	assert(nb > 0);
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
-	nb += rlpool->nbBlocksForAreaHead;
+	nb += rlpool->infos.nbBlocksForAreaHead;
 
-	if (nb > rlpool->nbBlocks - pool->nbBlocks)
+	if (nb > rlpool->infos.nbBlocksTotal - pool->nbBlocks)
 		return NULL ;
 
-	size_t const offset = ZRReserveOpList_reserveFirstAvailables(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, nb);
-	return freserve(pool, nb, rlpool->nbBlocksForAreaHead, offset, rlpool->reserve, &rlpool->nbArea);
+	size_t const offset = ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->infos.nbBlocksTotal, 0, nb);
+	return freserve(pool, &rlpool->infos, nb, offset);
 }
 
 static void frelease_list(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
 	size_t areaPos;
-	frelease(pool, firstBlock, nb, rlpool->nbBlocksForAreaHead, rlpool->reserve, &rlpool->nbArea, &areaPos);
-	ZRReserveOpList_releaseNb(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, areaPos, nb);
+	frelease(pool, &rlpool->infos, firstBlock, &nb, &areaPos);
+	ZRRESERVEOPLIST_RELEASENB(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->infos.nbBlocksTotal, 0, areaPos, nb);
 }
 
 static bool favailablePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
@@ -190,9 +209,9 @@ static bool favailablePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
 static void* freservePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
-	ZRRESERVEOPLIST_RESERVENB(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->nbBlocks, 0, pos, nb);
+	ZRRESERVEOPLIST_RESERVENB(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->infos.nbBlocksTotal, 0, pos, nb);
 	pool->nbBlocks += nb;
-	return &rlpool->reserve[pos * pool->blockSize];
+	return &rlpool->infos.reserve[pos * pool->blockSize];
 }
 
 // ============================================================================
@@ -209,14 +228,11 @@ typedef enum
 struct ZRMPoolRBitsS
 {
 	ZRMemoryPool pool;
+
+	ZRMPoolInfos infos;
 	size_t nbZRBits;
 
-	size_t nbArea;
-	size_t nbBlocks;
-	size_t nbBlocksForAreaHead;
-
 	ZRBits *bits;
-	char *reserve;
 };
 
 #define ZRMPOOLRBITS(POOL) ((ZRMPoolRBits*)POOL)
@@ -227,7 +243,7 @@ static void MPoolRBitsInfos(ZRObjAlignInfos *out, size_t blockSize, size_t block
 	out[1] = (ZRObjAlignInfos ) { 0, alignof(ZRBits), sizeof(ZRBits) * nbZRBits };
 	out[2] = (ZRObjAlignInfos ) { 0, blockAlignment, blockSize * nbObj };
 	out[3] = (ZRObjAlignInfos ) { };
-	ZRStruct_bestOffsets(ZRMPOOLRBITS_INFOS_NB - 1, out);
+	ZRStruct_bestOffsetsPos(ZRMPOOLRBITS_INFOS_NB - 1, out, 1);
 }
 
 static void finitPool_bits(ZRMemoryPool *pool)
@@ -240,27 +256,27 @@ static size_t fareaNbBlocks_bits(ZRMemoryPool *pool, void *firstBlock)
 {
 	ZRAreaHead areaHead;
 	ZRAreaHead_checkAndGet(pool, firstBlock, &areaHead);
-	return areaHead.nbBlocks - ZRMPOOLRBITS(pool)->nbBlocksForAreaHead;
+	return areaHead.nbBlocks - ZRMPOOLRBITS(pool)->infos.nbBlocksForAreaHead;
 }
 
 static void* freserve_bits(ZRMemoryPool *pool, size_t nb)
 {
 	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
-	nb += rbpool->nbBlocksForAreaHead;
+	nb += rbpool->infos.nbBlocksForAreaHead;
 
-	if (nb > rbpool->nbBlocks - pool->nbBlocks)
+	if (nb > rbpool->infos.nbBlocksTotal - pool->nbBlocks)
 		return NULL ;
 
-	size_t const offset = ZRReserveOpBits_reserveFirstAvailables(rbpool->bits, rbpool->nbZRBits, nb);
-	return freserve(pool, nb, rbpool->nbBlocksForAreaHead, offset, rbpool->reserve, &rbpool->nbArea);
+	size_t const offset = ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(rbpool->bits, rbpool->nbZRBits, nb);
+	return freserve(pool, &rbpool->infos, nb, offset);
 }
 
 static void frelease_bits(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
 	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
 	size_t areaPos;
-	frelease(pool, firstBlock, nb, rbpool->nbBlocksForAreaHead, rbpool->reserve, &rbpool->nbArea, &areaPos);
-	ZRReserveOpBits_releaseNb(rbpool->bits, areaPos, nb);
+	frelease(pool, &rbpool->infos, firstBlock, &nb, &areaPos);
+	ZRRESERVEOPBITS_RELEASENB(rbpool->bits, areaPos, nb);
 }
 
 static bool favailablePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
@@ -300,6 +316,7 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.finit = finitPool_bits, //
 				.fdone = fdone, //
 				.fareaNbBlocks = fareaNbBlocks_bits, //
+				.fareaPool = fareaPool, //
 				.freserve = freserve_bits, //
 				.frelease = frelease_bits, //
 				},//
@@ -314,6 +331,7 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.finit = finitPool_list, //
 				.fdone = fdone, //
 				.fareaNbBlocks = fareaNbBlocks_list, //
+				.fareaPool = fareaPool, //
 				.freserve = freserve_list, //
 				.frelease = frelease_list, //
 				},//

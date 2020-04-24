@@ -7,11 +7,12 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 {
 	ZRObjAlignInfos infos[ZRMPOOLRLIST_INFOS_NB];
 	ZRMemoryPool *pool;
+	ZRMPoolInfos *pinfos;
 	ZRMemoryPoolStrategy *strategy = ZRALLOC(allocator, sizeof(ZRMPoolReserveStrategy));
 	size_t const nbBlocksForAreaHead = ZRAREA_HEAD_SIZE / blockSize + (ZRAREA_HEAD_SIZE % blockSize ? 1 : 0);
 
 	// TODO: better strategy for area head ?
-	size_t const nbAreaInSpace = nbBlocks / 2;
+	size_t const nbAreaInSpace = nbBlocks;
 	nbBlocks += nbBlocksForAreaHead * nbAreaInSpace;
 
 	if (bitStrategy)
@@ -23,12 +24,11 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 
 		size_t const poolSize = infos[ZRMPoolRBitsInfos_struct].size;
 		ZRMPoolRBits *rbpool = ZRALLOC(allocator, poolSize);
+		pinfos = &rbpool->infos;
 
 		rbpool->bits = (ZRBits*)((char*)rbpool + infos[ZRMPoolRBitsInfos_bits].offset);
-		rbpool->reserve = ((char*)rbpool + infos[ZRMPoolRBitsInfos_reserve].offset);
-		rbpool->nbBlocksForAreaHead = nbBlocksForAreaHead;
+		pinfos->reserve = ((char*)rbpool + infos[ZRMPoolRBitsInfos_reserve].offset);
 		rbpool->nbZRBits = nbZRBits;
-		rbpool->nbBlocks = nbBlocks;
 		pool = &rbpool->pool;
 	}
 	else
@@ -38,13 +38,16 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 
 		size_t const poolSize = infos[ZRMPoolRListInfos_struct].size;
 		ZRMPoolRList *rlpool = ZRALLOC(allocator, poolSize);
+		pinfos = &rlpool->infos;
 
 		rlpool->nextUnused = (ZRReserveNextUnused*)((char*)rlpool + infos[ZRMPoolRListInfos_nextUnused].offset);
-		rlpool->reserve = ((char*)rlpool + infos[ZRMPoolRListInfos_reserve].offset);
-		rlpool->nbBlocksForAreaHead = nbBlocksForAreaHead;
-		rlpool->nbBlocks = nbBlocks;
+		pinfos->reserve = ((char*)rlpool + infos[ZRMPoolRListInfos_reserve].offset);
 		pool = &rlpool->pool;
 	}
+	pinfos->nbBlocksForAreaHead = nbBlocksForAreaHead;
+	pinfos->nbBlocksTotal = nbBlocks;
+	pinfos->nbAvailables = nbBlocks;
+
 	strategy->fdestroy = ZRMPoolReserve_destroy;
 	ZRMPOOL_INIT(pool, blockSize, strategy);
 	return pool;
