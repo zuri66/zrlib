@@ -43,6 +43,11 @@ struct ZRMemoryPoolStrategyS
 	void _(*frelease)(ZRMemoryPool *pool, void *firstBlock, size_t nb);
 
 	size_t (*fareaNbBlocks)(ZRMemoryPool *pool, void *firstBlock);
+
+	/**
+	 * Pools of the same type must answer.
+	 */
+	ZRMemoryPool* (*fareaPool)(ZRMemoryPool *pool, void *firstBlock);
 };
 
 // ============================================================================
@@ -69,6 +74,11 @@ static inline void ZRMPOOL_DESTROY(ZRMemoryPool *pool)
 static inline size_t ZRMPOOL_AREANBBLOCKS(ZRMemoryPool *pool, void *firstBlock)
 {
 	return pool->strategy->fareaNbBlocks(pool, firstBlock);
+}
+
+static inline ZRMemoryPool* ZRMPOOL_AREAPOOL(ZRMemoryPool *pool, void *firstBlock)
+{
+	return pool->strategy->fareaPool(pool, firstBlock);
 }
 
 static inline size_t ZRMPOOL_NBBLOCKS(ZRMemoryPool *pool)
@@ -110,6 +120,8 @@ void ZRMPool_destroy(ZRMemoryPool *pool);
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
 size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock);
 size_t ZRMPool_blockSize(ZRMemoryPool *pool);
+
+ZRMemoryPool* ZRMPool_areaPool(ZRMemoryPool *pool, void *firstBlock);
 
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
 void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb);
