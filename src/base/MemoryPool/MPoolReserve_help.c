@@ -17,7 +17,7 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 
 	if (bitStrategy)
 	{
-		size_t const nbZRBits = ZRBITS_NBOF / nbBlocks + (ZRBITS_NBOF % nbBlocks) ? 1 : 0;
+		size_t const nbZRBits = nbBlocks / ZRBITS_NBOF + ((nbBlocks % ZRBITS_NBOF) ? 1 : 0);
 		MPoolRBitsInfos(infos, blockSize, alignment, nbBlocks, nbZRBits);
 
 		ZRMPoolReserve_init(strategy, allocator, true);
