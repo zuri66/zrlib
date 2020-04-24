@@ -133,6 +133,10 @@ static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size
 		*(ZRReserveNextUnused*)(current + offsetReserveNextUnused) = 0;
 	}
 	size_t i = 1;
+
+	if(current == reserve)
+		return;
+
 	current -= objSize;
 	ZRReserveNextUnused *nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
 
