@@ -28,14 +28,14 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 
 static inline size_t ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t nbAvailables)
 {
-	char *current = reserve;
-	char *const lastObj = reserve + (nbObj * objSize);
+	char *current = (char*)reserve + offsetReserveNextUnused;
+	char *const lastObj = current + (nbObj * objSize);
 	size_t i = 0;
 	size_t pos = 0;
 
 	while (true)
 	{
-		ZRReserveNextUnused const nextUnused = *(ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+		ZRReserveNextUnused const nextUnused = *(ZRReserveNextUnused*)current;
 
 		if (nextUnused != 0)
 		{
@@ -68,6 +68,7 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 {
 	assert(pos < nbObj);
 	assert(nbAvailables <= nbObj - pos);
+	reserve = (char*)reserve + offsetReserveNextUnused;
 	char *current = (char*)reserve + ((pos + nbAvailables) * objSize);
 	char *const last = (char*)reserve + (nbObj * objSize);
 	ZRReserveNextUnused next;
@@ -75,7 +76,7 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 	if (current == last)
 		next = 0;
 	else
-		next = *(ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+		next = *(ZRReserveNextUnused*)current;
 
 	size_t i = 1;
 	ZRReserveNextUnused *nextUnused;
@@ -83,37 +84,37 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 	while (nbAvailables--)
 	{
 		current -= objSize;
-		nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+		nextUnused = (ZRReserveNextUnused*)current;
 		*nextUnused = next + i;
 		i++;
 	}
 
-	if(current == reserve)
+	if (current == reserve)
 		return;
 
 	current -= objSize;
-	nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+	nextUnused = (ZRReserveNextUnused*)current;
 
 	while (*nextUnused != 0)
 	{
 		*nextUnused = next + i;
 
-		if(current == reserve)
+		if (current == reserve)
 			return;
 
 		current -= objSize;
-		nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+		nextUnused = (ZRReserveNextUnused*)current;
 		i++;
 	}
 }
 
 static inline bool ZRRESERVEOPLIST_AVAILABLES(void *reserve, size_t objSize, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables)
 {
-	char *current = (char*)reserve + (pos * objSize);
+	char *current = (char*)reserve + (pos * objSize) + offsetReserveNextUnused;
 
 	while (nbAvailables--)
 	{
-		if (*(ZRReserveNextUnused*)(current + offsetReserveNextUnused) != 0)
+		if (*(ZRReserveNextUnused*)current != 0)
 			return false;
 
 		current += objSize;
@@ -125,30 +126,31 @@ static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size
 {
 	assert(pos < nbObj);
 	assert(nbToRelease <= nbObj - pos);
+	reserve = (char*)reserve + offsetReserveNextUnused;
 	char *current = (char*)reserve + ((pos + nbToRelease) * objSize);
 
 	while (nbToRelease--)
 	{
 		current -= objSize;
-		*(ZRReserveNextUnused*)(current + offsetReserveNextUnused) = 0;
+		*(ZRReserveNextUnused*)current = 0;
 	}
 	size_t i = 1;
 
-	if(current == reserve)
+	if (current == reserve)
 		return;
 
 	current -= objSize;
-	ZRReserveNextUnused *nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+	ZRReserveNextUnused *nextUnused = (ZRReserveNextUnused*)current;
 
 	while (*nextUnused != 0)
 	{
 		*nextUnused = i;
 
-		if(current == reserve)
+		if (current == reserve)
 			return;
 
 		current -= objSize;
-		nextUnused = (ZRReserveNextUnused*)(current + offsetReserveNextUnused);
+		nextUnused = (ZRReserveNextUnused*)current;
 		i++;
 	}
 }
