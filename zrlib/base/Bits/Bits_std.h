@@ -219,7 +219,7 @@ static inline void std_ZRBits_copy_posEQOutPos(ZRBits const * restrict bits, siz
 	}
 }
 
-static inline void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
+static void std_ZRBits_copy_posGTOutPos(ZRBits const * restrict bits, size_t pos, size_t nbBits, ZRBits * restrict out, size_t outPos)
 {
 	size_t const nbAddPos = nbBits + pos;
 	size_t const nbAddOutPos = nbBits + outPos;
@@ -297,7 +297,7 @@ static inline void std_ZRBits_copy_posLTOutPos(ZRBits const * restrict bits, siz
 		ZRBits const mask = ZRBITS_GETLMASK(maskSize) >> pos;
 		ZRBits const outMask = ZRBITS_GETLMASK(outPos);
 
-		*out = (*out & ~mask) | (*bits & mask) >> outPosSubPos;
+		*out = (*out & outMask) | (*bits & mask) >> outPosSubPos;
 		std_ZRBits_copy_posGTOutPos(bits, pos + maskSize, nbBits - maskSize, out + 1, 0);
 	}
 }
