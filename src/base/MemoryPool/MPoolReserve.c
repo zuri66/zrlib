@@ -169,7 +169,7 @@ static void finitPool_list(ZRMemoryPool *pool)
 {
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
 	memset(rlpool->infos.reserve, __ (int)0, rlpool->infos.nbBlocksTotal * pool->blockSize);
-	memset(rlpool->nextUnused, (int)0, rlpool->infos.nbBlocksTotal * sizeof(ZRReserveNextUnused));
+	ZRRESERVEOPLIST_INITARRAY(rlpool->nextUnused, rlpool->infos.nbBlocksTotal);
 }
 
 static size_t fareaNbBlocks_list(ZRMemoryPool *pool, void *firstBlock)
