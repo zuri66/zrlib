@@ -7,6 +7,16 @@
 
 // ============================================================================
 
+void ZRReserveOpList_init(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused)
+{
+	ZRRESERVEOPLIST_INIT(reserve, objSize, nbObj, offsetReserveNextUnused);
+}
+
+void ZRReserveOpList_initArray(void *reserve, size_t nbObj)
+{
+	ZRRESERVEOPLIST_INITARRAY(reserve, nbObj);
+}
+
 size_t ZRReserveOpList_reserveFirstAvailables(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t nbAvailables)
 {
 	return ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(reserve, objSize, nbObj, offsetReserveNextUnused, nbAvailables);

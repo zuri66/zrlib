@@ -26,6 +26,23 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 
 // ============================================================================
 
+static inline void ZRRESERVEOPLIST_INITARRAY(ZRReserveNextUnused *next, size_t nbObj)
+{
+	memset(next, (int)0, nbObj * sizeof(ZRReserveNextUnused));
+}
+
+static inline void ZRRESERVEOPLIST_INIT(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused)
+{
+	char *current = (char*)reserve + offsetReserveNextUnused;
+	char *const lastObj = current + (nbObj * objSize);
+
+	while (current != lastObj)
+	{
+		*(ZRReserveNextUnused*)current = 0;
+		current += objSize;
+	}
+}
+
 static inline size_t ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t nbAvailables)
 {
 	char *current = (char*)reserve + offsetReserveNextUnused;
@@ -156,10 +173,13 @@ static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size
 }
 // ============================================================================
 
-size_t ZRReserveOpList_reserveFirstAvailables(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t nbAvailables);
-void ZRReserveOpList_reserveNb(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables);
+void ZRReserveOpList_init(____ void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused);
+void ZRReserveOpList_initArray(void *reserve, _______________ size_t nbObj);
 
-bool ZRReserveOpList_availables(void *reserve, size_t objSize, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables);
-void ZRReserveOpList_releaseNb(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbToRelease);
+size_t ZRReserveOpList_reserveFirstAvailables(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, ___________ size_t nbAvailables);
+void _ ZRReserveOpList_reserveNb(____________ void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables);
+
+bool ZRReserveOpList_availables(_ void *reserve, size_t objSize, _____________ size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables);
+void ZRReserveOpList_releaseNb(__ void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbToRelease);
 
 #endif
