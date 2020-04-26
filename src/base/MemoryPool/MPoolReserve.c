@@ -139,6 +139,13 @@ static inline void frelease(ZRMemoryPool *pool, ZRMPoolInfos *infos, void *first
 	infos->nbAvailables += nb;
 }
 
+static void fclean_common(ZRMemoryPool *pool, ZRMPoolInfos *infos)
+{
+	pool->nbBlocks = 0;
+	infos->nbArea = 0;
+	infos->nbAvailables = infos->nbBlocksTotal;
+}
+
 // ============================================================================
 // LIST
 
@@ -204,6 +211,13 @@ static void frelease_list(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	size_t areaPos;
 	frelease(pool, &rlpool->infos, firstBlock, &nb, &areaPos);
 	ZRRESERVEOPLIST_RELEASENB(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->infos.nbBlocksTotal, 0, areaPos, nb);
+}
+
+static void fclean_list(ZRMemoryPool *pool)
+{
+	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
+	ZRRESERVEOPLIST_INITARRAY(rlpool->nextUnused, rlpool->infos.nbBlocksTotal);
+	fclean_common(pool, &rlpool->infos);
 }
 
 static bool favailablePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
@@ -285,6 +299,13 @@ static void frelease_bits(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	ZRRESERVEOPBITS_RELEASENB(rbpool->bits, areaPos, nb);
 }
 
+static void fclean_bits(ZRMemoryPool *pool)
+{
+	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
+	memset(rbpool->bits, (int)ZRRESERVEOPBITS_FULLEMPTY, rbpool->nbZRBits * sizeof(ZRBits));
+	fclean_common(pool, &rbpool->infos);
+}
+
 static bool favailablePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
 {
 	ZRMPoolRBits *rbpool = ZRMPOOLRBITS(pool);
@@ -321,6 +342,7 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.fstrategySize = fstrategySize, //
 				.finit = finitPool_bits, //
 				.fdone = fdone, //
+				.fclean = fclean_bits, //
 				.fareaNbBlocks = fareaNbBlocks_bits, //
 				.fareaPool = fareaPool, //
 				.freserve = freserve_bits, //
@@ -336,6 +358,7 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.fstrategySize = fstrategySize, //
 				.finit = finitPool_list, //
 				.fdone = fdone, //
+				.fclean = fclean_list, //
 				.fareaNbBlocks = fareaNbBlocks_list, //
 				.fareaPool = fareaPool, //
 				.freserve = freserve_list, //
