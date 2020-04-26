@@ -349,8 +349,6 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.frelease = frelease_bits, //
 				},//
 			.allocator = allocator, //
-			.favailablePos = favailablePos_list, //
-			.freservePos = freservePos_list, //
 			};
 	else
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
@@ -365,33 +363,9 @@ void ZRMPoolReserve_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator,
 				.frelease = frelease_list, //
 				},//
 			.allocator = allocator, //
-			.favailablePos = favailablePos_bits, //
-			.freservePos = freservePos_bits, //
 			};
 }
 
 // ============================================================================
 
 #include "MPoolReserve_help.c"
-
-// TODO: adapt with area head blocks
-
-bool ZRMPoolReserve_availablePos_nb(ZRMemoryPool *pool, size_t pos, size_t nb)
-{
-	return ZRMPOOLRESERVE_AVAILABLEPOS_NB(pool, pos, nb);
-}
-
-bool ZRMPoolReserve_availablePos(ZRMemoryPool *pool, size_t pos)
-{
-	return ZRMPOOLRESERVE_AVAILABLEPOS(pool, pos);
-}
-
-void* ZRMPoolReserve_reservePos_nb(ZRMemoryPool *pool, size_t pos, size_t nb, bool checkAvailability)
-{
-	return ZRMPOOLRESERVE_RESERVEPOS_NB(pool, pos, nb, checkAvailability);
-}
-
-void* ZRMPoolReserve_reservePos(ZRMemoryPool *pool, size_t pos, bool checkAvailability)
-{
-	return ZRMPOOLRESERVE_RESERVEPOS(pool, pos, checkAvailability);
-}
