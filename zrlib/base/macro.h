@@ -21,4 +21,11 @@
 
 #define ZRCARRAY_NBOBJ(array) (sizeof(array)/sizeof(*array))
 
+
+#ifdef __GNUC__
+#define ZRMUSTINLINE __attribute__((always_inline))
+#else
+#define ZRMUSTINLINE
+#endif
+
 #endif
