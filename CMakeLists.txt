@@ -14,6 +14,7 @@ set(SRCS
 	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
 	src/base/ReserveOp_bits.c
+	src/base/ReserveOp_chunk.c
 	src/base/ReserveOp_list.c
 	src/base/Bits/Bits.c
 	src/base/Iterator/FilterIterator.c
@@ -40,6 +41,7 @@ set(HEADERS
 	zrlib/base/Allocator/CAllocator.h
 	zrlib/base/ArrayOp.h
 	zrlib/base/ReserveOp_bits.h
+	zrlib/base/ReserveOp_chunk.h
 	zrlib/base/ReserveOp_list.h
 	zrlib/base/Bits/Bits.h
 	zrlib/base/Iterator/FilterIterator.h
