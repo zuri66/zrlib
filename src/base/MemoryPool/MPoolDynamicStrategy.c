@@ -93,7 +93,7 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	while (nbBlocks > nbBlocksToAlloc)
 		nbBlocksToAlloc += initialBucketSize;
 
-	bucket.pool = ZRMPoolReserve_create(pool->blockSize, alignof(max_align_t), nbBlocksToAlloc, strategy->allocator, true);
+	bucket.pool = ZRMPoolReserve_create(pool->blockSize, alignof(max_align_t), nbBlocksToAlloc, strategy->allocator, ZRMPoolReserveMode_chunk);
 	dspool->nbFreeBuckets++;
 	ZRVECTOR_ADD(dspool->buckets, &bucket);
 	return ZRVECTOR_GET(dspool->buckets, bucket_i);

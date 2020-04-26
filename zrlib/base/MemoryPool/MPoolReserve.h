@@ -29,7 +29,12 @@ struct ZRMPoolReserveStrategyS
 // HELP
 // ============================================================================
 
-ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t nbBlocks, ZRAllocator *allocator, bool bitStrategy);
+enum ZRMPoolReserveModeE
+{
+	ZRMPoolReserveMode_bits, ZRMPoolReserveMode_list, ZRMPoolReserveMode_chunk
+};
+
+ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t nbBlocks, ZRAllocator *allocator, enum ZRMPoolReserveModeE mode);
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool);
 
 // ============================================================================
