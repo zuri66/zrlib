@@ -68,6 +68,7 @@ struct ZRMapS
 
 // ============================================================================
 
+ZRMUSTINLINE
 static inline void ZRMAP_INIT(ZRMap *map, size_t keySize, size_t objSize, ZRMapStrategy *strategy)
 {
 	*map = (ZRMap)
@@ -83,51 +84,61 @@ static inline void ZRMAP_INIT(ZRMap *map, size_t keySize, size_t objSize, ZRMapS
 		strategy->finitMap(map);
 }
 
+ZRMUSTINLINE
 static inline void ZRMAP_DONE(ZRMap *map)
 {
 	map->strategy->fdone(map);
 }
 
+ZRMUSTINLINE
 static inline void ZRMAP_DESTROY(ZRMap *map)
 {
 	map->strategy->fdestroy(map);
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMAP_NBOBJ(ZRMap *map)
 {
 	return map->nbObj;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMAP_KEYSIZE(ZRMap *map)
 {
 	return map->keySize;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMAP_OBJSIZE(ZRMap *map)
 {
 	return map->objSize;
 }
 
+ZRMUSTINLINE
 static inline void* ZRMAP_GET(ZRMap *map, void *key)
 {
 	return map->strategy->fget(map, key);
 }
 
+ZRMUSTINLINE
 static inline void ZRMAP_PUT(ZRMap *map, void *key, void *value)
 {
 	map->strategy->fput(map, key, value);
 }
 
+ZRMUSTINLINE
 static inline bool ZRMAP_PUTIFABSENT(ZRMap *map, void *key, void *value)
 {
 	return map->strategy->fputIfAbsent(map, key, value);
 }
 
+ZRMUSTINLINE
 static inline bool ZRMAP_REPLACE(ZRMap *map, void *key, void *value)
 {
 	return map->strategy->freplace(map, key, value);
 }
 
+ZRMUSTINLINE
 static inline bool ZRMAP_DELETE(ZRMap *map, void *key)
 {
 	return map->strategy->fdelete(map, key);

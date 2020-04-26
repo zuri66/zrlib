@@ -60,6 +60,7 @@
 
 #ifdef ZRADDRESS_I
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_upPow2_i(size_t i)
 {
 	if(i <= 2) return i;
@@ -70,6 +71,7 @@ static inline size_t ZRAddressOp_upPow2_i(size_t i)
 
 #ifdef ZRSIZE_NBBITS
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_upPow2_size_t(size_t i)
 {
 	i--;
@@ -90,6 +92,7 @@ static inline size_t ZRAddressOp_upPow2_size_t(size_t i)
 #define ZRAddress_inside ZRAddress_inArray
 
 
+ZRMUSTINLINE
 static inline bool ZRAddress_inside_std(void *offset, void *array, size_t objSize, size_t nb)
 {
 	size_t i;
@@ -104,6 +107,7 @@ static inline bool ZRAddress_inside_std(void *offset, void *array, size_t objSiz
 	return false;
 }
 
+ZRMUSTINLINE
 static inline bool ZRAddress_inArray(void *offset, void *array, size_t objSize, size_t nb)
 {
 	uintptr_t o = (uintptr_t)offset;
@@ -113,11 +117,13 @@ static inline bool ZRAddress_inArray(void *offset, void *array, size_t objSize, 
 
 // =================================================================================
 
+ZRMUSTINLINE
 static inline bool ZRAddress_aligned_a(void *offset, size_t alignment)
 {
 	return (uintptr_t)offset % alignment == 0;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_alignUp_a(void *offset, size_t alignment)
 {
 	size_t const rest = (uintptr_t)offset % alignment;
@@ -128,6 +134,7 @@ static inline size_t ZRAddressOp_alignUp_a(void *offset, size_t alignment)
 	return 0;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_alignDown_a(void *offset, size_t alignment)
 {
 	return (uintptr_t)offset % alignment;
@@ -138,18 +145,21 @@ static inline size_t ZRAddressOp_alignDown_a(void *offset, size_t alignment)
  * The following is valid for 2 complemented integer representation.
  */
 
+ZRMUSTINLINE
 static inline bool ZRAddress_aligned_pow2(void *offset, size_t alignment)
 {
 	assert(ZRISPOW2SAFE(alignment));
 	return (uintptr_t)offset & (alignment - 1) == 0;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_alignUp_pow2(void *offset, size_t alignment)
 {
 	assert(ZRISPOW2SAFE(alignment));
 	return (-(uintptr_t)offset) & (alignment - 1);
 }
 
+ZRMUSTINLINE
 static inline size_t ZRAddressOp_alignDown_pow2(void *offset, size_t alignment)
 {
 	assert(ZRISPOW2SAFE(alignment));

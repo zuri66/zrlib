@@ -32,21 +32,25 @@ struct ZRReserveMemoryChunkS
 
 // ============================================================================
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPCHUNK_INIT(ZRReserveMemoryChunk *chunk)
 {
 	*chunk = (ZRReserveMemoryChunk ) { 0 };
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPCHUNK_INITARRAY(ZRReserveMemoryChunk *chunk, size_t nb)
 {
 	memset(chunk, 0, sizeof(ZRReserveMemoryChunk) * nb);
 }
 
+ZRMUSTINLINE
 static inline bool ZRRESERVEOPCHUNK_INITED(ZRReserveMemoryChunk *chunk)
 {
 	return chunk->nbFree == 0 && chunk->offset == 0 && chunk->nextChunk == NULL;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(ZRReserveMemoryChunk **firstChunk, size_t nbObj, void fchunkDone(ZRReserveMemoryChunk*))
 {
 	while (true)
@@ -76,6 +80,7 @@ static inline size_t ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(ZRReserveMemoryChun
 	}
 }
 
+ZRMUSTINLINE
 static inline bool ZRRESERVEOPCHUNK_AVAILABLES(ZRReserveMemoryChunk *firstChunk, size_t nbObj)
 {
 	ZRReserveMemoryChunk *chunk = firstChunk;
@@ -90,6 +95,7 @@ static inline bool ZRRESERVEOPCHUNK_AVAILABLES(ZRReserveMemoryChunk *firstChunk,
 	return false;
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPCHUNK_RELEASENB(ZRReserveMemoryChunk **firstChunk, ZRReserveMemoryChunk *newChunk, size_t nbObj, size_t pos, size_t nbToRelease, void fchunkDone(ZRReserveMemoryChunk*))
 {
 	ZRReserveMemoryChunk *leftChunk;

@@ -24,8 +24,11 @@ typedef struct ZRObjAlignInfosS
 	size_t size;
 } ZRObjAlignInfos;
 
+
+ZRMUSTINLINE
 static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 {
+//	assert(alignment != 0);
 	size_t rest = fieldOffset % alignment;
 
 	if (rest)
@@ -38,6 +41,7 @@ static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
  * Size for structure with a flexible array member which conserve the structure alignment.
  * The size of the FAM must be counted in the structSize argument.
  */
+ZRMUSTINLINE
 static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)
 {
 	return ZRSTRUCT_ALIGNOFFSET(structSize, alignment);
@@ -48,6 +52,7 @@ static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)
  * Each infos item represents a field in a struct.
  * The infos[nb+1] item represent the struct infos.
  */
+ZRMUSTINLINE
 static inline void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
 {
 	size_t offset = infos->offset;
@@ -76,6 +81,7 @@ static int cmp_infos(const void *va, const void *vb)
 	return b->alignment - a->alignment;
 }
 
+ZRMUSTINLINE
 static inline void ZRSTRUCT_BESTORDERPOS(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos)
 {
 	// Copy also the nb + 1 struct infos
@@ -84,6 +90,7 @@ static inline void ZRSTRUCT_BESTORDERPOS(size_t nb, ZRObjAlignInfos *infos, ZROb
 	qsort(pinfos + pos, nb - pos, sizeof(ZRObjAlignInfos*), cmp_infos);
 }
 
+ZRMUSTINLINE
 static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
 {
 	ZRSTRUCT_BESTORDERPOS(nb, infos, pinfos, 0);

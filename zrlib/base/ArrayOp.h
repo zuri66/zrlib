@@ -26,13 +26,13 @@
 	ZRMemoryOp_swap(ZRARRAYOP_GET(offset, objSize, posa), ZRARRAYOP_GET(offset, objSize, posb), (objSize))
 
 #define ZRARRAYOP_SHIFT(offset, objSize, nbObj, shift, toTheRight) \
-	ZRMemoryOp_shift((offset), ZRARRAYOP_GET(offset, objSize, nbObj), (shift)  * (objSize), (toTheRight))
+	ZRMemoryOp_shift((offset), ZRARRAYOP_GET(offset, objSize, nbObj), (shift) * (objSize), (toTheRight))
 
 #define ZRARRAYOP_ROTATE(offset, objSize, nbObj, rotate, toTheRight) \
 	ZRMemoryOp_rotate((offset), ZRARRAYOP_GET(offset, objSize, nbObj), (rotate) * (objSize), (toTheRight))
 
 #define ZRARRAYOP_FILL(offset, objSize, nbObj, object) \
-	ZRMemoryOp_fill(offset, object, objSize, nbObj);
+	ZRMemoryOp_fill((offset), (object), (objSize), (nbObj))
 
 #define ZRARRAYOP_CPY(offset, objSize, nbObj, source) \
 	memcpy((offset), (source), (objSize) * (nbObj))
@@ -43,6 +43,7 @@
 #define ZRARRAYOP_DEPLACE(offset, objSize, nbObj, source) \
 	ZRMemoryOp_deplace((offset), (source), (objSize) * (nbObj))
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_REVERSE(void *offset, size_t objSize, size_t nbObj)
 {
 	char *a = offset;
@@ -59,6 +60,7 @@ static inline void ZRARRAYOP_REVERSE(void *offset, size_t objSize, size_t nbObj)
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_TOPOINTERS(void *pointers, size_t ptrSize, size_t nbObj, void *source, size_t objSize)
 {
 	while (nbObj--)
@@ -69,6 +71,7 @@ static inline void ZRARRAYOP_TOPOINTERS(void *pointers, size_t ptrSize, size_t n
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_TOPOINTERSDATA(void *pointers, size_t ptrSize, size_t nbObj, void *source, size_t objSize)
 {
 	while (nbObj--)
@@ -79,6 +82,7 @@ static inline void ZRARRAYOP_TOPOINTERSDATA(void *pointers, size_t ptrSize, size
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_FROMPOINTERSDATA(void *offset, size_t objSize, size_t nbObj, void *source, size_t ptrSize)
 {
 	while (nbObj--)
@@ -89,6 +93,7 @@ static inline void ZRARRAYOP_FROMPOINTERSDATA(void *offset, size_t objSize, size
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_WALK(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
 {
 	while (nbObj--)
@@ -98,6 +103,7 @@ static inline void ZRARRAYOP_WALK(void *offset, size_t objSize, size_t nbObj, vo
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRARRAYOP_MAP(
 	void *restrict offset, size_t objSize, size_t nbObj,
 	void (*fmap)(___ void *restrict item, void *restrict out),
@@ -114,16 +120,16 @@ static inline void ZRARRAYOP_MAP(
 
 // ============================================================================
 
-void*_ ZRArrayOp_get(__ void _________*offset, size_t objSize, size_t pos);
+void* _ ZRArrayOp_get(_ void ________ *offset, size_t objSize, size_t pos);
 void _ ZRArrayOp_set(__ void *restrict offset, size_t objSize, size_t pos, void *restrict source);
-void _ ZRArrayOp_swap(_ void _________*offset, size_t objSize, size_t posa, size_t posb);
+void _ ZRArrayOp_swap(_ void ________ *offset, size_t objSize, size_t posa, size_t posb);
 
 void ZRArrayOp_fill(____ void *restrict offset, size_t objSize, size_t nbObj, void *restrict object);
 void ZRArrayOp_cpy(_____ void *restrict offset, size_t objSize, size_t nbObj, void *restrict source);
-void ZRArrayOp_move(____ void _________*offset, size_t objSize, size_t nbObj, void _________*source);
-void ZRArrayOp_deplace(_ void _________*offset, size_t objSize, size_t nbObj, void _________*source);
+void ZRArrayOp_move(____ void ________ *offset, size_t objSize, size_t nbObj, void _________ *source);
+void ZRArrayOp_deplace(_ void ________ *offset, size_t objSize, size_t nbObj, void _________ *source);
 
-void ZRArrayOp_shift(___ void *offset, size_t objSize, size_t nbObj, size_t shift,_ bool toTheRight);
+void ZRArrayOp_shift(___ void *offset, size_t objSize, size_t nbObj, size_t shift, bool toTheRight);
 void ZRArrayOp_rotate(__ void *offset, size_t objSize, size_t nbObj, size_t rotate, bool toTheRight);
 void ZRArrayOp_reverse(_ void *offset, size_t objSize, size_t nbObj);
 

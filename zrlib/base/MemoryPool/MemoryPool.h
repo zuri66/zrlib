@@ -54,6 +54,7 @@ struct ZRMemoryPoolStrategyS
 
 // ============================================================================
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPoolStrategy *strategy)
 {
 	*pool = (ZRMemoryPool ) { //
@@ -63,56 +64,67 @@ static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPo
 	strategy->finit(pool);
 }
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_DONE(ZRMemoryPool *pool)
 {
 	pool->strategy->fdone(pool);
 }
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_DESTROY(ZRMemoryPool *pool)
 {
 	pool->strategy->fdestroy(pool);
 }
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_CLEAN(ZRMemoryPool *pool)
 {
 	pool->strategy->fclean(pool);
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMPOOL_AREANBBLOCKS(ZRMemoryPool *pool, void *firstBlock)
 {
 	return pool->strategy->fareaNbBlocks(pool, firstBlock);
 }
 
+ZRMUSTINLINE
 static inline ZRMemoryPool* ZRMPOOL_AREAPOOL(ZRMemoryPool *pool, void *firstBlock)
 {
 	return pool->strategy->fareaPool(pool, firstBlock);
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMPOOL_NBBLOCKS(ZRMemoryPool *pool)
 {
 	return pool->nbBlocks;
 }
 
+ZRMUSTINLINE
 static inline size_t ZRMPOOL_BLOCKSIZE(ZRMemoryPool *pool)
 {
 	return pool->blockSize;
 }
 
+ZRMUSTINLINE
 static inline void* ZRMPOOL_RESERVE(ZRMemoryPool *pool)
 {
 	return pool->strategy->freserve(pool, 1);
 }
 
+ZRMUSTINLINE
 static inline void* ZRMPOOL_RESERVE_NB(ZRMemoryPool *pool, size_t nb)
 {
 	return pool->strategy->freserve(pool, nb);
 }
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_RELEASEAREA(ZRMemoryPool *pool, void *block)
 {
 	pool->strategy->frelease(pool, block, SIZE_MAX);
 }
 
+ZRMUSTINLINE
 static inline void ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
 	pool->strategy->frelease(pool, firstBlock, nb);

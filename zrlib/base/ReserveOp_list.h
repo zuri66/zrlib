@@ -26,11 +26,13 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 
 // ============================================================================
 
-static inline void ZRRESERVEOPLIST_INITARRAY(ZRReserveNextUnused *next, size_t nbObj)
+ZRMUSTINLINE
+inline static void ZRRESERVEOPLIST_INITARRAY(ZRReserveNextUnused *next, size_t nbObj)
 {
 	memset(next, (int)0, nbObj * sizeof(ZRReserveNextUnused));
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPLIST_INIT(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused)
 {
 	char *current = (char*)reserve + offsetReserveNextUnused;
@@ -43,6 +45,7 @@ static inline void ZRRESERVEOPLIST_INIT(void *reserve, size_t objSize, size_t nb
 	}
 }
 
+ZRMUSTINLINE
 static inline size_t ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t nbAvailables)
 {
 	char *current = (char*)reserve + offsetReserveNextUnused;
@@ -81,6 +84,7 @@ static inline size_t ZRRESERVEOPLIST_RESERVEFIRSTAVAILABLES(void *reserve, size_
 	}
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables)
 {
 	assert(pos < nbObj);
@@ -125,6 +129,7 @@ static inline void ZRRESERVEOPLIST_RESERVENB(void *reserve, size_t objSize, size
 	}
 }
 
+ZRMUSTINLINE
 static inline bool ZRRESERVEOPLIST_AVAILABLES(void *reserve, size_t objSize, size_t offsetReserveNextUnused, size_t pos, size_t nbAvailables)
 {
 	char *current = (char*)reserve + (pos * objSize) + offsetReserveNextUnused;
@@ -139,6 +144,7 @@ static inline bool ZRRESERVEOPLIST_AVAILABLES(void *reserve, size_t objSize, siz
 	return true;
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbToRelease)
 {
 	assert(pos < nbObj);
