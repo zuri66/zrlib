@@ -11,6 +11,7 @@
 
 #include <stdalign.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 // ============================================================================
@@ -101,9 +102,9 @@ static inline void* ZRMPOOL_RESERVE_NB(ZRMemoryPool *pool, size_t nb)
 	return pool->strategy->freserve(pool, nb);
 }
 
-static inline void ZRMPOOL_RELEASE(ZRMemoryPool *pool, void *block)
+static inline void ZRMPOOL_RELEASEAREA(ZRMemoryPool *pool, void *block)
 {
-	pool->strategy->frelease(pool, block, 1);
+	pool->strategy->frelease(pool, block, SIZE_MAX);
 }
 
 static inline void ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size_t nb)
@@ -126,7 +127,7 @@ ZRMemoryPool* ZRMPool_areaPool(ZRMemoryPool *pool, void *firstBlock);
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
 void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb);
 
-void ZRMPool_release(__ ZRMemoryPool *pool, void *block);
+void ZRMPool_releaseArea(__ ZRMemoryPool *pool, void *firstBlock);
 void ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb);
 
 #endif
