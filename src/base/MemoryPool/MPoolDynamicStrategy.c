@@ -99,6 +99,11 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	return ZRVECTOR_GET(dspool->buckets, bucket_i);
 }
 
+static inline void bucket_clean(ZRMPoolDS_bucket *bucket)
+{
+	ZRMPOOL_CLEAN(bucket->pool);
+}
+
 static inline void bucket_done(ZRMPoolDS_bucket *bucket)
 {
 	ZRMPOOL_DESTROY(bucket->pool);
@@ -124,6 +129,15 @@ void finitPool(ZRMemoryPool *pool)
 	dspool->nbFreeBuckets = 0;
 	dspool->buckets = ZRMPOOL_STRATEGY(pool)->fcreateBuckets(pool);
 	addBucket(pool, 0);
+}
+
+void fclean(ZRMemoryPool *pool)
+{
+	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
+	size_t const nbBuckets = dspool->buckets->nbObj;
+
+	for (int i = 0; i < nbBuckets; i++)
+		bucket_clean(ZRVECTOR_GET(dspool->buckets, i));
 }
 
 static size_t fareaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
@@ -247,6 +261,7 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 			.fstrategySize = fstrategySize, //
 			.finit = finitPool, //
 			.fdone = fdone, //
+			.fclean = fclean, //
 			.fareaNbBlocks = fareaNbBlocks, //
 			.fareaPool = fareaPool, //
 			.freserve = freserve, //
