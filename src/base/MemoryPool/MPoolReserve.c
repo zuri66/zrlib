@@ -101,15 +101,21 @@ static inline void* freserve(ZRMemoryPool *pool, ZRMPoolInfos *infos, size_t nb,
 static inline void frelease(ZRMemoryPool *pool, ZRMPoolInfos *infos, void *firstBlock, size_t *nb_p, size_t *areaPos)
 {
 	size_t nb = *nb_p;
+	bool releaseArea = nb == SIZE_MAX;
 	assert(nb > 0);
 	ZRAreaHead areaHead;
-	nb += infos->nbBlocksForAreaHead;
 
 //	assert(nb <= rlpool->nbBlocks);
 
 	ZRAreaHead_checkAndGet(pool, firstBlock, &areaHead);
 
-	assert(nb <= areaHead.nbBlocks);
+	if (releaseArea)
+		nb = areaHead.nbBlocks;
+	else
+	{
+		nb += infos->nbBlocksForAreaHead;
+		assert(nb <= areaHead.nbBlocks);;
+	}
 
 	char *area = firstBlock - (infos->nbBlocksForAreaHead * pool->blockSize);
 	*areaPos = (size_t)(area - infos->reserve) / pool->blockSize;
