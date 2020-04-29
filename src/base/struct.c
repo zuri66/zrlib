@@ -19,10 +19,10 @@ void ZRStruct_bestOffsetsPos(size_t nb, ZRObjAlignInfos *infos, size_t pos)
 	ZRObjAlignInfos tmpInfos[ZRSTRUCT_MAXFIELDS];
 
 	ZRSTRUCT_BESTORDERPOS(nb, infos, pinfos, pos);
-	ZRARRAYOP_FROMPOINTERSDATA(tmpInfos, sizeof(*tmpInfos), nb, pinfos, sizeof(*pinfos));
+	ZRCARRAY_FROMPOINTERSDATA(ZRObjAlignInfos, tmpInfos, pinfos, nb);
 
 	ZRSTRUCT_MAKEOFFSETS(nb, tmpInfos);
-	ZRARRAYOP_TOPOINTERSDATA(pinfos, sizeof(*pinfos), nb + 1, tmpInfos, sizeof(*tmpInfos));
+	ZRCARRAY_TOPOINTERSDATA(ZRObjAlignInfos, pinfos, tmpInfos, nb + 1);
 }
 
 size_t ZRStruct_alignOffset(size_t fieldOffset, size_t alignment)

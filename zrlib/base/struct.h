@@ -85,7 +85,7 @@ ZRMUSTINLINE
 static inline void ZRSTRUCT_BESTORDERPOS(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos)
 {
 	// Copy also the nb + 1 struct infos
-	ZRARRAYOP_TOPOINTERS(pinfos, sizeof(*pinfos), nb + 1, infos, sizeof(*infos));
+	ZRCARRAY_TOPOINTERS(ZRObjAlignInfos, pinfos, ZRObjAlignInfos, infos, nb + 1);
 
 	qsort(pinfos + pos, nb - pos, sizeof(ZRObjAlignInfos*), cmp_infos);
 }
