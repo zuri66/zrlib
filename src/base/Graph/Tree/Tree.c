@@ -123,6 +123,16 @@ size_t ZRTreeNode_getNObjs(ZRTree *tree, ZRTreeNode *node, void *objs_out, size_
 	return ZRTREENODE_GETNOBJS(tree, node, objs_out, offset, maxNbOut);
 }
 
+size_t ZRTreeNode_getNbAscendants(ZRTree *tree, ZRTreeNode *node)
+{
+	return ZRTREENODE_GETNBASCENDANTS(tree, node);
+}
+
+size_t ZRTreeNode_getNbDescendants(ZRTree *tree, ZRTreeNode *node)
+{
+	return ZRTREENODE_GETNBDESCENDANTS(tree, node);
+}
+
 ZRIterator* ZRTreeNode_getChilds(ZRTree *tree, ZRTreeNode *node)
 {
 	return ZRTREENODE_GETCHILDS(tree, node);
