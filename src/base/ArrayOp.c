@@ -53,21 +53,6 @@ void ZRArrayOp_reverse(void *offset, size_t objSize, size_t nbObj)
 	ZRARRAYOP_REVERSE(offset, objSize, nbObj);
 }
 
-void ZRArrayOp_toPointers(void *pointers, size_t ptrSize, size_t nbObj, void *source, size_t objSize)
-{
-	ZRARRAYOP_TOPOINTERS(pointers, ptrSize, nbObj, source, objSize);
-}
-
-void ZRArrayOp_toPointersData(void *pointers, size_t ptrSize, size_t nbObj, void *source, size_t objSize)
-{
-	ZRARRAYOP_TOPOINTERSDATA(pointers, ptrSize, nbObj, source, objSize);
-}
-
-void ZRArrayOp_fromPointersData(void *offset, size_t objSize, size_t nbObj, void *source, size_t ptrSize)
-{
-	ZRARRAYOP_FROMPOINTERSDATA(offset, objSize, nbObj, source, ptrSize);
-}
-
 void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
 {
 	ZRARRAYOP_WALK(offset, objSize, nbObj, fconsume);
