@@ -40,6 +40,11 @@ void ZRTreeBuilder_done(ZRTreeBuilder *builder)
 	builder->strategy->fdone(builder);
 }
 
+void ZRTreeBuilder_destroy(ZRTreeBuilder *builder)
+{
+	builder->strategy->fdestroy(builder);
+}
+
 // ============================================================================
 // TREE
 // ============================================================================
@@ -151,7 +156,7 @@ ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coo
 
 	for (size_t i = 0; i < nb; i++)
 	{
-		current = ZRTREENODE_GETCHILD(tree, current, coord[i]);
+		current = ZRGRAPHNODE_GETCHILD(&tree->graph, current, coord[i]);
 
 		if (current == NULL)
 			return NULL ;

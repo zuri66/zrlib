@@ -22,23 +22,16 @@ typedef void ZRTreeBuilderNode;
 
 //TODO ADD PREFIX for f#function
 
-typedef ZRTreeBuilderNode* //
-______________(*fcurrentNode_t)(_ ZRTreeBuilder *builder);
-typedef void* (*fcurrentObj_t)(__ ZRTreeBuilder *builder);
-
-typedef void __ (*fnode_t)(_ ZRTreeBuilder *builder, void *data);
-typedef void __ (*fend_t)(__ ZRTreeBuilder *builder);
-typedef ZRTree* (*fnew_t)(__ ZRTreeBuilder *builder);
-typedef void __ (*fdone_t)(_ ZRTreeBuilder *builder);
-
 struct ZRTreeBuilderStrategyS
 {
-	fcurrentNode_t fcurrentNode;
-	fcurrentObj_t fcurrentObj;
-	fnode_t fnode;
-	fend_t fend;
-	fnew_t fnew;
-	fdone_t fdone;
+	ZRTreeBuilderNode* (*fcurrentNode)(ZRTreeBuilder *builder);
+	void* (*fcurrentObj)(ZRTreeBuilder *builder);
+
+	void __ (*fnode)(__ ZRTreeBuilder *builder, void *data);
+	void __ (*fend)(___ ZRTreeBuilder *builder);
+	ZRTree* (*fnew)(___ ZRTreeBuilder *builder);
+	void __ (*fdone)(__ ZRTreeBuilder *builder);
+	void __ (*fdestroy)(ZRTreeBuilder *builder);
 };
 
 struct ZRTreeBuilderS
@@ -52,9 +45,10 @@ ZRTreeBuilderNode* //
 _______ ZRTreeBuilder_currentNode(_ ZRTreeBuilder *builder);
 void* _ ZRTreeBuilder_currentObj(__ ZRTreeBuilder *builder);
 
-void __ ZRTreeBuilder_node(_ ZRTreeBuilder *builder, void *data);
-void __ ZRTreeBuilder_end(__ ZRTreeBuilder *builder);
-ZRTree* ZRTreeBuilder_new(__ ZRTreeBuilder *builder);
-void __ ZRTreeBuilder_done(_ ZRTreeBuilder *builder);
+void __ ZRTreeBuilder_node(__ ZRTreeBuilder *builder, void *data);
+void __ ZRTreeBuilder_end(___ ZRTreeBuilder *builder);
+ZRTree* ZRTreeBuilder_new(___ ZRTreeBuilder *builder);
+void __ ZRTreeBuilder_done(__ ZRTreeBuilder *builder);
+void __ ZRTreeBuilder_destroy(ZRTreeBuilder *builder);
 
 #endif
