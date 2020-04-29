@@ -19,13 +19,17 @@ struct ZRSimpleTreeS
 {
 	ZRTree tree;
 
+	size_t nbNodes;
+
 	ZRAllocator *allocator;
 
-	ZRVector *nodes;
+	ZRSimpleTreeNode *nodes;
+
+	void *objs;
 };
 
 #define ZRSTREE_TREE(STREE)  (&(STREE)->tree)
-#define ZRSTREE_GRAPH(STREE) ZRTREE_GRAPH(ZRSTREE_TREE(STREE))
+#define ZRSTREE_GRAPH(STREE) (&ZRSTREE_TREE(STREE)->graph)
 
 // ============================================================================
 // Node
@@ -39,9 +43,24 @@ struct ZRSimpleTreeNodeS
 	size_t nbChilds;
 	ZRSimpleTreeNode *parent;
 	ZRSimpleTreeNode *childs;
-	alignas(max_align_t) char obj[];
+	void *obj;
 };
 
-#define ZRSTREENODE_SIZE(OBJSIZE) ZRSTRUCTSIZE_FAM_PAD(OBJSIZE + sizeof(ZRSimpleTreeNode), alignof(ZRSimpleTreeNode))
-#define ZRSTREE_NODESIZE(STREE)   ZRSTREENODE_SIZE(ZRSTREE_GRAPH(STREE)->objSize)
 
+#define ZRSIMPLETREENODE_INFOS_NB 4
+
+typedef enum
+{
+	ZRSimpleTreeNodeInfos_base, ZRSimpleTreeNodeInfos_nodes, ZRSimpleTreeNodeInfos_objs, ZRSimpleTreeNodeInfos_struct
+} ZRSimpleTreeNodeInfos;
+
+static void ZRSimpleTreeInfos(ZRObjAlignInfos *out, size_t objSize, size_t nbObj, size_t objAlignment)
+{
+	out[0] = (ZRObjAlignInfos ) { 0, alignof(ZRSimpleTree), sizeof(ZRSimpleTree) };
+	out[1] = (ZRObjAlignInfos ) { 0, alignof(ZRSimpleTreeNode), nbObj * sizeof(ZRSimpleTreeNode) };
+	out[2] = (ZRObjAlignInfos ) { 0, objAlignment, nbObj * objSize };
+	out[3] = (ZRObjAlignInfos ) { };
+	ZRStruct_bestOffsetsPos(ZRSIMPLETREENODE_INFOS_NB - 1, out, 1);
+}
+
+ZRTree* ZRSimpleTree_create(size_t objSize, size_t nbObjs, size_t objAlignment, ZRAllocator *allocator);
