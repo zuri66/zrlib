@@ -296,11 +296,6 @@ ZRIterator* fNode_getDescendants(ZRTree *tree, ZRTreeNode *tnode)
 	return ZRNODEITERATOR_ITERATOR(niterator);
 }
 
-//static bool DescendantsBFIterator_fhasNext(ZRNodeIterator *iterator)
-//{
-//	return iterator->nb > 0;
-//}
-
 ZRIterator* fNode_getDescendants_BF(ZRTree *tree, ZRTreeNode *node)
 {
 	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
@@ -311,6 +306,16 @@ ZRIterator* fNode_getDescendants_DF(ZRTree *tree, ZRTreeNode *node)
 {
 	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
 	return ZRTreeNode_std_getDescendants_DF(tree, node, stree->allocator);
+}
+
+size_t fNode_getNbAscendants(ZRTree *tree, ZRTreeNode *node)
+{
+	return ((ZRSimpleTreeNode*)node)->nbAscendants;
+}
+
+size_t fNode_getNbDescendants(ZRTree *tree, ZRTreeNode *node)
+{
+	return ((ZRSimpleTreeNode*)node)->nbDescendants;
 }
 
 // ============================================================================
@@ -331,6 +336,8 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 				.fgetNObjs = fgraph_getNObjs, //
 				.fdone = fgraph_done, //
 				},//
+			.ftreeNode_getNbAscendants = fNode_getNbAscendants, //
+			.ftreeNode_getNbDescendants = fNode_getNbDescendants, //
 			.ftreeNode_getTheParent = fNode_getTheParent, //
 			.ftreeNode_getChilds = fNode_getChilds, //
 			.ftreeNode_getAscendants = fNode_getAscendants, //
