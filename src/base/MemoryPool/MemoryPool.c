@@ -25,9 +25,9 @@ size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
 	return ZRMPOOL_AREANBBLOCKS(pool, firstBlock);
 }
 
-ZRMemoryPool* ZRMPool_areaPool(ZRMemoryPool *pool, void *firstBlock)
+void* ZRMPool_userAreaMetaData(ZRMemoryPool *pool, void *firstBlock)
 {
-	return ZRMPOOL_AREAPOOL(pool, firstBlock);
+	return ZRMPOOL_USERAREAMETADATA(pool, firstBlock);
 }
 
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool)

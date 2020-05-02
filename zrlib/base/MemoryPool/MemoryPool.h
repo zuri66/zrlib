@@ -46,10 +46,11 @@ struct ZRMemoryPoolStrategyS
 
 	size_t (*fareaNbBlocks)(ZRMemoryPool *pool, void *firstBlock);
 
-	/**
-	 * Pools of the same type must answer.
+	/*
+	 * Get a pointer to the begin of user MetaData.
+	 * The pointer may not be aligned.
 	 */
-	ZRMemoryPool* (*fareaPool)(ZRMemoryPool *pool, void *firstBlock);
+	void* (*fuserAreaMetaData)(ZRMemoryPool *pool, void *firstBlock);
 };
 
 // ============================================================================
@@ -89,9 +90,9 @@ static inline size_t ZRMPOOL_AREANBBLOCKS(ZRMemoryPool *pool, void *firstBlock)
 }
 
 ZRMUSTINLINE
-static inline ZRMemoryPool* ZRMPOOL_AREAPOOL(ZRMemoryPool *pool, void *firstBlock)
+static inline void* ZRMPOOL_USERAREAMETADATA(ZRMemoryPool *pool, void *firstBlock)
 {
-	return pool->strategy->fareaPool(pool, firstBlock);
+	return pool->strategy->fuserAreaMetaData(pool, firstBlock);
 }
 
 ZRMUSTINLINE
@@ -141,7 +142,7 @@ size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
 size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock);
 size_t ZRMPool_blockSize(ZRMemoryPool *pool);
 
-ZRMemoryPool* ZRMPool_areaPool(ZRMemoryPool *pool, void *firstBlock);
+void* ZRMPool_userMetaData(ZRMemoryPool *pool, void *firstBlock);
 
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
 void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb);
