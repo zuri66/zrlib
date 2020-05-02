@@ -15,6 +15,8 @@
 #define ZRCONCAT_(A,B) A ## B
 
 #define ZRMIN(a,b) ((a) < (b) ? (a) : (b))
+#define ZRMAX(a,b) ((a) > (b) ? (a) : (b))
+#define ZRMAX_3(a,b,c) ZRMAX(a,ZRMAX(b,c))
 
 #define ZRISPOW2(I) (((I) & ((I) - 1)) == 0)
 #define ZRISPOW2SAFE(I) ((I) > 0 && ZRISPOW2(I))
