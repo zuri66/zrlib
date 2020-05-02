@@ -15,7 +15,6 @@
 // ============================================================================
 // STRATEGY
 
-size_t ZRVector2SideStrategy_sdataSize(ZRVector *vec);
 size_t ZRVector2SideStrategy_size();
 
 void ZRVector2SideStrategy_init(ZRVectorStrategy *strategy, ZRAllocator *allocator, size_t initialArraySize, size_t initialMemorySize);
@@ -47,7 +46,7 @@ void ZRVector2SideStrategy_memoryTrim(ZRVector *vec);
 // HELPERS
 
 size_t __ ZRVector2SideStrategy_vectorSize(size_t initialSpace, size_t objSize);
-ZRVector* ZRVector2SideStrategy_alloc(_______ size_t initialSpace, size_t objSize, ZRAllocator *allocator);
+ZRVector* ZRVector2SideStrategy_alloc(_______ size_t initialSpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialSpace, size_t objSize, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialSpace, size_t objSize, ZRAllocator *allocator);
 

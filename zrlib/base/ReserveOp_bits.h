@@ -24,6 +24,7 @@ static inline void ZRRESERVEOPBITS_RESERVENB(ZRBits *bits, size_t pos, size_t nb
 
 // ============================================================================
 
+ZRMUSTINLINE
 static inline size_t ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(ZRBits *bits, size_t nbZRBits, size_t nbAvailables)
 {
 	size_t pos;
@@ -38,6 +39,7 @@ static inline size_t ZRRESERVEOPBITS_RESERVEFIRSTAVAILABLES(ZRBits *bits, size_t
 	return pos;
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPBITS_RESERVENB(ZRBits *bits, size_t pos, size_t nbAvailables)
 {
 	size_t const nbZRBits = ((pos + nbAvailables) / ZRBITS_NBOF) + ((pos + nbAvailables) % ZRBITS_NBOF ? 1 : 0);
@@ -47,6 +49,7 @@ static inline void ZRRESERVEOPBITS_RESERVENB(ZRBits *bits, size_t pos, size_t nb
 	ZRBits_copy(set, 0, nbAvailables, bits, pos);
 }
 
+ZRMUSTINLINE
 static inline bool ZRRESERVEOPBITS_AVAILABLES(ZRBits *bits, size_t pos, size_t nbAvailables)
 {
 	size_t const nbAddPos = pos + nbAvailables;
@@ -69,6 +72,7 @@ static inline bool ZRRESERVEOPBITS_AVAILABLES(ZRBits *bits, size_t pos, size_t n
 	return ZRBits_cmp(bits, set, pos, nbAvailables) == 0;
 }
 
+ZRMUSTINLINE
 static inline void ZRRESERVEOPBITS_RELEASENB(ZRBits *bits, size_t pos, size_t nbToRelease)
 {
 	size_t const nbZRBits = ((pos + nbToRelease) / ZRBITS_NBOF) + ((pos + nbToRelease) % ZRBITS_NBOF ? 1 : 0);

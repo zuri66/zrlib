@@ -5,7 +5,7 @@
 
 ZRMap* ZRHashTable_alloc(size_t nbfhash, ZRAllocator *allocator)
 {
-	return ZRALLOC(allocator, sizeof(ZRMap) + ZRHASHTABLEDATA_SIZE(nbfhash));
+	return ZRALLOC(allocator, ZRHASHTABLEDATA_SIZE(nbfhash));
 }
 
 ZRMap* ZRHashTable_create(size_t keySize, size_t keyAlignment, size_t objSize, size_t objAlignment, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
@@ -23,7 +23,7 @@ ZRMap* ZRHashTable_create(size_t keySize, size_t keyAlignment, size_t objSize, s
 void ZRHashTable_destroy(ZRMap *htable)
 {
 	ZRMap_done(htable);
-	ZRAllocator *allocator = ZRHASHTABLE_DATA(htable)->allocator;
+	ZRAllocator *allocator = ZRHASHTABLE(htable)->allocator;
 	ZRFREE(allocator, htable->strategy);
 	ZRFREE(allocator, htable);
 }

@@ -20,6 +20,16 @@ void ZRMPool_destroy(ZRMemoryPool *pool)
 	ZRMPOOL_DESTROY(pool);
 }
 
+size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
+{
+	return ZRMPOOL_AREANBBLOCKS(pool, firstBlock);
+}
+
+void* ZRMPool_userAreaMetaData(ZRMemoryPool *pool, void *firstBlock)
+{
+	return ZRMPOOL_USERAREAMETADATA(pool, firstBlock);
+}
+
 size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool)
 {
 	return ZRMPOOL_NBBLOCKS(pool);
@@ -40,12 +50,17 @@ void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb)
 	return ZRMPOOL_RESERVE_NB(pool, nb);
 }
 
-void ZRMPool_release(ZRMemoryPool *pool, void *block)
+void ZRMPool_releaseArea(ZRMemoryPool *pool, void *firstBlock)
 {
-	ZRMPOOL_RELEASE(pool, block);
+	ZRMPOOL_RELEASEAREA(pool, firstBlock);
 }
 
-void ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb)
+void* ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	ZRMPOOL_RELEASE_NB(pool, firstBlock, nb);
+	return ZRMPOOL_RELEASE_NB(pool, firstBlock, nb);
+}
+
+void ZRMPool_clean(ZRMemoryPool *pool)
+{
+	ZRMPOOL_CLEAN(pool);
 }

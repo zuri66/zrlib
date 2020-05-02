@@ -5,9 +5,9 @@
 
 #include <zrlib/base/Vector/Vector.h>
 
-void ZRVector_init(ZRVector *vec, size_t objSize, ZRVectorStrategy *strategy)
+void ZRVector_init(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorStrategy *strategy)
 {
-	ZRVECTOR_INIT(vec, objSize, strategy);
+	ZRVECTOR_INIT(vec, objSize, objAlignment, strategy);
 }
 
 void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src)
@@ -25,6 +25,16 @@ void ZRVector_destroy(ZRVector *vec)
 	ZRVECTOR_DESTROY(vec);
 }
 
+void ZRVector_memoryTrim(ZRVector *vec)
+{
+	ZRVECTOR_MEMORYTRIM(vec);
+}
+
+size_t ZRVector_strategySize(ZRVector *vec)
+{
+	return ZRVECTOR_STRATEGYSIZE(vec);
+}
+
 size_t ZRVector_nbObj(ZRVector *vec)
 {
 	return ZRVECTOR_NBOBJ(vec);
@@ -33,6 +43,16 @@ size_t ZRVector_nbObj(ZRVector *vec)
 size_t ZRVector_objSize(ZRVector *vec)
 {
 	return ZRVECTOR_OBJSIZE(vec);
+}
+
+size_t ZRVector_objAlignment(ZRVector *vec)
+{
+	return ZRVECTOR_OBJALIGNMENT(vec);
+}
+
+size_t ZRVector_capacity(ZRVector *vec)
+{
+	return ZRVECTOR_CAPACITY(vec);
 }
 
 void ZRVector_insert(ZRVector *vec, size_t pos, void *obj)
