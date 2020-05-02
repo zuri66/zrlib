@@ -3,13 +3,23 @@
  * @date mardi 26 novembre 2019, 00:23:51 (UTC+0100)
  */
 
-ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t nbBlocks, ZRAllocator *allocator, enum ZRMPoolReserveModeE mode)
+ZRMemoryPool* ZRMPoolReserve_create(
+	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRObjAlignInfos *areaMetaData,
+	ZRAllocator *allocator,
+	enum ZRMPoolReserveModeE mode
+	)
 {
-	ZRObjAlignInfos infos[ZRMPOOLRLIST_INFOS_NB];
+	ZRObjAlignInfos infos[ZRMAX_3(ZRMPOOLRLIST_INFOS_NB, ZRMPOOLRBITS_INFOS_NB, ZRMPOOLRCHUNK_INFOS_NB)];
+	ZRObjAlignInfos areaHeadInfos[ZRAREAHEADINFOS_NB];
+
+	ZRAreaHeadInfos_make(areaHeadInfos, areaMetaData);
+
 	ZRMemoryPool *pool;
 	ZRMPoolInfos *pinfos;
 	ZRMemoryPoolStrategy *strategy = ZRALLOC(allocator, sizeof(ZRMPoolReserveStrategy));
-	size_t const nbBlocksForAreaHead = ZRAREA_HEAD_SIZE / blockSize + (ZRAREA_HEAD_SIZE % blockSize ? 1 : 0);
+	size_t const headSize =  areaHeadInfos[ZRAreaHeadInfos_struct].size + ZRAREA_HEAD_GUARD_SIZE;
+	size_t const nbBlocksForAreaHead = headSize / blockSize + (headSize % blockSize ? 1 : 0);
 
 	// TODO: better strategy for area head ?
 	size_t const nbAreaInSpace = nbBlocks;
@@ -20,7 +30,7 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 	switch (mode)
 	{
 	case ZRMPoolReserveMode_bits:
-	{
+		{
 		size_t const nbZRBits = nbBlocks / ZRBITS_NBOF + ((nbBlocks % ZRBITS_NBOF) ? 1 : 0);
 		MPoolRBitsInfos(infos, blockSize, alignment, nbBlocks, nbZRBits);
 
@@ -35,7 +45,7 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 		break;
 	}
 	case ZRMPoolReserveMode_list:
-	{
+		{
 		MPoolRListInfos(infos, blockSize, alignment, nbBlocks);
 
 		size_t const poolSize = infos[ZRMPoolRListInfos_struct].size;
@@ -49,7 +59,7 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 	}
 
 	case ZRMPoolReserveMode_chunk:
-	{
+		{
 		size_t const nbChunks = nbBlocks / 2 + 1;
 		MPoolRChunkInfos(infos, blockSize, alignment, nbBlocks, nbChunks);
 
@@ -64,6 +74,18 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 		break;
 	}
 	}
+
+	if (areaMetaData)
+	{
+		pinfos->areaHeadMetaDataOffset = areaMetaData->offset;
+		pinfos->areaHeadMetaDataSize = areaMetaData->size;
+	}
+	else
+	{
+		pinfos->areaHeadMetaDataOffset = 0;
+		pinfos->areaHeadMetaDataSize = 0;
+	}
+	pinfos->areaHeadSize = areaHeadInfos[ZRAreaHeadInfos_struct].size + ZRAREA_HEAD_GUARD_SIZE;
 	pinfos->nbBlocksForAreaHead = nbBlocksForAreaHead;
 	pinfos->nbBlocksTotal = nbBlocks;
 	pinfos->nbAvailables = nbBlocks;
@@ -71,6 +93,14 @@ ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t n
 	strategy->fdestroy = ZRMPoolReserve_destroy;
 	ZRMPOOL_INIT(pool, blockSize, strategy);
 	return pool;
+}
+
+ZRMemoryPool* ZRMPoolReserve_createSimple(
+	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
+	)
+{
+	return ZRMPoolReserve_create(blockSize, alignment, nbBlocks, NULL, allocator, mode);
 }
 
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool)

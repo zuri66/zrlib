@@ -6,6 +6,9 @@
 #ifndef MPOOLRESERVE_H
 #define MPOOLRESERVE_H
 
+#include <zrlib/config.h>
+
+#include <zrlib/base/struct.h>
 #include <zrlib/syntax_pad.h>
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 #include <zrlib/base/Allocator/Allocator.h>
@@ -34,7 +37,16 @@ enum ZRMPoolReserveModeE
 	ZRMPoolReserveMode_bits, ZRMPoolReserveMode_list, ZRMPoolReserveMode_chunk
 };
 
-ZRMemoryPool* ZRMPoolReserve_create(size_t blockSize, size_t alignment, size_t nbBlocks, ZRAllocator *allocator, enum ZRMPoolReserveModeE mode);
+ZRMemoryPool* ZRMPoolReserve_createSimple(
+	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
+	);
+
+ZRMemoryPool* ZRMPoolReserve_create(
+	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRObjAlignInfos *areaMetaData,
+	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
+	);
 void ZRMPoolReserve_destroy(ZRMemoryPool *pool);
 
 // ============================================================================
