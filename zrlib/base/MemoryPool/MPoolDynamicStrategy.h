@@ -4,8 +4,10 @@
  */
 
 
-#ifndef MPOOLDYNAMICSTRATEGY_H
-#define MPOOLDYNAMICSTRATEGY_H
+#ifndef ZRMPOOLDYNAMICSTRATEGY_H
+#define ZRMPOOLDYNAMICSTRATEGY_H
+
+#include <zrlib/config.h>
 
 #include <zrlib/syntax_pad.h>
 #include <zrlib/base/MemoryPool/MemoryPool.h>
