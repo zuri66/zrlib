@@ -55,9 +55,9 @@ void ZRMPool_releaseArea(ZRMemoryPool *pool, void *firstBlock)
 	ZRMPOOL_RELEASEAREA(pool, firstBlock);
 }
 
-void ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb)
+void* ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	ZRMPOOL_RELEASE_NB(pool, firstBlock, nb);
+	return ZRMPOOL_RELEASE_NB(pool, firstBlock, nb);
 }
 
 void ZRMPool_clean(ZRMemoryPool *pool)

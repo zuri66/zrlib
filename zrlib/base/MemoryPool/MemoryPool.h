@@ -42,7 +42,7 @@ struct ZRMemoryPoolStrategyS
 	void (*fclean)(ZRMemoryPool *pool);
 
 	void* (*freserve)(ZRMemoryPool *pool, size_t nb);
-	void _(*frelease)(ZRMemoryPool *pool, void *firstBlock, size_t nb);
+	void* (*frelease)(ZRMemoryPool *pool, void *firstBlock, size_t nb);
 
 	size_t (*fareaNbBlocks)(ZRMemoryPool *pool, void *firstBlock);
 
@@ -125,9 +125,9 @@ static inline void ZRMPOOL_RELEASEAREA(ZRMemoryPool *pool, void *block)
 }
 
 ZRMUSTINLINE
-static inline void ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size_t nb)
+static inline void* ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 {
-	pool->strategy->frelease(pool, firstBlock, nb);
+	return pool->strategy->frelease(pool, firstBlock, nb);
 }
 
 // ============================================================================
@@ -146,7 +146,7 @@ ZRMemoryPool* ZRMPool_areaPool(ZRMemoryPool *pool, void *firstBlock);
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
 void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb);
 
-void ZRMPool_releaseArea(__ ZRMemoryPool *pool, void *firstBlock);
-void ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb);
+void ZRMPool_releaseArea(ZRMemoryPool *pool, void *firstBlock);
+void* ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb);
 
 #endif
