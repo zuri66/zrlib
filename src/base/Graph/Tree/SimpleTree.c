@@ -8,6 +8,7 @@
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "SimpleTree.h"
@@ -72,6 +73,108 @@ static void fgraph_destroy(ZRGraph *graph)
 }
 
 // ============================================================================
+// EDGE
+// ============================================================================
+
+static size_t fgraphNode_getNbEdges(ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select)
+{
+	ZRSimpleTree *const stree = (ZRSimpleTree*)graph;
+	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)node;
+
+	switch (select)
+	{
+	case ZRGraphEdge_selectIN:
+		return 1 - (node == ZRSTREE_TREE(stree)->root);
+	case ZRGraphEdge_selectINOUT:
+		return snode->nbChilds + 1 - (node == ZRSTREE_TREE(stree)->root);
+	case ZRGraphEdge_selectOUT:
+		return snode->nbChilds;
+	default:
+		return SIZE_MAX;
+	}
+}
+
+static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	assert(maxNbCpy > 0);
+
+	if (offset >= graph->nbEdges)
+		return 0;
+
+	size_t nb = graph->nbEdges - offset;
+	ZRSimpleTree *const stree = (ZRSimpleTree*)graph;
+	ZRSimpleTreeNode *snode = (ZRSimpleTreeNode*)&stree->nodes[offset];
+
+	if (nb > maxNbCpy)
+		nb = maxNbCpy;
+
+	snode++;
+	size_t const ret = nb;
+
+	while (nb--)
+	{
+		*cpyTo = (ZRGraphEdge )
+			{
+				.a = (ZRGraphNode*)snode->parent,
+				.b = (ZRGraphNode*)snode,
+			};
+		cpyTo++;
+		snode++;
+	}
+	return ret;
+}
+
+static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select)
+{
+	assert(maxNbCpy > 0);
+
+	size_t ret = 0;
+	ZRSimpleTree *const stree = (ZRSimpleTree*)graph;
+	ZRSimpleTreeNode *snode = (ZRSimpleTreeNode*)node;
+	bool cpyParent = (select & ZRGraphEdge_selectIN)
+		&& node != ZRSTREE_TREE(stree)->root;
+
+	if (offset >= snode->nbChilds + (int)cpyParent)
+		return 0;
+
+	if (cpyParent)
+	{
+		if (offset != 0)
+			offset--;
+		else
+		{
+			*cpyTo = (ZRGraphEdge )
+				{
+					.a = (ZRGraphNode*)snode->parent,
+					.b = (ZRGraphNode*)snode,
+				};
+			cpyTo++;
+			maxNbCpy--;
+			ret++;
+		}
+	}
+
+	if (!(select & ZRGraphEdge_selectOUT))
+		return ret;
+
+	size_t nb = snode->nbChilds - offset;
+
+	if (nb > maxNbCpy)
+		nb = maxNbCpy;
+
+	for (size_t i = offset; i < nb; i++)
+	{
+		*cpyTo = (ZRGraphEdge )
+			{
+				.a = (ZRGraphNode*)snode,
+				.b = (ZRGraphNode*)&snode->childs[i],
+			};
+		cpyTo++;
+	}
+	return ret + nb;
+}
+
+// ============================================================================
 // NODE
 // ============================================================================
 
@@ -130,7 +233,7 @@ static size_t fgraph_node_getNObjs(ZRGraph *graph, ZRGraphNode *gnode, void *obj
 {
 	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
 
-	// Count gnode too
+// Count gnode too
 	size_t const nbNodes1 = snode->nbChilds + 1;
 
 	if (offset >= nbNodes1)
@@ -326,6 +429,9 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 		.tree = (ZRTreeStrategy ) { //
 			.graph = (ZRGraphStrategy ) { //
 				.fstrategySize = fstrategySize, //
+				.fnode_getNbEdges = fgraphNode_getNbEdges, //
+				.fnode_cpyNEdges = fgraphNode_cpyNEdges, //
+				.fcpyNEdges = fgraph_cpyNEdges, //
 				.fnode_getObj = fgraph_node_getObj, //
 				.fnode_getParent = fgraph_node_getParent, //
 				.fnode_getChild = fgraph_node_getChild, //
