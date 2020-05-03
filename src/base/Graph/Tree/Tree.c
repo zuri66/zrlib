@@ -20,9 +20,9 @@ void* ZRTreeBuilder_currentObj(ZRTreeBuilder *builder)
 	return builder->strategy->fcurrentObj(builder);
 }
 
-void ZRTreeBuilder_node(ZRTreeBuilder *builder, void *data)
+void ZRTreeBuilder_node(ZRTreeBuilder *builder, void *nodeData, void *edgeData)
 {
-	builder->strategy->fnode(builder, data);
+	builder->strategy->fnode(builder, nodeData, edgeData);
 }
 
 void ZRTreeBuilder_end(ZRTreeBuilder *builder)
