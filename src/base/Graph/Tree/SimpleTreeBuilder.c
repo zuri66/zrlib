@@ -254,7 +254,7 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 		};
 }
 
-static void ZRSimpleTreeBuilder_fromTreeRec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilderNode *bnodeParent, ZRTree *tree, ZRTreeNode *currentTNode, ZRTreeNode *currentForStack)
+static void ZRSimpleTreeBuilder_fromTreeRec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilderNode *bnodeParent, ZRTree *tree, ZRTreeNode *currentTNode, ZRTreeNode *currentForStack, ZRSimpleTreeBuilderNode **stackBNode)
 {
 	ZRGraphEdge edge;
 	void *edgeData;
@@ -271,14 +271,14 @@ static void ZRSimpleTreeBuilder_fromTreeRec(ZRSimpleTreeBuilder *builder, ZRSimp
 	size_t i;
 
 	for (i = 0; i < nbChilds; i++)
-		ZRSimpleTreeBuilder_fromTreeRec(builder, currentBNode, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), currentTNode, i), currentForStack);
+		ZRSimpleTreeBuilder_fromTreeRec(builder, currentBNode, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), currentTNode, i), currentForStack, stackBNode);
 
 	/*
 	 * The current node is add to the first place of the stack.
 	 * We can use it at the end of the recursion.
 	 */
 	if (currentForStack == currentTNode)
-		ZRVECTOR_ADDFIRST(builder->nodeStack, (void*)&currentBNode);
+		*stackBNode = currentBNode;
 
 	fBuilder_end(ZRSTREEBUILDER_TREEBUILDER(builder));
 }
@@ -297,16 +297,22 @@ ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(
 
 	strategy->treeBuilder.fdestroy = ZRSimpleTreeBuilder_destroy;
 	ZRSimpleTreeBuilder_init(builder, strategy, nodeObjSize, nodeObjAlignment, edgeObjSize, edgeObjAlignment, allocator);
-	ZRSimpleTreeBuilder_fromTreeRec(builder, NULL, tree, tree->root, currentForStack);
+
+	ZRSimpleTreeBuilderNode *stackNode = NULL;
+	ZRSimpleTreeBuilder_fromTreeRec(builder, NULL, tree, tree->root, currentForStack, &stackNode);
 
 	// Get all the node from currentForStack to the root
-	assert(ZRVECTOR_NBOBJ(builder->nodeStack) == 1);
-	ZRSimpleTreeBuilderNode *current = *(void**)ZRVECTOR_GET(builder->nodeStack, 0);
 
-	while (NULL != (current = current->parent))
-		ZRVECTOR_ADD(builder->nodeStack, (void*)&current);
+	if (currentForStack)
+	{
+		assert(stackNode != NULL);
+		ZRVECTOR_DELETE_ALL(builder->nodeStack);
 
-	ZRARRAYOP_REVERSE(builder->nodeStack->array, builder->nodeStack->objSize, ZRVECTOR_NBOBJ(builder->nodeStack));
+		do
+		{
+			ZRVECTOR_INSERT(builder->nodeStack, 0, (void*)&stackNode);
+		} while (NULL != (stackNode = stackNode->parent));
+	}
 	return (ZRTreeBuilder*)builder;
 }
 
