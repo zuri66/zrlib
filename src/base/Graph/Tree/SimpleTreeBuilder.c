@@ -219,14 +219,14 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 
 static void ZRSimpleTreeBuilder_fromSimpleTreeRec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuilderNode *bnodeParent, ZRTree *tree, ZRTreeNode *currentTNode, ZRTreeNode *currentForStack)
 {
-	fBuilderNode(ZRSTREEBUILDER_TREEBUILDER(builder), ZRTreeNode_getObj(tree, currentTNode));
+	fBuilderNode(ZRSTREEBUILDER_TREEBUILDER(builder), ZRGraphNode_getObj(ZRTREE_GRAPH(tree), currentTNode));
 
 	ZRSimpleTreeBuilderNode *currentBNode = fBuilder_currentNode(ZRSTREEBUILDER_TREEBUILDER(builder));
-	size_t const nbChilds = ZRTreeNode_getNbChilds(tree, currentTNode);
+	size_t const nbChilds = ZRGraphNode_getNbChilds(ZRTREE_GRAPH(tree), currentTNode);
 	size_t i;
 
 	for (i = 0; i < nbChilds; i++)
-		ZRSimpleTreeBuilder_fromSimpleTreeRec(builder, currentBNode, tree, ZRTreeNode_getChild(tree, currentTNode, i), currentForStack);
+		ZRSimpleTreeBuilder_fromSimpleTreeRec(builder, currentBNode, tree, ZRGraphNode_getChild(ZRTREE_GRAPH(tree), currentTNode, i), currentForStack);
 
 	/*
 	 * The current node is add to the first place of the stack.
