@@ -51,8 +51,14 @@ struct ZRGraphS
 {
 	size_t nbNodes;
 	size_t nbEdges;
-	size_t objSize;
-	size_t objAlignment;
+
+	// Node
+	size_t nodeObjSize;
+	size_t nodeObjAlignment;
+
+	// Edge
+	size_t edgeObjSize;
+	size_t edgeObjAlignment;
 
 	ZRGraphStrategy *strategy;
 };
