@@ -23,29 +23,9 @@ void ZRGraph_destroy(ZRGraph *graph)
 	ZRGRAPH_DESTROY(graph);
 }
 
-size_t ZRGraph_objSize(ZRGraph *graph)
-{
-	return ZRGRAPH_OBJSIZE(graph);
-}
-
-size_t ZRGraph_getNbNodes(ZRGraph *graph)
-{
-	return ZRGRAPH_GETNBNODES(graph);
-}
-
-size_t ZRGraph_getNbEdges(ZRGraph *graph)
-{
-	return ZRGRAPH_GETNBEDGES(graph);
-}
-
 size_t ZRGraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
 	return ZRGRAPH_GETNNODES(graph, nodes_out, offset, maxNbOut);
-}
-
-size_t ZRGraph_getNObjs(ZRGraph *graph, void *objs_out, size_t offset, size_t maxNbOut)
-{
-	return ZRGRAPH_GETNOBJS(graph, objs_out, offset, maxNbOut);
 }
 
 size_t ZRGraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy)
@@ -90,11 +70,6 @@ size_t ZRGraphNode_getNParents(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **
 size_t ZRGraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
 	return ZRGRAPHNODE_GETNCHILDS(graph, node, nodes_out, offset, maxNbOut);
-}
-
-size_t ZRGraphNode_getNObjs(ZRGraph *graph, ZRGraphNode *node, void *objs_out, size_t offset, size_t maxNbOut)
-{
-	return ZRGRAPHNODE_GETNOBJS(graph, node, objs_out, offset, maxNbOut);
 }
 
 size_t ZRGraphNode_getNbEdges(ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select)
