@@ -29,6 +29,7 @@ struct ZRSimpleTreeS
 	void *edgeObjs;
 };
 
+#define ZRSTREE(STREE) ((ZRSimpleTree*)(STREE))
 #define ZRSTREE_TREE(STREE)  (&(STREE)->tree)
 #define ZRSTREE_GRAPH(STREE) (&ZRSTREE_TREE(STREE)->graph)
 

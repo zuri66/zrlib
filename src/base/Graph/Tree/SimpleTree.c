@@ -161,7 +161,7 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 // NODE
 // ============================================================================
 
-static void* fgraph_node_getObj(ZRGraph *graph, ZRGraphNode *gnode)
+static void* fgraphNode_getObj(ZRGraph *graph, ZRGraphNode *gnode)
 {
 	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
 	return snode->obj;
@@ -173,32 +173,29 @@ static ZRTreeNode* fNode_getTheParent(ZRTree *tree, ZRTreeNode *tnode)
 	return (ZRTreeNode*)snode->parent;
 }
 
-static ZRGraphNode* fgraph_node_getParent(ZRGraph *graph, ZRGraphNode *gnode, size_t pos)
+static size_t fgraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *gnode)
 {
-	if (pos != 0)
-		return NULL ;
-
-	return (ZRGraphNode*)fNode_getTheParent((ZRTree*)graph, (ZRTreeNode*)gnode);
+	return 1 - (gnode != ZRSTREE_TREE(ZRSTREE(graph))->root);
 }
 
-static ZRGraphNode* fgraph_node_getChild(ZRGraph *graph, ZRGraphNode *gnode, size_t pos)
-{
-	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
-
-	if (pos >= snode->nbChilds)
-		return NULL ;
-
-	ZRSimpleTree *const stree = (ZRSimpleTree*)graph;
-	return (ZRGraphNode*)(snode->childs + pos);
-}
-
-static size_t fgraph_node_getNbChilds(ZRGraph *graph, ZRGraphNode *gnode)
+static size_t fgraphNode_getNbChilds(ZRGraph *graph, ZRGraphNode *gnode)
 {
 	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
 	return snode->nbChilds;
 }
 
-static size_t fgraph_node_getNChilds(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphNode **gnodes_out, size_t offset, size_t maxNbNodes)
+static size_t fgraphNode_getNParents(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphNode **gnodes_out, size_t offset, size_t maxNbNodes)
+{
+	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
+
+	if (offset > 0 || maxNbNodes == 0)
+		return 0;
+
+	*gnodes_out = (ZRGraphNode*)snode->parent;
+	return 1;
+}
+
+static size_t fgraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphNode **gnodes_out, size_t offset, size_t maxNbNodes)
 {
 	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
 
@@ -208,7 +205,7 @@ static size_t fgraph_node_getNChilds(ZRGraph *graph, ZRGraphNode *gnode, ZRGraph
 	size_t const nbNodes = snode->nbChilds - offset;
 	size_t const nb = nbNodes < maxNbNodes ? nbNodes : maxNbNodes;
 
-	ZRCARRAY_TOPOINTERS(ZRGraphNode, gnodes_out, ZRSimpleTreeNode, snode->childs, nb);
+	ZRCARRAY_TOPOINTERS(ZRGraphNode, gnodes_out, ZRSimpleTreeNode, snode->childs + offset, nb);
 	return nb;
 }
 
@@ -397,11 +394,11 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 				.fnode_getNbEdges = fgraphNode_getNbEdges, //
 				.fnode_cpyNEdges = fgraphNode_cpyNEdges, //
 				.fcpyNEdges = fgraph_cpyNEdges, //
-				.fnode_getObj = fgraph_node_getObj, //
-				.fnode_getParent = fgraph_node_getParent, //
-				.fnode_getChild = fgraph_node_getChild, //
-				.fnode_getNbChilds = fgraph_node_getNbChilds, //
-				.fnode_getNChilds = fgraph_node_getNChilds, //
+				.fnode_getObj = fgraphNode_getObj, //
+				.fnode_getNbParents = fgraphNode_getNbParents, //
+				.fnode_getNbChilds = fgraphNode_getNbChilds, //
+				.fnode_getNParents = fgraphNode_getNParents, //
+				.fnode_getNChilds = fgraphNode_getNChilds, //
 				.fgetNNodes = fgraph_getNNodes, //
 				.fdone = fgraph_done, //
 				},//
