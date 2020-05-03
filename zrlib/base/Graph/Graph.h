@@ -21,11 +21,16 @@ typedef struct ZRGraphNodeS ___ ZRGraphNode;
 
 // ============================================================================
 
+enum ZRGraphEdge_selectE
+{
+	ZRGraphEdge_selectIN = 1, ZRGraphEdge_selectOUT = 2, ZRGraphEdge_selectINOUT = 3
+};
+
 struct ZRGraphStrategyS
 {
 	size_t (*fstrategySize)(void);
 
-	void* ______ (*fedge_getObj)(_______ ZRGraph*, ZRGraphNode *a, ZRGraphNode *b);
+	size_t (*fnode_getNbEdges)(ZRGraph*, ZRGraphNode*, enum ZRGraphEdge_selectE);
 
 	void* ______ (*fnode_getObj)(_______ ZRGraph*, ZRGraphNode*);
 	ZRGraphNode* (*fnode_getParent)(____ ZRGraph*, ZRGraphNode*, size_t pos);
@@ -34,8 +39,10 @@ struct ZRGraphStrategyS
 	size_t _____ (*fnode_getNbChilds)(__ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNParents)(__ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 	size_t _____ (*fnode_getNChilds)(___ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
-	size_t _____ (*fnode_getNObjs)(_____ ZRGraph*, ZRGraphNode*, void *objs_out, _ size_t offset, size_t maxNbOutBytes);
+	size_t _____ (*fnode_getNObjs)(_____ ZRGraph*, ZRGraphNode*, void *objs_out, ________ size_t offset, size_t maxNbOutBytes);
+	size_t _____ (*fnode_cpyNEdges)(____ ZRGraph*, ZRGraphNode*, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE);
 
+	size_t (*fcpyNEdges)(_ ZRGraph*, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy);
 	size_t (*fgetNNodes)(_ ZRGraph*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 	size_t (*fgetNObjs)(__ ZRGraph*, ________ void *objs_out, size_t offset, size_t maxNbOutBytes);
 	void _ (*fdone)(______ ZRGraph*);
@@ -60,6 +67,7 @@ struct ZRGraphEdgeS
 {
 	ZRGraphNode *a;
 	ZRGraphNode *b;
+	void *obj;
 };
 
 // ============================================================================
@@ -74,12 +82,7 @@ void ZRGraph_destroy(ZRGraph *graph);
 size_t ZRGraph_getNbNodes(_ ZRGraph *graph);
 size_t ZRGraph_getNNodes(__ ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t ZRGraph_getNObjs(___ ZRGraph *graph, void ______ __ *objs_out, size_t offset, size_t maxNbOut);
-
-// ============================================================================
-// EDGE
-// ============================================================================
-
-void* ZRGraphEdge_getObj(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b);
+size_t ZRGraph_cpyNEdges(__ ZRGraph *graph, ZRGraphEdge *cpyTo, _____ size_t offset, size_t maxNbCpy);
 
 // ============================================================================
 // NODE
@@ -93,10 +96,8 @@ size_t _____ ZRGraphNode_getNbChilds(__ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNParents(__ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t _____ ZRGraphNode_getNChilds(___ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t _____ ZRGraphNode_getNObjs(_____ ZRGraph *graph, ZRGraphNode *node, ________ void *objs_out, size_t offset, size_t maxNbOutBytes);
-
-
-// ============================================================================
-
+size_t _____ ZRGraphNode_getNbEdges(___ ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select);
+size_t _____ ZRGraphNode_cpyNEdges(____ ZRGraph *graph, ZRGraphNode *node, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select);
 
 // ============================================================================
 // TREE
@@ -127,6 +128,12 @@ static inline size_t ZRGRAPH_GETNBNODES(ZRGraph *graph)
 }
 
 ZRMUSTINLINE
+inline size_t ZRGRAPH_GETNBEDGES(ZRGraph *graph)
+{
+	return graph->nbEdges;
+}
+
+ZRMUSTINLINE
 static inline size_t ZRGRAPH_GETNNODES(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
 	return graph->strategy->fgetNNodes(graph, nodes_out, offset, maxNbOut);
@@ -138,14 +145,10 @@ static inline size_t ZRGRAPH_GETNOBJS(ZRGraph *graph, void *objs_out, size_t off
 	return graph->strategy->fgetNObjs(graph, objs_out, offset, maxNbOut);
 }
 
-// ============================================================================
-// EDGE
-// ============================================================================
-
 ZRMUSTINLINE
-static inline void* ZRGRAPHEDGE_GETOBJ(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b)
+inline size_t ZRGRAPH_CPYNEDGES(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy)
 {
-	return graph->strategy->fedge_getObj(graph, a, b);
+	return graph->strategy->fcpyNEdges(graph, cpyTo, offset, maxNbCpy);
 }
 
 // ============================================================================
@@ -198,6 +201,18 @@ ZRMUSTINLINE
 static inline size_t ZRGRAPHNODE_GETNOBJS(ZRGraph *graph, ZRGraphNode *node, void *objs_out, size_t offset, size_t maxNbOutBytes)
 {
 	return graph->strategy->fnode_getNObjs(graph, node, objs_out, offset, maxNbOutBytes);
+}
+
+ZRMUSTINLINE
+inline size_t ZRGRAPHNODE_GETNBEDGES(ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select)
+{
+	return graph->strategy->fnode_getNbEdges(graph, node, select);
+}
+
+ZRMUSTINLINE
+inline size_t ZRGRAPHNODE_CPYNEDGES(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select)
+{
+	return graph->strategy->fnode_cpyNEdges(graph, node, cpyTo, offset, maxNbCpy, select);
 }
 
 #endif
