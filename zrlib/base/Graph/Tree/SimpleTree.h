@@ -14,10 +14,18 @@
 typedef struct ZRSimpleTreeS ZRSimpleTree;
 typedef struct ZRSimpleTreeNodeS ZRSimpleTreeNode;
 
-
-ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(_____ ZRTree _____ *tree, ZRTreeNode *currentForStack, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 ZRTreeBuilder* ZRSimpleTreeBuilder_fromSimpleTree(ZRSimpleTree *tree, ZRSimpleTreeNode *currentForStack);
+ZRTreeBuilder* ZRSimpleTreeBuilder_fromTree(
+	ZRTree *tree, ZRTreeNode *currentForStack,
+	size_t nodeObjSize, size_t nodeObjAlignment,
+	size_t edgeObjSize, size_t edgeObjAlignment,
+	ZRAllocator *allocator
+	);
 
-ZRTreeBuilder* ZRSimpleTreeBuilder_create(size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRTreeBuilder* ZRSimpleTreeBuilder_create(
+	size_t nodeObjSize, size_t nodeObjAlignment,
+	size_t edgeObjSize, size_t edgeObjAlignment,
+	ZRAllocator *allocator
+	);
 
 #endif

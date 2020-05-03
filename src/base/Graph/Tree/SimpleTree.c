@@ -418,14 +418,18 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 		};
 }
 
-ZRTree* ZRSimpleTree_create(size_t objSize, size_t nbObjs, size_t objAlignment, ZRAllocator *allocator)
+ZRTree* ZRSimpleTree_create(size_t nbNodes,
+	size_t nodeObjSize, size_t nodeObjAlignment,
+	size_t edgeObjSize, size_t edgeObjAlignment,
+	ZRAllocator *allocator
+	)
 {
 	ZRSimpleTreeStrategy *strategy = ZRALLOC(allocator, sizeof(ZRSimpleTreeStrategy));
 	ZRSimpleTreeStrategy_init(strategy);
 	strategy->tree.graph.fdestroy = fgraph_destroy;
 
 	ZRObjAlignInfos infos[ZRSIMPLETREENODE_INFOS_NB];
-	ZRSimpleTreeInfos(infos, objSize, nbObjs, objAlignment);
+	ZRSimpleTreeInfos(infos, nbNodes, nodeObjSize, nodeObjAlignment, edgeObjSize, edgeObjAlignment);
 
 	ZRSimpleTree *tree = ZRALLOC(allocator, infos[ZRSimpleTreeNodeInfos_struct].size);
 
@@ -433,13 +437,17 @@ ZRTree* ZRSimpleTree_create(size_t objSize, size_t nbObjs, size_t objAlignment, 
 		.tree = (ZRTree ) { //
 			.graph = (ZRGraph ) { //
 				.strategy = (ZRGraphStrategy*)strategy, //
-				.objSize = objSize, //
+				.nodeObjSize = nodeObjSize, //
+				.nodeObjAlignment = nodeObjAlignment, //
+				.edgeObjSize = edgeObjSize, //
+				.edgeObjAlignment = edgeObjAlignment, //
 				} , //
 			},//
 		.allocator = allocator, //
-		.nbNodes = nbObjs, //
+		.nbNodes = nbNodes, //
 		.nodes = (ZRSimpleTreeNode*)((char*)tree + infos[ZRSimpleTreeNodeInfos_nodes].offset), //
-		.objs = (char*)tree + infos[ZRSimpleTreeNodeInfos_objs].offset, //
+		.nodeObjs = (char*)tree + infos[ZRSimpleTreeNodeInfos_nodeObjs].offset, //
+		.edgeObjs = (char*)tree + infos[ZRSimpleTreeNodeInfos_edgeObjs].offset, //
 		};
 	return (ZRTree*)tree;
 }
