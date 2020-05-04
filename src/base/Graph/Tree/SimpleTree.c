@@ -27,6 +27,18 @@ static ZRTreeBuilder* fnewTreeBuilder(ZRTree *tree, ZRTreeNode *currentForBuilde
 	return ZRSimpleTreeBuilder_fromSimpleTree((ZRSimpleTree*)tree, (ZRSimpleTreeNode*)currentForBuilder);
 }
 
+static void ftree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
+{
+	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
+	ZRTreeBuilder *tbuilder = ZRSimpleTreeBuilder_create( //
+		ZRSTREE_GRAPH(stree)->nodeObjSize, ZRSTREE_GRAPH(stree)->nodeObjAlignment,
+		ZRSTREE_GRAPH(stree)->edgeObjSize, ZRSTREE_GRAPH(stree)->edgeObjAlignment,
+		stree->allocator
+		);
+	ZRTreeBuilder_concatRootedTree(tbuilder, tree, newRoot);
+	fBuilder_build(tbuilder, ZRSTREE_TREE(stree));
+}
+
 static size_t fgraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbNodes)
 {
 	ZRSimpleTree *const stree = (ZRSimpleTree*)graph;
@@ -167,12 +179,6 @@ static void* fgraphNode_getObj(ZRGraph *graph, ZRGraphNode *gnode)
 	return snode->obj;
 }
 
-static ZRTreeNode* fNode_getTheParent(ZRTree *tree, ZRTreeNode *tnode)
-{
-	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)tnode;
-	return (ZRTreeNode*)snode->parent;
-}
-
 static size_t fgraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *gnode)
 {
 	return 1 - (gnode != ZRSTREE_TREE(ZRSTREE(graph))->root);
@@ -208,7 +214,6 @@ static size_t fgraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphN
 	ZRCARRAY_TOPOINTERS(ZRGraphNode, gnodes_out, ZRSimpleTreeNode, snode->childs + offset, nb);
 	return nb;
 }
-
 
 #define ZRNODEITERATOR_ITERATOR(NIT) (&(NIT)->iterator)
 
@@ -404,13 +409,13 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 				},//
 			.ftreeNode_getNbAscendants = fNode_getNbAscendants, //
 			.ftreeNode_getNbDescendants = fNode_getNbDescendants, //
-			.ftreeNode_getTheParent = fNode_getTheParent, //
 			.ftreeNode_getChilds = fNode_getChilds, //
 			.ftreeNode_getAscendants = fNode_getAscendants, //
 			.ftreeNode_getDescendants = fNode_getDescendants, //
 			.ftreeNode_getDescendants_BF = fNode_getDescendants_BF, //
 			.ftreeNode_getDescendants_DF = fNode_getDescendants_DF, //
 			.fnewTreeBuilder = fnewTreeBuilder, //
+			.ftree_changeRoot = ftree_changeRoot, //
 			} , //
 		};
 }

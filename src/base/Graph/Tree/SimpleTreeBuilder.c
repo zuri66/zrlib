@@ -11,51 +11,6 @@
 #include <stdalign.h>
 
 #include "SimpleTree.h"
-
-typedef struct ZRSimpleTreeBuilderStrategyS ZRSimpleTreeBuilderStrategy;
-typedef struct ZRSimpleTreeBuilderNodeS ZRSimpleTreeBuilderNode;
-
-struct ZRSimpleTreeBuilderStrategyS
-{
-	ZRTreeBuilderStrategy treeBuilder;
-};
-
-struct ZRSimpleTreeBuilderNodeS
-{
-	ZRSimpleTreeBuilderNode *parent;
-	ZRVector *childs;
-	alignas(max_align_t) char obj[];
-};
-
-typedef struct
-{
-	ZRTreeBuilder treeBuilder;
-
-	size_t nodeObjSize;
-	size_t nodeObjAlignment;
-
-	size_t edgeObjSize;
-	size_t edgeObjAlignment;
-
-	size_t nbNodes;
-	size_t build_nbNodes;
-
-	ZRAllocator *allocator;
-	ZRVector *nodeStack;
-	ZRSimpleTreeBuilderNode *root;
-
-	alignas(max_align_t) char rootSpace[];
-} ZRSimpleTreeBuilder;
-
-// Node&Edge size
-#define ZRSTREEBUILDERNODE_SIZE(OBJSIZE) ((OBJSIZE) + sizeof(ZRSimpleTreeBuilderNode))
-
-#define ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER) (&STREEBUILDER->treeBuilder)
-#define ZRSTREEBUILDER_STRATEGY(STREEBUILDER)    (ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER)->strategy)
-#define ZRSTREEBUILDER_NODESIZE(STREEBUILDER)    ZRSTREEBUILDERNODE_SIZE((STREEBUILDER)->nodeObjSize + (STREEBUILDER)->edgeObjSize)
-
-#define ZRSTREEBUILDER_CURRENTNODE(STREEBUILDER) *(void**)ZRVECTOR_GET((STREEBUILDER)->nodeStack, ZRVECTOR_NBOBJ((STREEBUILDER)->nodeStack) - 1)
-
 // ============================================================================
 
 ZRMUSTINLINE
@@ -170,7 +125,7 @@ static size_t fBuilder_build_rec(ZRSimpleTreeBuilder *builder, ZRSimpleTreeBuild
 	return nbDescendants;
 }
 
-static void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree)
+void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree)
 {
 	ZRSimpleTreeBuilder *const builder = (ZRSimpleTreeBuilder*)tbuilder;
 	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
@@ -340,7 +295,11 @@ ZRTreeBuilder* ZRSimpleTreeBuilder_create(
 
 	// Add the root space
 	ZRSimpleTreeBuilder *builder = ZRALLOC(allocator, sizeof(ZRSimpleTreeBuilder) + bnodeSize);
-	ZRSimpleTreeBuilder_init(builder, strategy, nodeObjSize, nodeObjAlignment, edgeObjSize, edgeObjAlignment, allocator);
+	ZRSimpleTreeBuilder_init(builder, strategy,
+		nodeObjSize, nodeObjAlignment,
+		edgeObjSize, edgeObjAlignment,
+		allocator
+		);
 	return (ZRTreeBuilder*)builder;
 }
 

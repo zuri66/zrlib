@@ -79,3 +79,57 @@ ZRTree* ZRSimpleTree_create(size_t nbNodes,
 	size_t edgeObjSize, size_t edgeObjAlignment,
 	ZRAllocator *allocator
 	);
+
+
+// ============================================================================
+// Simple Tree Builder
+// ============================================================================
+
+
+typedef struct ZRSimpleTreeBuilderStrategyS ZRSimpleTreeBuilderStrategy;
+typedef struct ZRSimpleTreeBuilderNodeS ZRSimpleTreeBuilderNode;
+
+struct ZRSimpleTreeBuilderStrategyS
+{
+	ZRTreeBuilderStrategy treeBuilder;
+};
+
+struct ZRSimpleTreeBuilderNodeS
+{
+	ZRSimpleTreeBuilderNode *parent;
+	ZRVector *childs;
+	alignas(max_align_t) char obj[];
+};
+
+typedef struct
+{
+	ZRTreeBuilder treeBuilder;
+
+	size_t nodeObjSize;
+	size_t nodeObjAlignment;
+
+	size_t edgeObjSize;
+	size_t edgeObjAlignment;
+
+	size_t nbNodes;
+	size_t build_nbNodes;
+
+	ZRAllocator *allocator;
+	ZRVector *nodeStack;
+	ZRSimpleTreeBuilderNode *root;
+
+	alignas(max_align_t) char rootSpace[];
+} ZRSimpleTreeBuilder;
+
+// Node&Edge size
+#define ZRSTREEBUILDERNODE_SIZE(OBJSIZE) ((OBJSIZE) + sizeof(ZRSimpleTreeBuilderNode))
+
+#define ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER) (&STREEBUILDER->treeBuilder)
+#define ZRSTREEBUILDER_STRATEGY(STREEBUILDER)    (ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER)->strategy)
+#define ZRSTREEBUILDER_NODESIZE(STREEBUILDER)    ZRSTREEBUILDERNODE_SIZE((STREEBUILDER)->nodeObjSize + (STREEBUILDER)->edgeObjSize)
+
+#define ZRSTREEBUILDER_CURRENTNODE(STREEBUILDER) *(void**)ZRVECTOR_GET((STREEBUILDER)->nodeStack, ZRVECTOR_NBOBJ((STREEBUILDER)->nodeStack) - 1)
+
+
+void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree);
+
