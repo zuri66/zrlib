@@ -36,7 +36,6 @@ struct ZRTreeStrategyS
 	ZRGraphStrategy graph;
 	ZRTreeBuilder* (*fnewTreeBuilder)(ZRTree*, ZRTreeNode*);
 
-	ZRTreeNode* _(*ftreeNode_getTheParent)(ZRTree*, ZRTreeNode*);
 
 	size_t (*ftreeNode_getNbAscendants)(_________ ZRTree*, ZRTreeNode*);
 	size_t (*ftreeNode_getNbDescendants)(________ ZRTree*, ZRTreeNode*);
@@ -64,7 +63,8 @@ ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode);
 // NODE
 // ============================================================================
 
-ZRTreeNode* ZRTreeNode_getTheParent(_ ZRTree *tree, ZRTreeNode *node);
+ZRTreeNode* ZRTreeNode_getTheParent(___ ZRTree *tree, ZRTreeNode *node);
+void ______ ZRTreeNode_cpyTheParentEdge(ZRTree *tree, ZRTreeNode *node, ZRTreeEdge *edge);
 
 size_t ZRTreeNode_getNbAscendants(__ ZRTree *tree, ZRTreeNode *node);
 size_t ZRTreeNode_getNbDescendants(_ ZRTree *tree, ZRTreeNode *node);
@@ -152,13 +152,21 @@ static inline ZRIterator* ZRTREENODE_GETDESCENDANTS_DF(ZRTree *tree, ZRTreeNode 
 }
 
 // ============================================================================
-// NODE
+// HELP
 // ============================================================================
 
 ZRMUSTINLINE
 static inline ZRTreeNode* ZRTREENODE_GETTHEPARENT(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRTREE_STRATEGY(tree)->ftreeNode_getTheParent(tree, node);
+	ZRTreeNode *ret;
+	ZRGRAPHNODE_GETNPARENTS(ZRTREE_GRAPH(tree), node, &ret, 0, 1);
+	return ret;
+}
+
+ZRMUSTINLINE
+static inline void ZRTREENODE_CPYTHEPARENTEDGE(ZRTree *tree, ZRTreeNode *node, ZRTreeEdge *edge)
+{
+	ZRGRAPHNODE_CPYNEDGES(ZRTREE_GRAPH(tree), node, edge, 0, 1, ZRGraphEdge_selectIN);
 }
 
 #endif

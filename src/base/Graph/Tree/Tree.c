@@ -68,6 +68,11 @@ ZRTreeNode* ZRTreeNode_getTheParent(ZRTree *tree, ZRTreeNode *node)
 	return ZRTREENODE_GETTHEPARENT(tree, node);
 }
 
+void ZRTreeNode_cpyTheParentEdge(ZRTree *tree, ZRTreeNode *node, ZRTreeEdge *edge)
+{
+	ZRTREENODE_CPYTHEPARENTEDGE(tree, node, edge);
+}
+
 size_t ZRTreeNode_getNbAscendants(ZRTree *tree, ZRTreeNode *node)
 {
 	return ZRTREENODE_GETNBASCENDANTS(tree, node);
