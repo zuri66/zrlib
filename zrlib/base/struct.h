@@ -24,7 +24,6 @@ typedef struct ZRObjAlignInfosS
 	size_t size;
 } ZRObjAlignInfos;
 
-
 ZRMUSTINLINE
 static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 {
@@ -60,6 +59,12 @@ static inline void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
 
 	while (nb--)
 	{
+		if (infos->alignment == 0 || infos->size == 0)
+		{
+			infos++;
+			continue;
+		}
+
 		if (infos->alignment > max_alignment)
 			max_alignment = infos->alignment;
 

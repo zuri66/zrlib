@@ -20,9 +20,9 @@ void* ZRTreeBuilder_currentObj(ZRTreeBuilder *builder)
 	return builder->strategy->fcurrentObj(builder);
 }
 
-void ZRTreeBuilder_node(ZRTreeBuilder *builder, void *data)
+void ZRTreeBuilder_node(ZRTreeBuilder *builder, void *nodeData, void *edgeData)
 {
-	builder->strategy->fnode(builder, data);
+	builder->strategy->fnode(builder, nodeData, edgeData);
 }
 
 void ZRTreeBuilder_end(ZRTreeBuilder *builder)
@@ -40,6 +40,89 @@ void ZRTreeBuilder_done(ZRTreeBuilder *builder)
 	builder->strategy->fdone(builder);
 }
 
+void ZRTreeBuilder_destroy(ZRTreeBuilder *builder)
+{
+	builder->strategy->fdestroy(builder);
+}
+
+// HELP
+
+/**
+ * Concat the tree located by *asRoot in *tree.
+ * *asRoot is considered to be the root of *tree, be has not to be.
+ * All *node of *tree can be *asRoot.
+ * The construction make sure that all *tree is added to the builder as if *asRoot was the root node.
+ */
+void ZRTreeBuilder_concatRootedTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *asRoot)
+{
+	ZRTreeEdge edge;
+	ZRTreeNode *last = asRoot;
+	ZRTreeNode *parent = ZRTREENODE_GETTHEPARENT(tree, asRoot);
+	size_t nbParents = ZRTREENODE_GETNBASCENDANTS(tree, asRoot);
+
+	ZRTreeBuilder_concatSubTree(builder, tree, asRoot);
+
+	while (parent != NULL)
+	{
+		ZRTREENODE_CPYTHEPARENTEDGE(tree, last, &edge);
+		size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), parent);
+
+		// Parent become a child
+		ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), parent), edge.obj);
+
+		// Add the childs of the parent but not the last node
+		for (size_t i = 0; i < nbChilds; i++)
+		{
+			ZRTreeNode *const child = ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), parent, i);
+
+			if (child == last)
+				continue;
+
+			ZRTREENODE_CPYTHEPARENTEDGE(tree, child, &edge);
+			ZRTreeBuilder_concatSubTree(builder, tree, child);
+			ZRTreeBuilder_end(builder);
+		}
+		last = parent;
+		parent = ZRTREENODE_GETTHEPARENT(tree, parent);
+	}
+
+	// Get up to the root
+	while(nbParents --)
+		ZRTreeBuilder_end(builder);
+}
+
+/**
+ * Concat the sub-tree located at *node inside *tree.
+ * End the stack on *node.
+ */
+void ZRTreeBuilder_concatSubTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node)
+{
+	ZRGraphEdge edge;
+	ZRTREENODE_CPYTHEPARENTEDGE(tree, node, &edge);
+	ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), node), edge.obj);
+
+	size_t i = 0;
+	size_t const c = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), node);
+
+	for (; i < c; i++)
+	{
+		ZRTreeBuilder_concatSubTree(builder, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), node, i));
+		ZRTreeBuilder_end(builder);
+	}
+}
+
+void ZRTreeBuilder_concatSubChilds(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node)
+{
+	size_t i = 0;
+	size_t const c = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), node);
+
+	for (; i < c; i++)
+	{
+		ZRTreeBuilder_concatSubTree(builder, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), node, i));
+		ZRTreeBuilder_end(builder);
+	}
+}
+
 // ============================================================================
 // TREE
 // ============================================================================
@@ -49,73 +132,38 @@ ZRTreeNode* ZRTree_getRoot(ZRTree *tree)
 	return ZRTREE_GETROOT(tree);
 }
 
+void ZRTree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
+{
+	return ZRTREE_CHANGEROOT(tree, newRoot);
+}
+
 ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode)
 {
 	return ZRTREE_NEWBUILDER(tree, currentBuilderNode);
-}
-
-void ZRTree_done(ZRTree *tree)
-{
-	ZRTREE_DONE(tree);
-}
-
-void ZRTree_destroy(ZRTree *tree)
-{
-	ZRTREE_DESTROY(tree);
-}
-
-size_t ZRTree_getNbNodes(ZRTree *tree)
-{
-	return ZRTREE_GETNBNODES(tree);
-}
-
-size_t ZRTree_getNNodes(ZRTree *tree, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut)
-{
-	return ZRTREE_GETNNODES(tree, nodes_out, offset, maxNbOut);
-}
-
-size_t ZRTree_getNObjs(ZRTree *tree, void *objs_out, size_t offset, size_t maxNbOut)
-{
-	return ZRTREE_GETNOBJS(tree, objs_out, offset, maxNbOut);
 }
 
 // ============================================================================
 // NODE
 // ============================================================================
 
-void* ZRTreeNode_getObj(ZRTree *tree, ZRTreeNode *node)
-{
-	return ZRTREENODE_GETOBJ(tree, node);
-}
-
-ZRTreeNode* ZRTreeNode_getParent(ZRTree *tree, ZRTreeNode *node, size_t pos)
-{
-	return ZRTREENODE_GETPARENT(tree, node, pos);
-}
-
 ZRTreeNode* ZRTreeNode_getTheParent(ZRTree *tree, ZRTreeNode *node)
 {
 	return ZRTREENODE_GETTHEPARENT(tree, node);
 }
 
-ZRTreeNode* ZRTreeNode_getChild(ZRTree *tree, ZRTreeNode *node, size_t pos)
+void ZRTreeNode_cpyTheParentEdge(ZRTree *tree, ZRTreeNode *node, ZRTreeEdge *edge)
 {
-	return ZRTREENODE_GETCHILD(tree, node, pos);
+	ZRTREENODE_CPYTHEPARENTEDGE(tree, node, edge);
 }
 
-size_t ZRTreeNode_getNbChilds(ZRTree *tree, ZRTreeNode *node)
+size_t ZRTreeNode_getNbAscendants(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRTREENODE_GETNBCHILDS(tree, node);
+	return ZRTREENODE_GETNBASCENDANTS(tree, node);
 }
 
-size_t ZRTreeNode_getNChilds(ZRTree *tree, ZRTreeNode *node, ZRTreeNode **nodes_out, size_t offset, size_t maxNbOut)
+size_t ZRTreeNode_getNbDescendants(ZRTree *tree, ZRTreeNode *node)
 {
-	return ZRTREENODE_GETNCHILDS(tree, node, nodes_out, offset, maxNbOut);
-}
-
-size_t ZRTreeNode_getNObjs(ZRTree *tree, ZRTreeNode *node, void *objs_out, size_t offset, size_t maxNbOut)
-{
-	return ZRTREENODE_GETNOBJS(tree, node, objs_out, offset, maxNbOut);
+	return ZRTREENODE_GETNBDESCENDANTS(tree, node);
 }
 
 ZRIterator* ZRTreeNode_getChilds(ZRTree *tree, ZRTreeNode *node)
@@ -151,7 +199,7 @@ ZRTreeNode* ZRTreeNode_getNodeFromCoordinate(ZRTree *tree, size_t nb, size_t coo
 
 	for (size_t i = 0; i < nb; i++)
 	{
-		current = ZRTREENODE_GETCHILD(tree, current, coord[i]);
+		current = ZRGRAPHNODE_GETCHILD(&tree->graph, current, coord[i]);
 
 		if (current == NULL)
 			return NULL ;

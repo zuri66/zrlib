@@ -10,7 +10,7 @@ ZRMemoryPool* ZRMPoolReserve_create(
 	enum ZRMPoolReserveModeE mode
 	)
 {
-	ZRObjAlignInfos infos[ZRMAX_3(ZRMPOOLRLIST_INFOS_NB, ZRMPOOLRBITS_INFOS_NB, ZRMPOOLRCHUNK_INFOS_NB)];
+	ZRObjAlignInfos infos[ZRMAX(ZRMPOOLRLIST_INFOS_NB, ZRMPOOLRBITS_INFOS_NB, ZRMPOOLRCHUNK_INFOS_NB)];
 	ZRObjAlignInfos areaHeadInfos[ZRAREAHEADINFOS_NB];
 
 	ZRAreaHeadInfos_make(areaHeadInfos, areaMetaData);

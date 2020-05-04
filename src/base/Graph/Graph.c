@@ -23,33 +23,14 @@ void ZRGraph_destroy(ZRGraph *graph)
 	ZRGRAPH_DESTROY(graph);
 }
 
-size_t ZRGraph_objSize(ZRGraph *graph)
-{
-	return ZRGRAPH_OBJSIZE(graph);
-}
-
-size_t ZRGraph_getNbNodes(ZRGraph *graph)
-{
-	return ZRGRAPH_GETNBNODES(graph);
-}
-
 size_t ZRGraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut)
 {
 	return ZRGRAPH_GETNNODES(graph, nodes_out, offset, maxNbOut);
 }
 
-size_t ZRGraph_getNObjs(ZRGraph *graph, void *objs_out, size_t offset, size_t maxNbOut)
+size_t ZRGraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy)
 {
-	return ZRGRAPH_GETNOBJS(graph, objs_out, offset, maxNbOut);
-}
-
-// ============================================================================
-// EDGE
-// ============================================================================
-
-void* ZRGraphEdge_getObj(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b)
-{
-	return ZRGRAPHEDGE_GETOBJ(graph, a, b);
+	return ZRGRAPH_CPYNEDGES(graph, cpyTo, offset, maxNbCpy);
 }
 
 // ============================================================================
@@ -59,16 +40,6 @@ void* ZRGraphEdge_getObj(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b)
 void* ZRGraphNode_getObj(ZRGraph *graph, ZRGraphNode *node)
 {
 	return ZRGRAPHNODE_GETOBJ(graph, node);
-}
-
-ZRGraphNode* ZRGraphNode_getParent(ZRGraph *graph, ZRGraphNode *node, size_t pos)
-{
-	return ZRGRAPHNODE_GETPARENT(graph, node, pos);
-}
-
-ZRGraphNode* ZRGraphNode_getChild(ZRGraph *graph, ZRGraphNode *node, size_t pos)
-{
-	return ZRGRAPHNODE_GETCHILD(graph, node, pos);
 }
 
 size_t ZRGraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *node)
@@ -91,7 +62,26 @@ size_t ZRGraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **n
 	return ZRGRAPHNODE_GETNCHILDS(graph, node, nodes_out, offset, maxNbOut);
 }
 
-size_t ZRGraphNode_getNObjs(ZRGraph *graph, ZRGraphNode *node, void *objs_out, size_t offset, size_t maxNbOut)
+size_t ZRGraphNode_getNbEdges(ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select)
 {
-	return ZRGRAPHNODE_GETNOBJS(graph, node, objs_out, offset, maxNbOut);
+	return ZRGRAPHNODE_GETNBEDGES(graph, node, select);
+}
+
+size_t ZRGraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select)
+{
+	return ZRGRAPHNODE_CPYNEDGES(graph, node, cpyTo, offset, maxNbCpy, select);
+}
+
+// ============================================================================
+// HELP
+// ============================================================================
+
+ZRGraphNode* ZRGraphNode_getParent(ZRGraph *graph, ZRGraphNode *node, size_t offset)
+{
+	return ZRGRAPHNODE_GETPARENT(graph, node, offset);
+}
+
+ZRGraphNode* ZRGraphNode_getChild(ZRGraph *graph, ZRGraphNode *node, size_t offset)
+{
+	return ZRGRAPHNODE_GETCHILD(graph, node, offset);
 }
