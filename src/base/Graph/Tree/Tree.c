@@ -45,6 +45,84 @@ void ZRTreeBuilder_destroy(ZRTreeBuilder *builder)
 	builder->strategy->fdestroy(builder);
 }
 
+// HELP
+
+/**
+ * Concat the tree located by *asRoot in *tree.
+ * *asRoot is considered to be the root of *tree, be has not to be.
+ * All *node of *tree can be *asRoot.
+ * The construction make sure that all *tree is added to the builder as if *asRoot was the root node.
+ */
+void ZRTreeBuilder_concatRootedTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *asRoot)
+{
+	ZRTreeEdge edge;
+	ZRTreeNode *last = asRoot;
+	ZRTreeNode *parent = ZRTREENODE_GETTHEPARENT(tree, asRoot);
+	size_t nbParents = ZRTREENODE_GETNBASCENDANTS(tree, asRoot);
+
+	ZRTreeBuilder_concatSubTree(builder, tree, asRoot);
+
+	while (parent != NULL)
+	{
+		ZRTREENODE_CPYTHEPARENTEDGE(tree, last, &edge);
+		size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), parent);
+
+		// Parent become a child
+		ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), parent), edge.obj);
+
+		// Add the childs of the parent but not the last node
+		for (size_t i = 0; i < nbChilds; i++)
+		{
+			ZRTreeNode *const child = ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), parent, i);
+
+			if (child == last)
+				continue;
+
+			ZRTREENODE_CPYTHEPARENTEDGE(tree, child, &edge);
+			ZRTreeBuilder_concatSubTree(builder, tree, child);
+			ZRTreeBuilder_end(builder);
+		}
+		last = parent;
+		parent = ZRTREENODE_GETTHEPARENT(tree, parent);
+	}
+
+	// Get up to the root
+	while(nbParents --)
+		ZRTreeBuilder_end(builder);
+}
+
+/**
+ * Concat the sub-tree located at *node inside *tree.
+ * End the stack on *node.
+ */
+void ZRTreeBuilder_concatSubTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node)
+{
+	ZRGraphEdge edge;
+	ZRTREENODE_CPYTHEPARENTEDGE(tree, node, &edge);
+	ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), node), edge.obj);
+
+	size_t i = 0;
+	size_t const c = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), node);
+
+	for (; i < c; i++)
+	{
+		ZRTreeBuilder_concatSubTree(builder, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), node, i));
+		ZRTreeBuilder_end(builder);
+	}
+}
+
+void ZRTreeBuilder_concatSubChilds(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node)
+{
+	size_t i = 0;
+	size_t const c = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), node);
+
+	for (; i < c; i++)
+	{
+		ZRTreeBuilder_concatSubTree(builder, tree, ZRGRAPHNODE_GETCHILD(ZRTREE_GRAPH(tree), node, i));
+		ZRTreeBuilder_end(builder);
+	}
+}
+
 // ============================================================================
 // TREE
 // ============================================================================

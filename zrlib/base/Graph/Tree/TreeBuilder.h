@@ -25,6 +25,7 @@ typedef void ZRTreeBuilderNode;
 struct ZRTreeBuilderStrategyS
 {
 	ZRTreeBuilderNode* (*fcurrentNode)(ZRTreeBuilder *builder);
+
 	void* (*fcurrentObj)(ZRTreeBuilder *builder);
 
 	void __ (*fnode)(__ ZRTreeBuilder *builder, void *nodeData, void *edgeData);
@@ -50,5 +51,11 @@ void __ ZRTreeBuilder_end(___ ZRTreeBuilder *builder);
 ZRTree* ZRTreeBuilder_new(___ ZRTreeBuilder *builder);
 void __ ZRTreeBuilder_done(__ ZRTreeBuilder *builder);
 void __ ZRTreeBuilder_destroy(ZRTreeBuilder *builder);
+
+// HELP
+
+void ZRTreeBuilder_concatRootedTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *asRoot);
+void ZRTreeBuilder_concatSubTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node);
+void ZRTreeBuilder_concatSubChilds(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNode *node);
 
 #endif
