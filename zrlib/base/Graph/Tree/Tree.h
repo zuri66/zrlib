@@ -36,6 +36,12 @@ struct ZRTreeStrategyS
 	ZRGraphStrategy graph;
 	ZRTreeBuilder* (*fnewTreeBuilder)(ZRTree*, ZRTreeNode*);
 
+	/**
+	 * Change the root of the Tree.
+	 * The function does not guarantee that the *newRoot pointer stay the same for the root ;
+	 * the internal representation of the tree may change.
+	 */
+	void (*ftree_changeRoot)(ZRTree*, ZRTreeNode *newRoot);
 
 	size_t (*ftreeNode_getNbAscendants)(_________ ZRTree*, ZRTreeNode*);
 	size_t (*ftreeNode_getNbDescendants)(________ ZRTree*, ZRTreeNode*);
@@ -58,6 +64,8 @@ struct ZRTreeS
 ZRTreeNode* ZRTree_getRoot(ZRTree *tree);
 
 ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode);
+
+void ZRTree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot);
 
 // ============================================================================
 // NODE
@@ -101,6 +109,12 @@ ZRMUSTINLINE
 static inline ZRTreeNode* ZRTREE_GETROOT(ZRTree *tree)
 {
 	return tree->root;
+}
+
+ZRMUSTINLINE
+static inline void ZRTREE_CHANGEROOT(ZRTree *tree, ZRTreeNode *newRoot)
+{
+	return ZRTREE_STRATEGY(tree)->ftree_changeRoot(tree, newRoot);
 }
 
 ZRMUSTINLINE

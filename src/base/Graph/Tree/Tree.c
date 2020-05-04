@@ -132,6 +132,11 @@ ZRTreeNode* ZRTree_getRoot(ZRTree *tree)
 	return ZRTREE_GETROOT(tree);
 }
 
+void ZRTree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
+{
+	return ZRTREE_CHANGEROOT(tree, newRoot);
+}
+
 ZRTreeBuilder* ZRTree_newBuilder(ZRTree *tree, ZRTreeNode *currentBuilderNode)
 {
 	return ZRTREE_NEWBUILDER(tree, currentBuilderNode);
