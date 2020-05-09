@@ -25,6 +25,11 @@ void ZRVector_destroy(ZRVector *vec)
 	ZRVECTOR_DESTROY(vec);
 }
 
+void ZRVector_changeObjSize(ZRVector *vec, size_t objSize, size_t objAlignment)
+{
+	ZRVECTOR_CHANGEOBJSIZE(vec, objSize, objAlignment);
+}
+
 void ZRVector_memoryTrim(ZRVector *vec)
 {
 	ZRVECTOR_MEMORYTRIM(vec);

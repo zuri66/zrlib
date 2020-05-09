@@ -56,7 +56,7 @@ static void fBuilderNode(ZRTreeBuilder *tbuilder, void *nodeData, void *edgeData
 		node = ZRVECTOR_GET(current->childs, nodePos);
 		node->parent = current;
 	}
-	node->childs = ZRVector2SideStrategy_createDynamic(128, ZRSTREEBUILDER_NODESIZE(builder), allocator);
+	node->childs = ZRVector2SideStrategy_createDynamic(128, ZRSTREEBUILDER_NODESIZE(builder), alignof(ZRSimpleTreeBuilderNode), allocator);
 
 	fbuilder_cpyData(builder, node, nodeData, edgeData);
 
@@ -204,7 +204,7 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 		.edgeObjSize = edgeObjSize, //
 		.edgeObjAlignment = edgeObjAlignment, //
 		.allocator = allocator, //
-		.nodeStack = ZRVector2SideStrategy_createDynamic(512, sizeof(void*), allocator), //
+		.nodeStack = ZRVector2SideStrategy_createDynamic(512, ZRTYPE_SIZE_ALIGNMENT(void*), allocator), //
 		.root = NULL , //
 		};
 }

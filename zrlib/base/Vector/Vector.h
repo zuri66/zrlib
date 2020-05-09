@@ -3,8 +3,8 @@
  * @date samedi 19 janvier 2019, 18:03:00 (UTC+0100)
  */
 
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef ZRVECTOR_H
+#define ZRVECTOR_H
 
 #include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
@@ -38,6 +38,7 @@ struct ZRVectorStrategyS
 	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
 
 
+	void (*fchangeObjSize)(ZRVector *vec, size_t objSize, size_t objAlignment);
 	void (*fmemoryTrim)(ZRVector *vec);
 
 	/**
@@ -187,6 +188,12 @@ static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void
 {
 	vec->strategy->finsert(vec, pos, nb);
 	ZRVECTOR_SET_NB(vec, pos, nb, src);
+}
+
+ZRMUSTINLINE
+static inline void ZRVECTOR_CHANGEOBJSIZE(ZRVector *vec, size_t objSize, size_t objAlignment)
+{
+	vec->strategy->fchangeObjSize(vec, objSize, objAlignment);
 }
 
 ZRMUSTINLINE
@@ -341,6 +348,7 @@ void ZRVector_init(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorS
 void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src);
 void ZRVector_done(ZRVector *vec);
 void ZRVector_destroy(ZRVector *vec);
+void ZRVector_changeObjSize(ZRVector *vec, size_t objSize, size_t objAlignment);
 void ZRVector_memoryTrim(ZRVector *vec);
 
 size_t ZRVector_strategySize(ZRVector *vec);

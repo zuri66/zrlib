@@ -37,6 +37,7 @@ static void ftree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
 		);
 	ZRTreeBuilder_concatRootedTree(tbuilder, tree, newRoot);
 	fBuilder_build(tbuilder, ZRSTREE_TREE(stree));
+	ZRTreeBuilder_destroy(tbuilder);
 }
 
 static size_t fgraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbNodes)
