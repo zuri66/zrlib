@@ -3,8 +3,8 @@
  * @date lundi 28 octobre 2019, 20:07:09 (UTC+0100)
  */
 
-#ifndef MEMORYPOOL_H
-#define MEMORYPOOL_H
+#ifndef ZRMEMORYPOOL_H
+#define ZRMEMORYPOOL_H
 
 #include <zrlib/config.h>
 #include <zrlib/syntax_pad.h>
@@ -23,6 +23,7 @@ typedef struct ZRMemoryPoolStrategyS ZRMemoryPoolStrategy;
 
 struct ZRMemoryPoolS
 {
+	size_t blockAlignment;
 	size_t blockSize;
 	size_t nbBlocks;
 
@@ -48,7 +49,7 @@ struct ZRMemoryPoolStrategyS
 
 	/*
 	 * Get a pointer to the begin of user MetaData.
-	 * The pointer may not be aligned.
+	 * The pointer may not be aligned to the alignof(T), T the type attempted by the user.
 	 */
 	void* (*fuserAreaMetaData)(ZRMemoryPool *pool, void *firstBlock);
 };
@@ -56,12 +57,14 @@ struct ZRMemoryPoolStrategyS
 // ============================================================================
 
 ZRMUSTINLINE
-static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPoolStrategy *strategy)
+static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy)
 {
-	*pool = (ZRMemoryPool ) { //
-		.blockSize = blockSize, //
-		.strategy = strategy, //
-		};
+	*pool = (struct ZRMemoryPoolS)
+	{
+		.blockAlignment = blockAlignment,
+		.blockSize = blockSize,
+		.strategy = strategy,
+	};
 	strategy->finit(pool);
 }
 
@@ -133,7 +136,7 @@ static inline void* ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, siz
 
 // ============================================================================
 
-void ZRMPool_init(ZRMemoryPool *pool, size_t objSize, ZRMemoryPoolStrategy *strategy);
+void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy);
 void ZRMPool_done(ZRMemoryPool *pool);
 void ZRMPool_destroy(ZRMemoryPool *pool);
 void ZRMPool_clean(ZRMemoryPool *pool);

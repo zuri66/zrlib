@@ -5,9 +5,9 @@
 
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 
-void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, ZRMemoryPoolStrategy *strategy)
+void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy)
 {
-	ZRMPOOL_INIT(pool, blockSize, strategy);
+	ZRMPOOL_INIT(pool, blockSize, blockAlignment, strategy);
 }
 
 void ZRMPool_done(ZRMemoryPool *pool)
