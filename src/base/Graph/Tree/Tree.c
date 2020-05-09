@@ -281,7 +281,7 @@ ZRIterator* ZRTreeNode_std_getDescendants_BF(ZRTree *tree, ZRTreeNode *node, ZRA
 			},//
 		.subject = tree, //
 		.allocator = allocator, //
-		.queue = ZRVector2SideStrategy_createDynamic(256, sizeof(void*), allocator), //
+		.queue = ZRVector2SideStrategy_createDynamic(256, ZRTYPE_SIZE_ALIGNMENT(void*), allocator), //
 		};
 	ret->strategyArea = (ZRIteratorStrategy ) { //
 		.fdestroy = BFNodeIterator_fdestroy, //
@@ -319,7 +319,7 @@ ZRIterator* ZRTreeNode_std_getDescendants_DF(ZRTree *tree, ZRTreeNode *node, ZRA
 			},//
 		.subject = tree, //
 		.allocator = allocator, //
-		.stack = ZRVector2SideStrategy_createDynamic(256, sizeof(void*), allocator), //
+		.stack = ZRVector2SideStrategy_createDynamic(256, ZRTYPE_SIZE_ALIGNMENT(void*), allocator), //
 		};
 	ret->strategyArea = (ZRIteratorStrategy ) { //
 		.fdestroy = BFNodeIterator_fdestroy, //

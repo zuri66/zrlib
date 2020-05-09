@@ -272,7 +272,7 @@ void fdone(ZRMemoryPool *pool)
 
 static ZRVector* fcreateBuckets(ZRMemoryPool *pool)
 {
-	return ZRVector2SideStrategy_createDynamic(INITIAL_BUCKETS_SPACE, sizeof(ZRMPoolDS_bucket), ZRMPOOL_STRATEGY(pool)->allocator);
+	return ZRVector2SideStrategy_createDynamic(INITIAL_BUCKETS_SPACE, ZRTYPE_SIZE_ALIGNMENT(ZRMPoolDS_bucket), ZRMPOOL_STRATEGY(pool)->allocator);
 }
 
 static void fdestroyBuckets(ZRVector *buckets)
