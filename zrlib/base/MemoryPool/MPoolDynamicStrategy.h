@@ -17,12 +17,10 @@
 // HELP
 // ============================================================================
 
-ZRMemoryPool* ZRMPoolDS_create(______ size_t initialBucketSize, size_t maxFreeBuckets, size_t objSize, ZRAllocator *allocator);
-ZRMemoryPool* ZRMPoolDS_createBS(____ size_t initialBucketSize, ______________________ size_t objSize, ZRAllocator *allocator);
-ZRMemoryPool* ZRMPoolDS_createMaxFB(_ _________________________ size_t maxFreeBuckets, size_t objSize, ZRAllocator *allocator);
-ZRMemoryPool* ZRMPoolDS_createDefault(_________________________ ______________________ size_t objSize, ZRAllocator *allocator);
-
-void ZRMPoolDS_destroy(ZRMemoryPool *pool);
+ZRMemoryPool* ZRMPoolDS_create(______ size_t initialBucketSize, size_t maxFreeBuckets, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRMemoryPool* ZRMPoolDS_createBS(____ size_t initialBucketSize, ______________________ size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRMemoryPool* ZRMPoolDS_createMaxFB(_ _________________________ size_t maxFreeBuckets, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRMemoryPool* ZRMPoolDS_createDefault(_________________________ ______________________ size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 
 // ============================================================================
 
