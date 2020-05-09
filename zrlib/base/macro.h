@@ -8,6 +8,9 @@
 
 #include <stddef.h>
 
+#define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), alignof(T)
+#define ZRTYPE_ALIGNMENT_SIZE(T) alignof(T), sizeof(T)
+
 #define ZRSIZE_UNKNOW (~(size_t)0)
 #define ZRTOSTRING(V) #V
 
