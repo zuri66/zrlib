@@ -53,6 +53,30 @@ void ZRArrayOp_reverse(void *offset, size_t objSize, size_t nbObj)
 	ZRARRAYOP_REVERSE(offset, objSize, nbObj);
 }
 
+void* ZRArrayOp_search(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_SEARCH(offset, objSize, nbObj, search, fcmp);
+}
+
+void* ZRArrayOp_bsearch(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BSEARCH(offset, objSize, nbObj, search, fcmp);
+}
+
+size_t ZRArrayOp_binsert_pos(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BINSERT_POS(offset, objSize, nbObj, search, fcmp);
+}
+
 void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
 {
 	ZRARRAYOP_WALK(offset, objSize, nbObj, fconsume);

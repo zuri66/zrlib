@@ -61,6 +61,66 @@ static inline void ZRARRAYOP_REVERSE(void *offset, size_t objSize, size_t nbObj)
 }
 
 ZRMUSTINLINE
+static inline void* ZRARRAYOP_SEARCH(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	while (nbObj--)
+	{
+		if (0 == fcmp(search, offset))
+			return offset;
+
+		offset = (char*)offset + objSize;
+	}
+	return NULL;
+}
+
+ZRMUSTINLINE
+static inline void* ZRARRAYOP_BSEARCH(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t begin = 0;
+	size_t end = nbObj - 1;
+
+	while (begin != end)
+	{
+		size_t const mid = begin + (end - begin + 1) / 2;
+		int const cmp = fcmp(search, (char*)offset + mid * objSize);
+
+		if (cmp < 0)
+			end = mid - 1;
+		else
+			begin = mid;
+	}
+
+	if (fcmp(search, (char*)offset + begin* objSize) == 0)
+		return (char*)offset + begin * objSize;
+
+	return NULL;
+}
+
+ZRMUSTINLINE
+static inline size_t ZRARRAYOP_BINSERT_POS(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t begin = 0;
+	size_t end = nbObj - 1;
+	int cmp;
+
+	while (begin != end)
+	{
+		size_t const mid = begin + (end - begin + 1) / 2;
+		cmp = fcmp(search, (char*)offset + mid * objSize);
+
+		if (cmp < 0)
+			end = mid - 1;
+		else
+			begin = mid;
+	}
+
+	if (fcmp(search, (char*)offset + begin * objSize) > 0)
+		return begin + 1;
+
+	return begin;
+}
+
+ZRMUSTINLINE
 static inline void ZRARRAYOP_WALK(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))
 {
 	while (nbObj--)
@@ -100,6 +160,20 @@ void ZRArrayOp_shift(___ void *offset, size_t objSize, size_t nbObj, size_t shif
 void ZRArrayOp_rotate(__ void *offset, size_t objSize, size_t nbObj, size_t rotate, bool toTheRight);
 void ZRArrayOp_reverse(_ void *offset, size_t objSize, size_t nbObj);
 
+void* ZRArrayOp_search(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
+
+void* ZRArrayOp_bsearch(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
+
+size_t ZRArrayOp_binsert_pos(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
 
 void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item));
 
