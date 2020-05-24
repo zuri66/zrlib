@@ -18,8 +18,8 @@ ZRMap* ZRHashTable_alloc(size_t nbfhash, ZRAllocator *allocator);
 ZRMap* ZRHashTable_create( //
 	size_t keySize, size_t keyAlignment, //
 	size_t objSize, size_t objAlignment, //
+	fhash_t fhash[], //
 	size_t nbfhash, //
-	fhash_t fhash[nbfhash], //
 	ZRVector *table, //
 	ZRAllocator *allocator //
 	);

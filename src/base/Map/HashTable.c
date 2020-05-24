@@ -230,7 +230,7 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 		};
 }
 
-static void ZRHashTable_init(size_t keySize, size_t keyAlignment, size_t objSize, size_t objAlignment, ZRMap *map, size_t nbfhash, fhash_t fhash[nbfhash], ZRVector *table, ZRAllocator *allocator)
+static void ZRHashTable_init(size_t keySize, size_t keyAlignment, size_t objSize, size_t objAlignment, ZRMap *map, fhash_t fhash[], size_t nbfhash, ZRVector *table, ZRAllocator *allocator)
 {
 	ZRHashTable *const htable = ZRHASHTABLE(map);
 	memcpy(htable->fhash, fhash, nbfhash * sizeof(fhash_t));
