@@ -240,9 +240,10 @@ static void ZRHashTable_init(size_t keySize, size_t keyAlignment, size_t objSize
 
 	bucketInfos(htable->infos, keySize, keyAlignment, objSize, objAlignment);
 
-	//TODO: when table is set change the table size
 	if (table == NULL)
 		table = ZRVector2SideStrategy_createDynamic(1024, htable->infos[ZRHashTableInfos_struct].size, htable->infos[ZRHashTableInfos_struct].alignment, allocator);
+	else
+		ZRVECTOR_CHANGEOBJSIZE(table, objSize, objAlignment);
 
 	htable->table = table;
 }
