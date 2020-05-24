@@ -69,12 +69,44 @@ void* ZRArrayOp_bsearch(
 	return ZRARRAYOP_BSEARCH(offset, objSize, nbObj, search, fcmp);
 }
 
+void* ZRArrayOp_bsearch_first(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BSEARCH_FIRST(offset, objSize, nbObj, search, fcmp);
+}
+
+void* ZRArrayOp_bsearch_last(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BSEARCH_LAST(offset, objSize, nbObj, search, fcmp);
+}
+
 size_t ZRArrayOp_binsert_pos(
 	void *offset, size_t objSize, size_t nbObj, void *search,
 	int (*fcmp)(void *a, void *b)
 	)
 {
 	return ZRARRAYOP_BINSERT_POS(offset, objSize, nbObj, search, fcmp);
+}
+
+size_t ZRArrayOp_binsert_pos_first(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BINSERT_POS_FIRST(offset, objSize, nbObj, search, fcmp);
+}
+
+size_t ZRArrayOp_binsert_pos_last(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+	)
+{
+	return ZRARRAYOP_BINSERT_POS_LAST(offset, objSize, nbObj, search, fcmp);
 }
 
 void ZRArrayOp_walk(void *offset, size_t objSize, size_t nbObj, void (*fconsume)(void *item))

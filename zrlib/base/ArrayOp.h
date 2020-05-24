@@ -82,16 +82,17 @@ static inline void* ZRARRAYOP_BSEARCH(void *offset, size_t objSize, size_t nbObj
 	while (begin != end)
 	{
 		size_t const mid = begin + (end - begin + 1) / 2;
-		int const cmp = fcmp(search, (char*)offset + mid * objSize);
+		int const cmp = fcmp(search, ZRARRAYOP_GET(offset, objSize, mid));
 
 		if (cmp < 0)
 			end = mid - 1;
 		else
 			begin = mid;
 	}
+	void *const place = ZRARRAYOP_GET(offset, objSize, begin);
 
-	if (fcmp(search, (char*)offset + begin* objSize) == 0)
-		return (char*)offset + begin * objSize;
+	if (fcmp(search, place) == 0)
+		return place;
 
 	return NULL;
 }
@@ -106,7 +107,7 @@ static inline size_t ZRARRAYOP_BINSERT_POS(void *offset, size_t objSize, size_t 
 	while (begin != end)
 	{
 		size_t const mid = begin + (end - begin + 1) / 2;
-		cmp = fcmp(search, (char*)offset + mid * objSize);
+		int const cmp = fcmp(search, ZRARRAYOP_GET(offset, objSize, mid));
 
 		if (cmp < 0)
 			end = mid - 1;
@@ -114,10 +115,74 @@ static inline size_t ZRARRAYOP_BINSERT_POS(void *offset, size_t objSize, size_t 
 			begin = mid;
 	}
 
-	if (fcmp(search, (char*)offset + begin * objSize) > 0)
+	if (fcmp(search, ZRARRAYOP_GET(offset, objSize, begin)) > 0)
 		return begin + 1;
 
 	return begin;
+}
+
+static inline size_t ZRARRAYOP_BINSERT_POS_FIRST(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t begin = 0;
+	size_t end = nbObj;
+
+	while (begin < end)
+	{
+		size_t const mid = begin + (end - begin) / 2;
+		int const cmp = fcmp(search, ZRARRAYOP_GET(offset, objSize, mid));
+
+		if (cmp > 0)
+			begin = mid + 1;
+		else
+			end = mid;
+	}
+	return begin;
+}
+
+static inline size_t ZRARRAYOP_BINSERT_POS_LAST(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t begin = 0;
+	size_t end = nbObj;
+
+	while (begin < end)
+	{
+		size_t const mid = begin + (end - begin) / 2;
+		int const cmp = fcmp(search, ZRARRAYOP_GET(offset, objSize, mid));
+
+		if (cmp < 0)
+			end = mid;
+		else
+			begin = mid + 1;
+	}
+	return end;
+}
+
+ZRMUSTINLINE
+static inline void* ZRARRAYOP_BSEARCH_FIRST(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t pos = ZRARRAYOP_BINSERT_POS_FIRST(offset, objSize, nbObj, search, fcmp);
+	void *const item = ZRARRAYOP_GET(offset, objSize, pos);
+
+	if (fcmp(search, item) == 0)
+		return item;
+
+	return NULL;
+}
+
+ZRMUSTINLINE
+static inline void* ZRARRAYOP_BSEARCH_LAST(void *offset, size_t objSize, size_t nbObj, void *search, int (*fcmp)(void *a, void *b))
+{
+	size_t pos = ZRARRAYOP_BINSERT_POS_LAST(offset, objSize, nbObj, search, fcmp);
+
+	if(pos != 0)
+		pos -= 1;
+
+	void *const item = ZRARRAYOP_GET(offset, objSize, pos);
+
+	if (fcmp(search, item) == 0)
+		return item;
+
+	return NULL;
 }
 
 ZRMUSTINLINE
@@ -135,9 +200,9 @@ static inline void ZRARRAYOP_MAP(
 	void *restrict offset, size_t objSize, size_t nbObj,
 	void (*fmap)(___ void *restrict item, void *restrict out),
 	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
-)
+	)
 {
-	while(nbObj-- && dest_nbObj--)
+	while (nbObj-- && dest_nbObj--)
 	{
 		fmap(offset, dest);
 		offset = (char*)offset + objSize;
@@ -169,8 +234,24 @@ void* ZRArrayOp_bsearch(
 	void *offset, size_t objSize, size_t nbObj, void *search,
 	int (*fcmp)(void *a, void *b)
 		);
+void* ZRArrayOp_bsearch_last(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
+void* ZRArrayOp_bsearch_first(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
 
 size_t ZRArrayOp_binsert_pos(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
+size_t ZRArrayOp_binsert_pos_first(
+	void *offset, size_t objSize, size_t nbObj, void *search,
+	int (*fcmp)(void *a, void *b)
+		);
+size_t ZRArrayOp_binsert_pos_last(
 	void *offset, size_t objSize, size_t nbObj, void *search,
 	int (*fcmp)(void *a, void *b)
 		);
@@ -181,6 +262,6 @@ void ZRArrayOp_map(
 	void *restrict offset, size_t objSize, size_t nbObj,
 	void (*fmap)(void *restrict item, void *restrict out),
 	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
-);
+	);
 
 #endif
