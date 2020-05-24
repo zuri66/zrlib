@@ -8,6 +8,9 @@
 
 #include <stddef.h>
 
+typedef int (*zrfcmp)(void *a, void *b);
+typedef int (*zrfucmp)(void *a, void *b, void* data);
+
 #define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), alignof(T)
 #define ZRTYPE_ALIGNMENT_SIZE(T) alignof(T), sizeof(T)
 
@@ -22,10 +25,8 @@
 #define ZRMACRO_NARGS__(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,N,_...) N
 #define ZRMACRO_REVERSE_NARGS() 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
 
-
 #define ZRMAX(...) ZRCONCAT(ZRMAX_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
 #define ZRMIN(...) ZRCONCAT(ZRMIN_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
-
 
 #define ZRMIN_2(a,b) ((a) < (b) ? (a) : (b))
 #define ZRMIN_3(a,b,c) ZRMIN_2(a,ZRMIN_2(b,c))
@@ -39,7 +40,6 @@
 #define ZRISPOW2SAFE(I) ((I) > 0 && ZRISPOW2(I))
 
 #define ZRCARRAY_NBOBJ(array) (sizeof(array)/sizeof(*array))
-
 
 #ifdef __GNUC__
 #define ZRMUSTINLINE __attribute__((always_inline))
