@@ -3,8 +3,8 @@
  * @date mardi 19 novembre 2019, 19:40:53 (UTC+0100)
  */
 
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
+#ifndef ZRHASHTABLE_H
+#define ZRHASHTABLE_H
 
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Map/Map.h>
