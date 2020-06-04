@@ -94,6 +94,9 @@ static inline void* ZRARRAYOP_SEARCH(void *offset, size_t objSize, size_t nbObj,
 ZRMUSTINLINE
 static inline size_t ZRARRAYOP_BSEARCH_POS(void *offset, size_t objSize, size_t nbObj, void *search, zrfucmp fucmp, void *data)
 {
+	if(nbObj == 0)
+		return SIZE_MAX;
+
 	size_t begin = 0;
 	size_t end = nbObj - 1;
 
@@ -129,6 +132,9 @@ static inline void* ZRARRAYOP_BSEARCH(void *offset, size_t objSize, size_t nbObj
 ZRMUSTINLINE
 static inline size_t ZRARRAYOP_BINSERT_POS(void *offset, size_t objSize, size_t nbObj, void *search, zrfucmp fucmp, void *data)
 {
+	if(nbObj == 0)
+		return SIZE_MAX;
+
 	size_t begin = 0;
 	size_t end = nbObj - 1;
 	int cmp;
