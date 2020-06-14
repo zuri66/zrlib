@@ -9,6 +9,16 @@
 // BUILDER
 // ============================================================================
 
+void ZRGraphBuilder_done(ZRGraphBuilder *builder)
+{
+	ZRGRAPHBUILDER_DONE(builder);
+}
+
+void ZRGraphBuilder_destroy(ZRGraphBuilder *builder)
+{
+	ZRGRAPHBUILDER_DESTROY(builder);
+}
+
 // ============================================================================
 // GRAPH
 // ============================================================================
