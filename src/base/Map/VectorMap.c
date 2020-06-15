@@ -130,6 +130,7 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
 		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
 		ZRVECTOR_INSERT(vmap->vector, pos, tmpBucket);
+		ZRVMAP_MAP(vmap)->nbObj++;
 	}
 	else
 	{
@@ -176,6 +177,7 @@ static bool fdelete(ZRMap *map, void *key)
 		return false;
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
+	ZRVMAP_MAP(vmap)->nbObj--;
 	return true;
 }
 
@@ -214,6 +216,7 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
 		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
 		ZRVECTOR_ADD(vmap->vector, tmpBucket);
+		ZRVMAP_MAP(vmap)->nbObj++;
 	}
 	else
 	{
@@ -261,6 +264,7 @@ static bool eq_fdelete(ZRMap *map, void *key)
 		return false;
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
+	ZRVMAP_MAP(vmap)->nbObj--;
 	return true;
 }
 
