@@ -25,4 +25,6 @@ ZRMap* ZRVectorMap_create(
 	enum ZRVectorMap_modeE mode
 	);
 
+ZRVector* ZRVectorMap_vector(ZRMap *map);
+
 #endif

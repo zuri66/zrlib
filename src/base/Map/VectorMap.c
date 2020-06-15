@@ -319,6 +319,12 @@ static void ZRVectorMap_init(ZRVectorMap *vmap, size_t keySize, size_t keyAlignm
 	vmap->vector = vector;
 }
 
+ZRVector* ZRVectorMap_vector(ZRMap *map)
+{
+	ZRVectorMap *const vmap = ZRVMAP(map);
+	return vmap->vector;
+}
+
 // ============================================================================
 
 void ZRVectorMap_destroy(ZRMap *map)
