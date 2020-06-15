@@ -8,7 +8,6 @@
 
 #include <zrlib/config.h>
 #include <zrlib/syntax_pad.h>
-#include "GraphBuilder.h"
 
 #include <stddef.h>
 
@@ -18,6 +17,8 @@ typedef struct ZRGraphS _______ ZRGraph;
 typedef struct ZRGraphEdgeS ___ ZRGraphEdge;
 typedef struct ZRGraphStrategyS ZRGraphStrategy;
 typedef struct ZRGraphNodeS ___ ZRGraphNode;
+
+#include "GraphBuilder.h"
 
 // ============================================================================
 
@@ -30,23 +31,25 @@ struct ZRGraphStrategyS
 {
 	size_t (*fstrategySize)(void);
 
-	size_t (*fnode_getNbEdges)(ZRGraph*, ZRGraphNode*, enum ZRGraphEdge_selectE);
-
 	void* ______ (*fnode_getObj)(_______ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbParents)(_ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbChilds)(__ ZRGraph*, ZRGraphNode*);
+	size_t _____ (*fnode_getNbEdges)(___ ZRGraph*, ZRGraphNode*, enum ZRGraphEdge_selectE);
+
 	size_t _____ (*fnode_getNParents)(__ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 	size_t _____ (*fnode_getNChilds)(___ ZRGraph*, ZRGraphNode*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 	size_t _____ (*fnode_cpyNEdges)(____ ZRGraph*, ZRGraphNode*, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE);
 
-	size_t (*fcpyNEdges)(_ ZRGraph*, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy);
 	size_t (*fgetNNodes)(_ ZRGraph*, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
+	size_t (*fcpyNEdges)(_ ZRGraph*, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy);
 	void _ (*fdone)(______ ZRGraph*);
 	void _ (*fdestroy)(___ ZRGraph*);
 };
 
 struct ZRGraphS
 {
+	ZRGraphStrategy *strategy;
+
 	size_t nbNodes;
 	size_t nbEdges;
 
@@ -57,11 +60,9 @@ struct ZRGraphS
 	// Edge
 	size_t edgeObjSize;
 	size_t edgeObjAlignment;
-
-	ZRGraphStrategy *strategy;
 };
 
-struct SRGraphNodeS
+struct ZRGraphNodeS
 {
 };
 
@@ -85,19 +86,20 @@ size_t ZRGraph_cpyNEdges(__ ZRGraph *graph, ZRGraphEdge *cpyTo, _____ size_t off
 // ============================================================================
 
 void* ______ ZRGraphNode_getObj(_______ ZRGraph *graph, ZRGraphNode *node);
-ZRGraphNode* ZRGraphNode_getParent(____ ZRGraph *graph, ZRGraphNode *node, size_t pos);
-ZRGraphNode* ZRGraphNode_getChild(_____ ZRGraph *graph, ZRGraphNode *node, size_t pos);
 size_t _____ ZRGraphNode_getNbParents(_ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNbChilds(__ ZRGraph *graph, ZRGraphNode *node);
+size_t _____ ZRGraphNode_getNbEdges(___ ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select);
+
 size_t _____ ZRGraphNode_getNParents(__ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
 size_t _____ ZRGraphNode_getNChilds(___ ZRGraph *graph, ZRGraphNode *node, ZRGraphNode **nodes_out, size_t offset, size_t maxNbOut);
-size_t _____ ZRGraphNode_getNbEdges(___ ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select);
 size_t _____ ZRGraphNode_cpyNEdges(____ ZRGraph *graph, ZRGraphNode *node, ZRGraphEdge *cpyTo, ____ size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select);
 
 // Help
 
 ZRGraphNode* ZRGraphNode_getParent(_ ZRGraph *graph, ZRGraphNode *node, size_t offset);
 ZRGraphNode* ZRGraphNode_getChild(__ ZRGraph *graph, ZRGraphNode *node, size_t offset);
+
+ZRGraphEdge ZRGraphEdge_cpy(________ ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select);
 
 // ============================================================================
 // TREE
@@ -190,6 +192,14 @@ static inline ZRGraphNode* ZRGRAPHNODE_GETCHILD(ZRGraph *graph, ZRGraphNode *nod
 {
 	ZRGraphNode *ret;
 	ZRGRAPHNODE_GETNCHILDS(graph, node, &ret, offset, 1);
+	return ret;
+}
+
+ZRMUSTINLINE
+static inline ZRGraphEdge ZRGRAPHEDGE_CPY(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select)
+{
+	ZRGraphEdge ret = { };
+	ZRGRAPHNODE_CPYNEDGES(graph, a, &ret, offset, 1, select);
 	return ret;
 }
 

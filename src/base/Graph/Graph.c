@@ -95,3 +95,8 @@ ZRGraphNode* ZRGraphNode_getChild(ZRGraph *graph, ZRGraphNode *node, size_t offs
 {
 	return ZRGRAPHNODE_GETCHILD(graph, node, offset);
 }
+
+ZRGraphEdge ZRGraphEdge_cpy(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select)
+{
+	return ZRGRAPHEDGE_CPY(graph, a, b, offset, select);
+}
