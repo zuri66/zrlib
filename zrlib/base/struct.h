@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #ifndef ZRSTRUCT_MAXFIELDS
 #	define ZRSTRUCT_MAXFIELDS 128
 #endif
@@ -23,6 +24,11 @@ typedef struct ZRObjAlignInfosS
 	size_t alignment;
 	size_t size;
 } ZRObjAlignInfos;
+
+
+#define ZROBJALIGNINFOS_SIZE_ALIGNMENT(I) (I).size, (I).alignment
+#define ZROBJALIGNINFOS_ALIGNMENT_SIZE(I) (I).alignment, (I).size
+
 
 ZRMUSTINLINE
 static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
