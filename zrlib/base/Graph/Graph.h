@@ -18,7 +18,8 @@ typedef struct ZRGraphEdgeS ___ ZRGraphEdge;
 typedef struct ZRGraphStrategyS ZRGraphStrategy;
 typedef struct ZRGraphNodeS ___ ZRGraphNode;
 
-#include "GraphBuilder.h"
+#define ZRGRAPH_EDGEBUFFER_SIZE 512
+#define ZRGRAPH_NODEBUFFER_SIZE 512
 
 // ============================================================================
 
@@ -31,7 +32,6 @@ struct ZRGraphStrategyS
 {
 	size_t (*fstrategySize)(void);
 
-	void* ______ (*fnode_getObj)(_______ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbParents)(_ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbChilds)(__ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbEdges)(___ ZRGraph*, ZRGraphNode*, enum ZRGraphEdge_selectE);
@@ -64,6 +64,13 @@ struct ZRGraphS
 
 struct ZRGraphNodeS
 {
+	/*
+	 * Unique identifier for a node.
+	 * Needed to make an order on nodes.
+	 */
+	size_t id;
+
+	void *obj;
 };
 
 struct ZRGraphEdgeS
@@ -72,6 +79,8 @@ struct ZRGraphEdgeS
 	ZRGraphNode *b;
 	void *obj;
 };
+
+#define ZRGRAPHNODE(N) ((ZRGraphNode*)(N))
 
 // ============================================================================
 
@@ -85,7 +94,12 @@ size_t ZRGraph_cpyNEdges(__ ZRGraph *graph, ZRGraphEdge *cpyTo, _____ size_t off
 // NODE
 // ============================================================================
 
-void* ______ ZRGraphNode_getObj(_______ ZRGraph *graph, ZRGraphNode *node);
+int ZRGraphNode_cmp(void *a, void *b);
+int ZRGraphNode_ucmp(void *a, void *b, void *data_unused);
+
+size_t _ ZRGraphNode_getId(__ ZRGraphNode *node);
+void* __ ZRGraphNode_getObj(_ ZRGraphNode *node);
+
 size_t _____ ZRGraphNode_getNbParents(_ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNbChilds(__ ZRGraph *graph, ZRGraphNode *node);
 size_t _____ ZRGraphNode_getNbEdges(___ ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select);
@@ -102,7 +116,7 @@ ZRGraphNode* ZRGraphNode_getChild(__ ZRGraph *graph, ZRGraphNode *node, size_t o
 ZRGraphEdge ZRGraphEdge_cpy(________ ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select);
 
 // ============================================================================
-// TREE
+// GRAPH
 // ============================================================================
 
 ZRMUSTINLINE
@@ -134,9 +148,15 @@ inline size_t ZRGRAPH_CPYNEDGES(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offse
 // ============================================================================
 
 ZRMUSTINLINE
-static inline void* ZRGRAPHNODE_GETOBJ(ZRGraph *graph, ZRGraphNode *node)
+static inline size_t ZRGRAPHNODE_GETID(ZRGraphNode *node)
 {
-	return graph->strategy->fnode_getObj(graph, node);
+	return node->id;
+}
+
+ZRMUSTINLINE
+static inline void* ZRGRAPHNODE_GETOBJ(ZRGraphNode *node)
+{
+	return node->obj;
 }
 
 ZRMUSTINLINE
@@ -202,5 +222,9 @@ static inline ZRGraphEdge ZRGRAPHEDGE_CPY(ZRGraph *graph, ZRGraphNode *a, ZRGrap
 	ZRGRAPHNODE_CPYNEDGES(graph, a, &ret, offset, 1, select);
 	return ret;
 }
+
+// ============================================================================
+
+#include "GraphBuilder.h"
 
 #endif

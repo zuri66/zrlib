@@ -5,6 +5,16 @@
 
 #include <zrlib/base/Graph/Graph.h>
 
+int ZRGraphNode_cmp(void *a, void *b)
+{
+	return ZRGRAPHNODE(a)->id - ZRGRAPHNODE(b)->id;
+}
+
+int ZRGraphNode_ucmp(void *a, void *b, void *data_unused)
+{
+	return ZRGRAPHNODE(a)->id - ZRGRAPHNODE(b)->id;
+}
+
 // ============================================================================
 // BUILDER
 // ============================================================================
@@ -47,9 +57,14 @@ size_t ZRGraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset, size
 // NODE
 // ============================================================================
 
-void* ZRGraphNode_getObj(ZRGraph *graph, ZRGraphNode *node)
+size_t ZRGraphNode_getId(ZRGraphNode *node)
 {
-	return ZRGRAPHNODE_GETOBJ(graph, node);
+	return ZRGRAPHNODE_GETID(node);
+}
+
+void* ZRGraphNode_getObj(ZRGraphNode *node)
+{
+	return ZRGRAPHNODE_GETOBJ(node);
 }
 
 size_t ZRGraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *node)
