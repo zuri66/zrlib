@@ -17,39 +17,39 @@
 
 void* ZRTreeBuilder_currentObj(ZRTreeBuilder *builder)
 {
-	return builder->strategy->fcurrentObj(builder);
+	return ZRTB_STRATEGY(builder)->fcurrentObj(builder);
 }
 
 void ZRTreeBuilder_node(ZRTreeBuilder *builder, void *nodeData, void *edgeData)
 {
-	builder->strategy->fnode(builder, nodeData, edgeData);
+	ZRTB_STRATEGY(builder)->fnode(builder, nodeData, edgeData);
 }
 
 void ZRTreeBuilder_end(ZRTreeBuilder *builder)
 {
-	builder->strategy->fend(builder);
+	ZRTB_STRATEGY(builder)->fend(builder);
 }
 
 ZRTree* ZRTreeBuilder_new(ZRTreeBuilder *builder)
 {
-	return builder->strategy->fnew(builder);
+	return ZRTB_STRATEGY(builder)->fnew(builder);
 }
 
 void ZRTreeBuilder_done(ZRTreeBuilder *builder)
 {
-	builder->strategy->fdone(builder);
+	ZRTB_STRATEGY(builder)->fdone(builder);
 }
 
 void ZRTreeBuilder_destroy(ZRTreeBuilder *builder)
 {
-	builder->strategy->fdestroy(builder);
+	ZRTB_STRATEGY(builder)->fdestroy(builder);
 }
 
 // HELP
 
 /**
  * Concat the tree located by *asRoot in *tree.
- * *asRoot is considered to be the root of *tree, be has not to be.
+ * *asRoot is considered to be the root of *tree, but has not to be.
  * All *node of *tree can be *asRoot.
  * The construction make sure that all *tree is added to the builder as if *asRoot was the root node.
  */
@@ -68,7 +68,7 @@ void ZRTreeBuilder_concatRootedTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTree
 		size_t const nbChilds = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), parent);
 
 		// Parent become a child
-		ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), parent), edge.obj);
+		ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(parent), edge.obj);
 
 		// Add the childs of the parent but not the last node
 		for (size_t i = 0; i < nbChilds; i++)
@@ -99,7 +99,7 @@ void ZRTreeBuilder_concatSubTree(ZRTreeBuilder *builder, ZRTree *tree, ZRTreeNod
 {
 	ZRGraphEdge edge;
 	ZRTREENODE_CPYTHEPARENTEDGE(tree, node, &edge);
-	ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(ZRTREE_GRAPH(tree), node), edge.obj);
+	ZRTreeBuilder_node(builder, ZRGRAPHNODE_GETOBJ(node), edge.obj);
 
 	size_t i = 0;
 	size_t const c = ZRGRAPHNODE_GETNBCHILDS(ZRTREE_GRAPH(tree), node);
