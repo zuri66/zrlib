@@ -14,12 +14,16 @@
 
 typedef struct ZRGraphBuilderS ZRGraphBuilder;
 typedef struct ZRGraphBuilderStrategyS ZRGraphBuilderStrategy;
-typedef void ZRGraphBuilderNode;
+typedef ZRGraphNode ZRGraphBuilderNode;
+
+#define ZRGBNODE(N) ((ZRGraphBuilderNode*)(N))
+#define ZRGBNODE_GNODE(GBN) ((ZRGraphNode*)(GBN))
 
 // ============================================================================
 
 struct ZRGraphBuilderStrategyS
 {
+	ZRGraphStrategy graph;
 	size_t (*fstrategySize)(void);
 
 	ZRGraph* (*fnew)(ZRGraphBuilder *builder, void **nodes, size_t nbNodes);
@@ -31,41 +35,47 @@ struct ZRGraphBuilderStrategyS
 	void (*fdestroy)(ZRGraphBuilder*);
 };
 
+#define ZRGBSTRATEGY_GSTRATEGY(GBSTRAT) (&(GBSTRAT)->graph)
+
 struct ZRGraphBuilderS
 {
-	ZRGraphBuilderStrategy *strategy;
+	ZRGraph graph;
 };
+
+#define ZRGRAPHBUILDER(GB) ((ZRGraphBuilder*)(GB))
+#define ZRGB_GRAPH(GB) (&(GB)->graph)
+#define ZRGB_STRATEGY(GB) ((ZRGraphBuilderStrategy*)ZRGB_GRAPH(GB)->strategy)
 
 // ============================================================================
 
 ZRMUSTINLINE
 static inline ZRGraph* ZRGRAPHBUILDER_NEW(ZRGraphBuilder *builder, void **nodes, size_t nbNodes)
 {
-	return builder->strategy->fnew(builder, nodes, nbNodes);
+	return ZRGB_STRATEGY(builder)->fnew(builder, nodes, nbNodes);
 }
 
 ZRMUSTINLINE
 static inline ZRGraphBuilderNode* ZRGRAPHBUILDER_NODE(ZRGraphBuilder *builder, void *nodeData)
 {
-	return builder->strategy->fnode(builder, nodeData);
+	return ZRGB_STRATEGY(builder)->fnode(builder, nodeData);
 }
 
 ZRMUSTINLINE
 static inline void ZRGRAPHBUILDER_EDGE(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData)
 {
-	builder->strategy->fedge(builder, a, b, edgeData);
+	ZRGB_STRATEGY(builder)->fedge(builder, a, b, edgeData);
 }
 
 ZRMUSTINLINE
 static inline void ZRGRAPHBUILDER_DONE(ZRGraphBuilder *builder)
 {
-	builder->strategy->fdone(builder);
+	ZRGB_STRATEGY(builder)->fdone(builder);
 }
 
 ZRMUSTINLINE
 static inline void ZRGRAPHBUILDER_DESTROY(ZRGraphBuilder *builder)
 {
-	builder->strategy->fdestroy(builder);
+	ZRGB_STRATEGY(builder)->fdestroy(builder);
 }
 
 // ============================================================================
