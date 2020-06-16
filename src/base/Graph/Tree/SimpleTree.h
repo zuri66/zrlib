@@ -40,14 +40,17 @@ typedef struct ZRSimpleTreeNodeS ZRSimpleTreeNode;
 
 struct ZRSimpleTreeNodeS
 {
+	ZRTreeNode node;
 	size_t nbAscendants;
 	size_t nbDescendants;
 	size_t nbChilds;
 	ZRSimpleTreeNode *parent;
 	ZRSimpleTreeNode *childs;
-	void *obj;
 	void *edgeObj;
 };
+
+#define ZRSTNODE(N) ((ZRSimpleTreeNode*)(N))
+#define ZRSTNODE_TNODE(STN) (&(STN)->node)
 
 #define ZRSIMPLETREENODE_INFOS_NB 5
 
@@ -80,28 +83,36 @@ ZRTree* ZRSimpleTree_create(size_t nbNodes,
 	ZRAllocator *allocator
 	);
 
-
 // ============================================================================
 // Simple Tree Builder
 // ============================================================================
 
-
 typedef struct ZRSimpleTreeBuilderStrategyS ZRSimpleTreeBuilderStrategy;
 typedef struct ZRSimpleTreeBuilderNodeS ZRSimpleTreeBuilderNode;
+typedef struct ZRSimpleTreeBuilderS ZRSimpleTreeBuilder;
 
 struct ZRSimpleTreeBuilderStrategyS
 {
 	ZRTreeBuilderStrategy treeBuilder;
 };
 
+#define ZRSTBSTRATEGY(S) ((ZRSimpleTreeBuilderStrategy*)(S))
+#define ZRSTBSTRATEGY_TB(STB) (&(STB)->treeBuilder)
+#define ZRSTBSTRATEGY_T(STB) ZRTBSTRATEGY_T(ZRSTBSTRATEGY_TB(STB))
+#define ZRSTBSTRATEGY_G(STB) ZRTBSTRATEGY_G(ZRSTBSTRATEGY_TB(STB))
+
 struct ZRSimpleTreeBuilderNodeS
 {
+	ZRTreeBuilderNode tbNode;
 	ZRSimpleTreeBuilderNode *parent;
 	ZRVector *childs;
 	alignas(max_align_t) char obj[];
 };
 
-typedef struct
+#define ZRSTBNODE(N) ((ZRSimpleTreeBuilderNode*)(N))
+#define ZRSTBNODE_TBNODE(STBN) (&(STBN)->tbNode)
+
+struct ZRSimpleTreeBuilderS
 {
 	ZRTreeBuilder treeBuilder;
 
@@ -119,7 +130,11 @@ typedef struct
 	ZRSimpleTreeBuilderNode *root;
 
 	alignas(max_align_t) char rootSpace[];
-} ZRSimpleTreeBuilder;
+};
+
+#define ZRSTB(TB) ((ZRSimpleTreeBuilder*)(TB))
+#define ZRSTB_TB(STB) (&(STB)->treeBuilder)
+
 
 // Node&Edge size
 #define ZRSTREEBUILDERNODE_SIZE(OBJSIZE) ((OBJSIZE) + sizeof(ZRSimpleTreeBuilderNode))
@@ -130,6 +145,4 @@ typedef struct
 
 #define ZRSTREEBUILDER_CURRENTNODE(STREEBUILDER) *(void**)ZRVECTOR_GET((STREEBUILDER)->nodeStack, ZRVECTOR_NBOBJ((STREEBUILDER)->nodeStack) - 1)
 
-
 void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree);
-

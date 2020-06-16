@@ -111,8 +111,9 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset
 	{
 		*cpyTo = (ZRGraphEdge )
 			{
-				.a = (ZRGraphNode*)snode->parent,
-				.b = (ZRGraphNode*)snode,
+				ZRSTNODE_TNODE(snode->parent),
+				ZRSTNODE_TNODE(snode),
+				snode->edgeObj,
 			};
 		cpyTo++;
 		snode++;
@@ -141,8 +142,9 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 		{
 			*cpyTo = (ZRGraphEdge )
 				{
-					.a = (ZRGraphNode*)snode->parent,
-					.b = (ZRGraphNode*)snode,
+					ZRSTNODE_TNODE(snode->parent),
+					ZRSTNODE_TNODE(snode),
+					snode->edgeObj,
 				};
 			cpyTo++;
 			maxNbCpy--;
@@ -162,8 +164,9 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 	{
 		*cpyTo = (ZRGraphEdge )
 			{
-				.a = (ZRGraphNode*)snode,
-				.b = (ZRGraphNode*)&snode->childs[i],
+				ZRSTNODE_TNODE(snode),
+				ZRSTNODE_TNODE(&snode->childs[i]),
+				snode->edgeObj,
 			};
 		cpyTo++;
 	}
@@ -173,12 +176,6 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 // ============================================================================
 // NODE
 // ============================================================================
-
-static void* fgraphNode_getObj(ZRGraph *graph, ZRGraphNode *gnode)
-{
-	ZRSimpleTreeNode *const snode = (ZRSimpleTreeNode*)gnode;
-	return snode->obj;
-}
 
 static size_t fgraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *gnode)
 {
@@ -400,7 +397,6 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 				.fnode_getNbEdges = fgraphNode_getNbEdges, //
 				.fnode_cpyNEdges = fgraphNode_cpyNEdges, //
 				.fcpyNEdges = fgraph_cpyNEdges, //
-				.fnode_getObj = fgraphNode_getObj, //
 				.fnode_getNbParents = fgraphNode_getNbParents, //
 				.fnode_getNbChilds = fgraphNode_getNbChilds, //
 				.fnode_getNParents = fgraphNode_getNParents, //
