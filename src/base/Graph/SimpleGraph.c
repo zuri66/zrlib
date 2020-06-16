@@ -78,12 +78,6 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset
 // NODE
 // ============================================================================
 
-static void* fgraphNode_getObj(ZRGraph *graph, ZRGraphNode *gnode)
-{
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
-	return snode->obj;
-}
-
 static size_t fgraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *gnode)
 {
 	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
@@ -234,7 +228,6 @@ static void ZRSimpleGraphStrategy_init(ZRSimpleGraphStrategy *strategy)
 		.graph = (ZRGraphStrategy ) { //
 			.fstrategySize = fstrategySize, //
 
-			.fnode_getObj = fgraphNode_getObj, //
 			.fnode_getNbParents = fgraphNode_getNbParents, //
 			.fnode_getNbChilds = fgraphNode_getNbChilds, //
 			.fnode_getNbEdges = fgraphNode_getNbEdges, //

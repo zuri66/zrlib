@@ -24,15 +24,15 @@ typedef struct
 
 typedef struct
 {
-	size_t id;
+	ZRGraphBuilderNode gbNode;
 	ZRVector *parents;
 	ZRVector *childs;
 	ZRVector *childEdgeObjs;
-	void *obj;
 	int mark :1;
 } ZRSimpleGraphBuilderNode;
 
-#define ZRSGRAPHBUILDERNODE(N) ((ZRSimpleGraphBuilderNode*)(N))
+#define ZRSGBNODE(N) ((ZRSimpleGraphBuilderNode*)(N))
+#define ZRSGBNODE_GBNODE(N) (&(N)->gbNode)
 
 typedef struct
 {
@@ -82,27 +82,13 @@ static inline void node_infos(ZRObjAlignInfos *infos, size_t nodeObjSize, size_t
 	ZRStruct_bestOffsetsPos(ZRSIMPLEGRAPHBUILDERNODE_INFOS_NB - 1, infos, 1);
 }
 
-static int node_cmp(void *a, void *b)
-{
-	ZRSimpleGraphBuilderNode *ba = *(ZRSimpleGraphBuilderNode**)a;
-	ZRSimpleGraphBuilderNode *bb = *(ZRSimpleGraphBuilderNode**)b;
-	return ba->id - bb->id;
-}
-
-static int node_ucmp(void *a, void *b, void *data_unused)
-{
-	ZRSimpleGraphBuilderNode *ba = *(ZRSimpleGraphBuilderNode**)a;
-	ZRSimpleGraphBuilderNode *bb = *(ZRSimpleGraphBuilderNode**)b;
-	return ba->id - bb->id;
-}
-
 // ============================================================================
 
 ZRMUSTINLINE
 static inline void sbnode_cpyData(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode, void *nodeData)
 {
 	if (nodeData != NULL)
-		memcpy(sbnode->obj, nodeData, sbuilder->nodeObjInfos.size);
+		memcpy(ZRSGBNODE_GBNODE(sbnode)->obj, nodeData, sbuilder->nodeObjInfos.size);
 }
 
 ZRMUSTINLINE
@@ -114,11 +100,13 @@ static inline void sbnode_add(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuild
 	ZRVECTOR_ADD(sbuilder->pnodes, &sbnode);
 
 	*sbnode = (ZRSimpleGraphBuilderNode ) { //
-		.id = ZRSGRAPHBUILDER_NBNODES(sbuilder), //
+		.gbNode = (ZRGraphNode ) { //
+			.id = ZRSGRAPHBUILDER_NBNODES(sbuilder), //
+			.obj = ZRMPOOL_RESERVE(sbuilder->pool_nodeObjs), //
+			},//
 		.childs = childs, //
 		.parents = parents, //
 		.childEdgeObjs = echilds, //
-		.obj = ZRMPOOL_RESERVE(sbuilder->pool_nodeObjs), //
 		};
 	sbnode_cpyData(sbuilder, sbnode, nodeData);
 }
@@ -136,8 +124,8 @@ static inline void sbnode_destroy(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphB
 static void fbuilder_edge(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData)
 {
 	ZRSimpleGraphBuilder *const sbuilder = ZRSGRAPHBUILDER(builder);
-	ZRSimpleGraphBuilderNode *sa = ZRSGRAPHBUILDERNODE(a);
-	ZRSimpleGraphBuilderNode *sb = ZRSGRAPHBUILDERNODE(b);
+	ZRSimpleGraphBuilderNode *sa = ZRSGBNODE(a);
+	ZRSimpleGraphBuilderNode *sb = ZRSGBNODE(b);
 
 	ZRVECTOR_ADD(sb->parents, &sa);
 	ZRVECTOR_ADD(sa->childs, &sb);
@@ -166,7 +154,7 @@ static ZRGraphBuilderNode* fbuilder_node(ZRGraphBuilder *builder, void *nodeData
 	bnode = (ZRSimpleGraphBuilderNode*)ZRMPOOL_RESERVE(sbuilder->pool_nodes);
 	sbnode_add(sbuilder, bnode, nodeData);
 
-	return bnode;
+	return ZRGRAPHNODE(bnode);
 }
 
 ZRMUSTINLINE
@@ -223,7 +211,7 @@ inline static void build_parentEdges(
 		size_t const nbChilds = sbuilder->build_pedges->nbObj;
 		size_t const nbFounded = nbChilds - childEdgesOffset;
 		assert(nbFounded > 0);
-		ZRSimpleGraphEdge *edge = ZRVECTOR_GET(sbuilder->build_pedges,childEdgesOffset);
+		ZRSimpleGraphEdge *edge = ZRVECTOR_GET(sbuilder->build_pedges, childEdgesOffset);
 
 		// Set the edge
 		sgraph->parentEdges[sbuilder->build_nbParentEdges] = edge;
@@ -253,15 +241,18 @@ static inline void build_node(
 
 	sbnode->mark = 1;
 	*gnode = (ZRSimpleGraphNode ) { //
+		.node = (ZRGraphNode ) { //
+			.id = ZRGRAPHNODE(sbnode)->id, //
+			.obj = ZRARRAYOP_GET(sgraph->nodeObjs, ZRSGRAPH_GRAPH(sgraph)->nodeObjSize, pos), //
+			},//
 		.nbParents = sbnode->parents->nbObj, //
 		.nbChilds = sbnode->childs->nbObj, //
 		.parents = &sgraph->parentEdges[sbuilder->build_nbParentEdges],
 		.childs = &sgraph->childEdges[sbuilder->build_nbChildEdges],
-		.obj = ZRARRAYOP_GET(sgraph->nodeObjs, ZRSGRAPH_GRAPH(sgraph)->nodeObjSize, pos),
 		};
 
-	if (sbnode->obj != NULL)
-		memcpy(gnode->obj, sbnode->obj, nodeObjSize);
+	if ( ZRSGBNODE_GBNODE(sbnode)->obj != NULL)
+		memcpy(ZRSGRAPHNODE_GN(gnode)->obj, ZRSGBNODE_GBNODE(sbnode)->obj, nodeObjSize);
 
 	build_childEdges(sbuilder, sbnode, sgraph, gnode, map_bnodes);
 	build_parentEdges(sbuilder, sbnode, sgraph, gnode, map_bnodes);
@@ -271,7 +262,7 @@ static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph
 {
 	ZRMap *map_bnodes = ZRVectorMap_create(
 		ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphBuilderNode*), ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphNode*),
-		node_cmp, NULL, sbuilder->allocator,
+		ZRGraphNode_cmp, NULL, sbuilder->allocator,
 		ZRVectorMap_modeOrder
 	);
 
@@ -285,12 +276,12 @@ static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph
 		bnode = *(ZRSimpleGraphBuilderNode**)(ZRVECTOR_GET(sbuilder->pnodes, i));
 		gnode = &sgraph->nodes[i];
 		ZRMAP_PUT(map_bnodes, &bnode, &gnode);
-		void ***refNode = ZRMAP_GET(bnodesRef, &bnode->id);
+		void ***refNode = ZRMAP_GET(bnodesRef, &ZRGRAPHNODE(bnode)->id);
 
 		if (refNode != NULL)
 		{
 			**refNode = gnode;
-			ZRMAP_DELETE(bnodesRef, &bnode->id);
+			ZRMAP_DELETE(bnodesRef, &ZRGRAPHNODE(bnode)->id);
 		}
 	}
 
@@ -341,7 +332,7 @@ static ZRGraph* fbuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNod
 		{
 			void **ref = &nodes[i];
 			ZRSimpleGraphBuilderNode *bnodeRef = *ref;
-			ZRMAP_PUT(bnodesRef, &bnodeRef->id, &ref);
+			ZRMAP_PUT(bnodesRef, &ZRGRAPHNODE(bnodeRef)->id, &ref);
 		}
 		fBuilder_build(sbuilder, sgraph, bnodesRef);
 		ZRMAP_DESTROY(bnodesRef);
@@ -382,7 +373,9 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 
 	*sbuilder = (ZRSimpleGraphBuilder ) { //
 		.graphBuilder = (ZRGraphBuilder ) { //
-			.strategy = (ZRGraphBuilderStrategy*)strategy, //
+			.graph = (ZRGraph ) { //
+				.strategy = (ZRGraphStrategy*)strategy, //
+				} , //
 			},//
 		.build_pedges = pedges, //
 		.nodeObjInfos = *nodeObjInfos, //
@@ -394,7 +387,6 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 		.pool_edgeObjs = edgeObjs, //
 		};
 }
-
 
 static void ZRSimpleGraphBuilder_done(ZRGraphBuilder *builder)
 {
@@ -417,7 +409,7 @@ static void ZRSimpleGraphBuilder_destroy(ZRGraphBuilder *builder)
 
 	ZRSimpleGraphBuilder_done(builder);
 
-	ZRFREE(sbuilder->allocator, builder->strategy);
+	ZRFREE(sbuilder->allocator, ZRGB_STRATEGY(builder));
 	ZRFREE(sbuilder->allocator, builder);
 }
 

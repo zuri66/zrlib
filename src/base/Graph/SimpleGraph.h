@@ -57,7 +57,6 @@ struct ZRSimpleGraphNodeS
 	ZRSimpleGraphEdge **parents;
 	ZRSimpleGraphEdge *childs;
 
-	void *obj;
 	void *edgeChildsObjs;
 };
 
