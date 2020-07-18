@@ -224,6 +224,77 @@ static inline ZRGraphEdge ZRGRAPHEDGE_CPY(ZRGraph *graph, ZRGraphNode *a, ZRGrap
 }
 
 // ============================================================================
+// FUNCTION DEFINITION HELP
+// ============================================================================
+
+#define ZRGRAPHNODE_GETNBEDGES_MDEF(select, nbParents, nbChilds) ZRBLOCK( \
+	switch (select) \
+	{ \
+	case ZRGraphEdge_selectIN: \
+		return (nbParents); \
+	case ZRGraphEdge_selectOUT: \
+		return (nbChilds); \
+	case ZRGraphEdge_selectINOUT: \
+		return (nbParents) + (nbChilds); \
+	default: \
+		return SIZE_MAX; \
+	} \
+)
+
+#define ZRGRAPHNODE_CPYNEDGES_MDEF( \
+	M_graph, M_node, M_cpyTo, M_offset, M_maxNbCpy, M_select, \
+	M_fnode_cpyNParentEdges, M_fnode_cpyNChildEdges, M_fnode_cpyNEdges \
+) ZRBLOCK( \
+	ZRGraph *_graph = (M_graph); \
+	ZRGraphNode *_node = (M_node); \
+	ZRGraphEdge *_cpyTo = (M_cpyTo); \
+	size_t const _offset = (M_offset); \
+	size_t const _maxNbCpy = (M_maxNbCpy); \
+	enum ZRGraphEdge_selectE _select = (M_select); \
+	\
+	switch (_select) \
+	{ \
+	case ZRGraphEdge_selectIN: \
+		return M_fnode_cpyNParentEdges(_graph, _node, _cpyTo, _offset, _maxNbCpy); \
+	case ZRGraphEdge_selectOUT: \
+		return M_fnode_cpyNChildEdges(_graph, _node, _cpyTo, _offset, _maxNbCpy); \
+	case ZRGraphEdge_selectINOUT: \
+		return M_fnode_cpyNEdges(_graph, _node, _cpyTo, _offset, _maxNbCpy); \
+	default: \
+		fprintf(stderr, "Bad select value in %s: %d", __func__, _select); \
+		exit(1); \
+	} \
+)
+
+#define ZRGRAPHNODE_CPYNEDGES_MDEF2( \
+	M_graph, M_node, M_cpyTo, M_offset, M_maxNbCpy, \
+	M_nbParents, M_nbChilds, \
+	M_fnode_cpyNParentEdges, M_fnode_cpyNChildEdges \
+) ZRBLOCK( \
+	ZRGraph *_graph = (M_graph); \
+	ZRGraphNode *_node = (M_node); \
+	ZRGraphEdge *_cpyTo = (M_cpyTo); \
+	size_t const _offset = (M_offset); \
+	size_t const _nbParents = (M_nbParents); \
+	size_t const _nbChilds = (M_nbChilds); \
+	size_t const _maxNbCpy = (M_maxNbCpy); \
+	/* \
+	 * size_t (*_fcpyNChildEdges)(__ ZRGraph *, ZRGraphNode *, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy) = (M_fcpyNChildEdges); \
+	 * size_t (*_fcpyNParentEdges)(_ ZRGraph *, ZRGraphNode *, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy) = (M_fcpyNParentEdges); \
+	 */ \
+	\
+	/* Only childs to copy */ \
+	if (_offset >= _nbParents) \
+		return M_fnode_cpyNChildEdges(_graph, _node, _cpyTo, _offset - _nbParents, _maxNbCpy); \
+	\
+	/* Parents and childs to copy */ \
+	size_t const _parent_nb = M_fnode_cpyNParentEdges(_graph, _node, _cpyTo, offset, maxNbCpy); \
+	\
+	if (M_maxNbCpy == _parent_nb) \
+		return _parent_nb; \
+	\
+	return _parent_nb + M_fnode_cpyNChildEdges(_graph, _node, &_cpyTo[_parent_nb], offset + _parent_nb, _maxNbCpy - _parent_nb); \
+)
 
 #include "GraphBuilder.h"
 
