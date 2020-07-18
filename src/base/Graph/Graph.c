@@ -19,6 +19,21 @@ int ZRGraphNode_ucmp(void *a, void *b, void *data_unused)
 // BUILDER
 // ============================================================================
 
+ZRGraph* ZRGraphBuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNodes)
+{
+	return ZRGRAPHBUILDER_NEW(builder, nodes, nbNodes);
+}
+
+ZRGraphBuilderNode* ZRGraphBuilder_node(ZRGraphBuilder *builder, void *nodeData)
+{
+	return ZRGRAPHBUILDER_NODE(builder, nodeData);
+}
+
+void ZRGraphBuilder_edge(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData)
+{
+	return ZRGRAPHBUILDER_EDGE(builder, a, b, edgeData);
+}
+
 // ============================================================================
 // GRAPH
 // ============================================================================

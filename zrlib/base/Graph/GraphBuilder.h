@@ -77,5 +77,9 @@ static inline ZRGraphBuilderNode* ZRGRAPHBUILDER_EDGENODE(ZRGraphBuilder *builde
 
 // ============================================================================
 
+ZRGraph* ZRGraphBuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNodes);
+ZRGraphBuilderNode* ZRGraphBuilder_node(ZRGraphBuilder *builder, void *nodeData);
+void ZRGraphBuilder_edge(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData);
+
 
 #endif
