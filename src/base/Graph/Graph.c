@@ -19,16 +19,6 @@ int ZRGraphNode_ucmp(void *a, void *b, void *data_unused)
 // BUILDER
 // ============================================================================
 
-void ZRGraphBuilder_done(ZRGraphBuilder *builder)
-{
-	ZRGRAPHBUILDER_DONE(builder);
-}
-
-void ZRGraphBuilder_destroy(ZRGraphBuilder *builder)
-{
-	ZRGRAPHBUILDER_DESTROY(builder);
-}
-
 // ============================================================================
 // GRAPH
 // ============================================================================

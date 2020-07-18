@@ -30,9 +30,6 @@ struct ZRGraphBuilderStrategyS
 
 	ZRGraphBuilderNode* (*fnode)(ZRGraphBuilder *builder, void *nodeData);
 	void (*fedge)(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData);
-
-	void (*fdone)(__ ZRGraphBuilder*);
-	void (*fdestroy)(ZRGraphBuilder*);
 };
 
 #define ZRGBSTRATEGY_GSTRATEGY(GBSTRAT) (&(GBSTRAT)->graph)
@@ -66,18 +63,6 @@ static inline void ZRGRAPHBUILDER_EDGE(ZRGraphBuilder *builder, ZRGraphBuilderNo
 	ZRGB_STRATEGY(builder)->fedge(builder, a, b, edgeData);
 }
 
-ZRMUSTINLINE
-static inline void ZRGRAPHBUILDER_DONE(ZRGraphBuilder *builder)
-{
-	ZRGB_STRATEGY(builder)->fdone(builder);
-}
-
-ZRMUSTINLINE
-static inline void ZRGRAPHBUILDER_DESTROY(ZRGraphBuilder *builder)
-{
-	ZRGB_STRATEGY(builder)->fdestroy(builder);
-}
-
 // ============================================================================
 // HELP
 // ============================================================================
@@ -92,7 +77,5 @@ static inline ZRGraphBuilderNode* ZRGRAPHBUILDER_EDGENODE(ZRGraphBuilder *builde
 
 // ============================================================================
 
-void ZRGraphBuilder_done(ZRGraphBuilder *builder);
-void ZRGraphBuilder_destroy(ZRGraphBuilder *builder);
 
 #endif
