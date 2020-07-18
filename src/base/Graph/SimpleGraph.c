@@ -3,6 +3,7 @@
  * @date samedi 9 mai 2020, 16:36:44 (UTC+0200)
  */
 
+#include <zrlib/base/macro.h>
 #include <zrlib/base/Graph/Graph.h>
 #include <zrlib/base/Graph/SimpleGraph.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
@@ -25,15 +26,9 @@ static size_t fstrategySize(void)
 
 static size_t fgraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbNodes)
 {
-	ZRSimpleGraph *const sgraph = (ZRSimpleGraph*)graph;
-
-	if (offset >= ZRSGRAPH_GRAPH(sgraph)->nbNodes)
-		return 0;
-
-	size_t const nbNodes = ZRSGRAPH_GRAPH(sgraph)->nbNodes - offset;
-	size_t const nb = ZRMIN(nbNodes, maxNbNodes);
-
-	ZRCARRAY_TOPOINTERS(ZRGraphNode, nodes_out, ZRSimpleGraphNode, &sgraph->nodes[offset], nb);
+	size_t nb;
+	ZRCARRAY_CHECKFORCPY(offset, graph->nbNodes, maxNbNodes, return 0, nb = _nb);
+	ZRCARRAY_TOPOINTERS(ZRGraphNode, nodes_out, ZRSimpleGraphNode, &ZRSGRAPH(graph)->nodes[offset], nb);
 	return nb;
 }
 
@@ -60,18 +55,11 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset
 	size_t const nbEdges = graph->nbEdges;
 	ZRSimpleGraph *sgraph = ZRSGRAPH(graph);
 
-	if (offset >= nbEdges)
-		return 0;
-
-	size_t const nbFromOffset = nbEdges - offset;
-	size_t const nb = ZRMIN(maxNbCpy, nbFromOffset);
-
-	for (size_t i = 0; i < nb; i++)
-	{
+	ZRCARRAY_SAFECPY(offset, nbEdges, maxNbCpy, i, return 0, ZRCODE(
 		ZRSimpleGraphEdge *echild = &sgraph->childEdges[offset + i];
 		cpyTo[i] = ZRSimpleGraphEdge_cpyGE(echild);
-	}
-	return nb;
+		),
+		return _nb);
 }
 
 // ============================================================================
@@ -80,144 +68,74 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset
 
 static size_t fgraphNode_getNbParents(ZRGraph *graph, ZRGraphNode *gnode)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
-	return snode->nbParents;
+	return ZRSGRAPHNODE(gnode)->nbParents;
 }
 
 static size_t fgraphNode_getNbChilds(ZRGraph *graph, ZRGraphNode *gnode)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
-	return snode->nbChilds;
+	return ZRSGRAPHNODE(gnode)->nbChilds;
 }
 
-static size_t fgraphNode_getNbEdges(ZRGraph *graph, ZRGraphNode *node, enum ZRGraphEdge_selectE select)
+static size_t fgraphNode_getNbEdges(ZRGraph *graph, ZRGraphNode *gnode, enum ZRGraphEdge_selectE select)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)node;
-
-	switch (select)
-	{
-	case ZRGraphEdge_selectIN:
-		return snode->nbParents;
-	case ZRGraphEdge_selectINOUT:
-		return snode->nbChilds + snode->nbParents;
-	case ZRGraphEdge_selectOUT:
-		return snode->nbChilds;
-	default:
-		return SIZE_MAX;
-	}
+	ZRGRAPHNODE_GETNBEDGES_MDEF(select, ZRSGRAPHNODE(gnode)->nbParents, ZRSGRAPHNODE(gnode)->nbChilds);
 }
 
 static size_t fgraphNode_getNParents(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphNode **gnodes_out, size_t offset, size_t maxNbNodes)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
+	ZRSimpleGraphNode *const snode = ZRSGRAPHNODE(gnode);
 	ZRSimpleGraphEdge **gedges = snode->parents;
 	size_t nbNodes = snode->nbParents;
 
-	if (offset >= nbNodes)
-		return 0;
-
-	size_t const nbFromOffset = nbNodes - offset;
-	size_t const nb = ZRMIN(maxNbNodes, nbFromOffset);
-
-	for (size_t i = 0; i < nb; i++)
-		gnodes_out[i] = (ZRGraphNode*)(gedges[offset + i]->b);
-
-	return nb;
+	ZRCARRAY_SAFECPY(offset, nbNodes, maxNbNodes, i, return 0,
+		ZRCODE(gnodes_out[i] = (ZRGraphNode*)(gedges[offset + i]->b)),
+		return _nb);
 }
 
 static size_t fgraphNode_getNChilds(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphNode **gnodes_out, size_t offset, size_t maxNbNodes)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
+	ZRSimpleGraphNode *const snode = ZRSGRAPHNODE(gnode);
 	ZRSimpleGraphEdge *gedges = snode->childs;
 	size_t nbNodes = snode->nbChilds;
 
-	if (offset >= nbNodes)
-		return 0;
-
-	size_t const nbFromOffset = nbNodes - offset;
-	size_t const nb = ZRMIN(maxNbNodes, nbFromOffset);
-
-	for (size_t i = 0; i < nb; i++)
-		gnodes_out[i] = (ZRGraphNode*)(gedges[offset + i].b);
-
-	return nb;
+	ZRCARRAY_SAFECPY(offset, nbNodes, maxNbNodes, i, return 0,
+		ZRCODE(gnodes_out[i] = (ZRGraphNode*)(gedges[offset + i].b)),
+		return _nb);
 }
 
 ZRMUSTINLINE
 static inline size_t node_cpyNParentEdges(
-	ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy,
-	ZRSimpleGraphEdge **gedges, size_t nbEdges
+	ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy
 	)
 {
-	if (offset >= nbEdges)
-		return 0;
-
-	size_t const nbFromOffset = nbEdges - offset;
-	size_t const nb = ZRMIN(maxNbCpy, nbFromOffset);
-
-	for (size_t i = 0; i < nb; i++)
-	{
-		ZRSimpleGraphEdge *gedge = gedges[offset + i];
+	ZRCARRAY_SAFECPY(offset, ZRSGRAPHNODE(gnode)->nbParents, maxNbCpy, i, return 0, ZRCODE(
+		ZRSimpleGraphEdge *gedge = ZRSGRAPHNODE(gnode)->parents[offset + i];
 		cpyTo[i] = (ZRGraphEdge ) { (ZRGraphNode*)gedge->a, (ZRGraphNode*)gedge->b, gedge->obj };
-	}
-	return nb;
+		),
+		return _nb);
 }
 
 ZRMUSTINLINE
 static inline size_t node_cpyNChildEdges(
-	ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy,
-	ZRSimpleGraphEdge *gedges, size_t nbEdges
+	ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy
 	)
 {
-	if (offset >= nbEdges)
-		return 0;
-
-	size_t const nbFromOffset = nbEdges - offset;
-	size_t const nb = ZRMIN(maxNbCpy, nbFromOffset);
-
-	for (size_t i = 0; i < nb; i++)
-	{
-		ZRSimpleGraphEdge *gedge = &gedges[offset + i];
+	ZRCARRAY_SAFECPY(offset, ZRSGRAPHNODE(gnode)->nbChilds, maxNbCpy, i, return 0, ZRCODE(
+		ZRSimpleGraphEdge *gedge = &ZRSGRAPHNODE(gnode)->childs[offset + i];
 		cpyTo[i] = (ZRGraphEdge ) { (ZRGraphNode*)gedge->a, (ZRGraphNode*)gedge->b, gedge->obj };
-	}
-	return nb;
+		),
+		return _nb);
 }
 
 ZRMUSTINLINE
 static inline size_t node_cpyNEdges(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
-
-	// Only childs to copy
-	if (offset >= snode->nbParents)
-		return node_cpyNChildEdges(graph, gnode, cpyTo, offset - snode->nbParents, maxNbCpy, snode->childs, snode->nbChilds);
-	// Parents and childs to copy
-	else
-	{
-		size_t const parent_nb = node_cpyNParentEdges(graph, gnode, cpyTo, offset, maxNbCpy, snode->parents, snode->nbParents);
-
-		if (maxNbCpy == parent_nb)
-			return parent_nb;
-
-		return parent_nb + node_cpyNChildEdges(graph, gnode, &cpyTo[parent_nb], offset + parent_nb, maxNbCpy - parent_nb, snode->childs, snode->nbChilds);
-	}
+	ZRGRAPHNODE_CPYNEDGES_MDEF2(graph, gnode, cpyTo, offset, maxNbCpy, ZRSGRAPHNODE(gnode)->nbParents, ZRSGRAPHNODE(gnode)->nbChilds, node_cpyNParentEdges, node_cpyNChildEdges);
 }
 
 static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *gnode, ZRGraphEdge *cpyTo, size_t offset, size_t maxNbCpy, enum ZRGraphEdge_selectE select)
 {
-	ZRSimpleGraphNode *const snode = (ZRSimpleGraphNode*)gnode;
-	switch (select)
-	{
-	case ZRGraphEdge_selectIN:
-		return node_cpyNParentEdges(graph, gnode, cpyTo, offset, maxNbCpy, snode->parents, snode->nbParents);
-	case ZRGraphEdge_selectOUT:
-		return node_cpyNChildEdges(graph, gnode, cpyTo, offset, maxNbCpy, snode->childs, snode->nbChilds);
-	case ZRGraphEdge_selectINOUT:
-		return node_cpyNEdges(graph, gnode, cpyTo, offset, maxNbCpy);
-	default:
-		fprintf(stderr, "Bad select value in %s: %d", __func__, select);
-		exit(1);
-	}
+	ZRGRAPHNODE_CPYNEDGES_MDEF(graph, gnode, cpyTo, offset, maxNbCpy, select, node_cpyNParentEdges, node_cpyNChildEdges, node_cpyNEdges);
 }
 
 // ============================================================================
