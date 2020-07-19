@@ -113,7 +113,7 @@ size_t _____ ZRGraphNode_cpyNEdges(____ ZRGraph *graph, ZRGraphNode *node, ZRGra
 ZRGraphNode* ZRGraphNode_getParent(_ ZRGraph *graph, ZRGraphNode *node, size_t offset);
 ZRGraphNode* ZRGraphNode_getChild(__ ZRGraph *graph, ZRGraphNode *node, size_t offset);
 
-ZRGraphEdge ZRGraphEdge_cpy(________ ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select);
+ZRGraphEdge ZRGraphEdge_cpy(________ ZRGraph *graph, ZRGraphNode *a, size_t offset, enum ZRGraphEdge_selectE select);
 
 // ============================================================================
 // GRAPH
@@ -216,7 +216,7 @@ static inline ZRGraphNode* ZRGRAPHNODE_GETCHILD(ZRGraph *graph, ZRGraphNode *nod
 }
 
 ZRMUSTINLINE
-static inline ZRGraphEdge ZRGRAPHEDGE_CPY(ZRGraph *graph, ZRGraphNode *a, ZRGraphNode *b, size_t offset, enum ZRGraphEdge_selectE select)
+static inline ZRGraphEdge ZRGRAPHEDGE_CPY(ZRGraph *graph, ZRGraphNode *a, size_t offset, enum ZRGraphEdge_selectE select)
 {
 	ZRGraphEdge ret = { };
 	ZRGRAPHNODE_CPYNEDGES(graph, a, &ret, offset, 1, select);
