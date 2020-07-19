@@ -580,6 +580,10 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 		.graphBuilder = (ZRGraphBuilder ) { //
 			.graph = (ZRGraph ) { //
 				.strategy = (ZRGraphStrategy*)strategy, //
+				.nodeObjSize = nodeObjInfos->size,
+				.nodeObjAlignment = nodeObjInfos->alignment,
+				.edgeObjSize = edgeObjInfos->size,
+				.edgeObjAlignment = edgeObjInfos->alignment,
 				} , //
 			},//
 		.build_pedges = pedges, //
