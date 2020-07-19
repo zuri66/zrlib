@@ -29,7 +29,7 @@ static ZRTreeBuilder* fnewTreeBuilder(ZRTree *tree, ZRTreeNode *currentForBuilde
 
 static void ftree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
 {
-	ZRSimpleTree *const stree = (ZRSimpleTree*)tree;
+	ZRSimpleTree *const stree = ZRSTREE(tree);
 	ZRTreeBuilder *tbuilder = ZRSimpleTreeBuilder_create( //
 		ZRSTREE_GRAPH(stree)->nodeObjSize, ZRSTREE_GRAPH(stree)->nodeObjAlignment,
 		ZRSTREE_GRAPH(stree)->edgeObjSize, ZRSTREE_GRAPH(stree)->edgeObjAlignment,
@@ -37,7 +37,7 @@ static void ftree_changeRoot(ZRTree *tree, ZRTreeNode *newRoot)
 		);
 	ZRTreeBuilder_concatRootedTree(tbuilder, tree, newRoot);
 	fBuilder_build(tbuilder, ZRSTREE_TREE(stree));
-	ZRTreeBuilder_destroy(tbuilder);
+	ZRGRAPH_DESTROY(ZRTB_GRAPH(tbuilder));
 }
 
 static size_t fgraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbNodes)

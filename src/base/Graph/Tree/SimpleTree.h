@@ -134,6 +134,10 @@ struct ZRSimpleTreeBuilderS
 
 #define ZRSTB(TB) ((ZRSimpleTreeBuilder*)(TB))
 #define ZRSTB_TB(STB) (&(STB)->treeBuilder)
+#define ZRSTB_T(STB) (&ZRSTB_TB(STB)->tree)
+#define ZRSTB_G(STB) (&ZRSTB_T(STB)->graph)
+
+#define ZRSTB_STRATEGY(STB) ZRSTBSTRATEGY(ZRSTB_G(STB)->strategy)
 
 
 // Node&Edge size
