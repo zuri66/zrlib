@@ -7,7 +7,6 @@
 #error "This file: " __FILE__ "cannot be used outside of Bits.h"
 #endif
 
-#include <zrlib/base/macro.h>
 #include <stdint.h>
 
 #if ZRBITS_NBOF == 32 || ZRBITS_NBOF == 64

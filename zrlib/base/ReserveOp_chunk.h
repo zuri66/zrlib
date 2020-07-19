@@ -6,7 +6,6 @@
 #ifndef ZRRESERVE_OP_CHUNK_H
 #define ZRRESERVE_OP_CHUNK_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/MemoryOp.h>
 
 #include <zrlib/syntax_pad.h>

@@ -17,11 +17,6 @@
 // STRATEGY FUNCTIONS
 // ============================================================================
 
-static size_t fstrategySize(void)
-{
-	return sizeof(ZRSimpleTreeStrategy);
-}
-
 static ZRTreeBuilder* fnewTreeBuilder(ZRTree *tree, ZRTreeNode *currentForBuilder)
 {
 	return ZRSimpleTreeBuilder_fromSimpleTree((ZRSimpleTree*)tree, (ZRSimpleTreeNode*)currentForBuilder);
@@ -393,7 +388,6 @@ static void ZRSimpleTreeStrategy_init(ZRSimpleTreeStrategy *strategy)
 	*strategy = (ZRSimpleTreeStrategy ) { //
 		.tree = (ZRTreeStrategy ) { //
 			.graph = (ZRGraphStrategy ) { //
-				.fstrategySize = fstrategySize, //
 				.fnode_getNbEdges = fgraphNode_getNbEdges, //
 				.fnode_cpyNEdges = fgraphNode_cpyNEdges, //
 				.fcpyNEdges = fgraph_cpyNEdges, //

@@ -19,11 +19,6 @@
 // STRATEGY FUNCTIONS
 // ============================================================================
 
-static size_t fstrategySize(void)
-{
-	return sizeof(ZRSimpleGraphStrategy);
-}
-
 static size_t fgraph_getNNodes(ZRGraph *graph, ZRGraphNode **nodes_out, size_t offset, size_t maxNbNodes)
 {
 	size_t nb;
@@ -144,7 +139,6 @@ static void ZRSimpleGraphStrategy_init(ZRSimpleGraphStrategy *strategy)
 {
 	*strategy = (ZRSimpleGraphStrategy ) { //
 		.graph = (ZRGraphStrategy ) { //
-			.fstrategySize = fstrategySize, //
 
 			.fnode_getNbParents = fgraphNode_getNbParents, //
 			.fnode_getNbChilds = fgraphNode_getNbChilds, //

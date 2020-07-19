@@ -6,10 +6,8 @@
 #ifndef ZRRESERVE_OP_LIST_H
 #define ZRRESERVE_OP_LIST_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/MemoryOp.h>
 
-#include <zrlib/syntax_pad.h>
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>

@@ -24,8 +24,6 @@ typedef struct ZRVectorStrategyS ZRVectorStrategy;
 
 struct ZRVectorStrategyS
 {
-	size_t (*fstrategySize)();
-
 	/**
 	 * (optional)
 	 */
@@ -120,12 +118,6 @@ static inline void ZRVECTOR_DESTROY(ZRVector *vec)
 {
 	if (vec->strategy->fdestroy != NULL)
 		vec->strategy->fdestroy(vec);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRVECTOR_STRATEGYSIZE(ZRVector *vec)
-{
-	return vec->strategy->fstrategySize(vec);
 }
 
 ZRMUSTINLINE
@@ -351,7 +343,6 @@ void ZRVector_destroy(ZRVector *vec);
 void ZRVector_changeObjSize(ZRVector *vec, size_t objSize, size_t objAlignment);
 void ZRVector_memoryTrim(ZRVector *vec);
 
-size_t ZRVector_strategySize(ZRVector *vec);
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 size_t ZRVector_objAlignment(ZRVector *vec);

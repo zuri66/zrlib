@@ -11,7 +11,6 @@ void ZRVector2SideStrategy_init(ZRVectorStrategy *strategy)
 		{ //
 		.strategy = { //
 			.finitVec = ZRVector2SideStrategy_finitVec, //
-			.fstrategySize = ZRVector2SideStrategy_size, //
 			.finsert = ZRVector2SideStrategy_finsert, //
 			.fdelete = ZRVector2SideStrategy_fdelete, //
 			.fchangeObjSize = ZRVector2SideStrategy_fchangeObjSize, //

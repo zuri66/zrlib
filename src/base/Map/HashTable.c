@@ -3,7 +3,6 @@
  * @date mardi 19 novembre 2019, 21:52:33 (UTC+0100)
  */
 
-#include <zrlib/base/macro.h>
 #include <zrlib/base/struct.h>
 #include <zrlib/base/ReserveOp_list.h>
 #include <zrlib/base/Map/HashTable.h>
@@ -70,11 +69,6 @@ static void bucketInfos(ZRObjAlignInfos *out, size_t keySize, size_t keyAlignmen
 }
 
 // ============================================================================
-
-static size_t fstrategySize()
-{
-	return sizeof(ZRHashTableStrategy);
-}
 
 static void finitMap(ZRMap *map)
 {
@@ -218,7 +212,6 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 {
 	*(ZRHashTableStrategy*)strategy = (ZRHashTableStrategy ) { //
 		.strategy = { //
-			.fstrategySize = fstrategySize, //
 			.finitMap = finitMap, //
 			.fput = fput, //
 			.fputIfAbsent = fputIfAbsent, //

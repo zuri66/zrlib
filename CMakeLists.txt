@@ -72,5 +72,6 @@ set(HEADERS
 	zrlib/config.h
     )
 
+add_compile_options(-std=c11)
 add_library(zrlib ${SRCS} ${HEADERS})
 set_property(TARGET zrlib PROPERTY C_STANDARD 11)

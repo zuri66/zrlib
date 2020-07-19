@@ -3,10 +3,10 @@
  * @date samedi 9 mai 2020, 16:37:33 (UTC+0200)
  */
 
-#include <stdalign.h>
-
 #include <zrlib/base/struct.h>
 #include <zrlib/base/MemoryPool/MemoryPool.h>
+
+#include <stdalign.h>
 
 typedef struct ZRSimpleGraphS ZRSimpleGraph;
 typedef struct ZRSimpleGraphEdgeS ZRSimpleGraphEdge;

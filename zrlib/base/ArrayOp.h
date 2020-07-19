@@ -6,10 +6,7 @@
 #ifndef ZRMEMORY_ARRAY_OP_H
 #define ZRMEMORY_ARRAY_OP_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/MemoryOp.h>
-
-#include <zrlib/syntax_pad.h>
 
 #include <stdint.h>
 #include <stdlib.h>

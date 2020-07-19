@@ -3,9 +3,9 @@
  * @date dim. 24 mai 2020 13:30:51 CEST
  */
 
-#include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
 
+#include <assert.h>
 #include <string.h>
 
 /**

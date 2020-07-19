@@ -6,7 +6,6 @@
 #ifndef ZRMAP_H
 #define ZRMAP_H
 
-#include <zrlib/syntax_pad.h>
 #include <zrlib/config.h>
 
 #include <stdalign.h>
@@ -22,8 +21,6 @@ typedef struct ZRMapStrategyS ZRMapStrategy;
 
 struct ZRMapStrategyS
 {
-	size_t (*fstrategySize)();
-
 	/**
 	 * (optional)
 	 */

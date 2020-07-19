@@ -7,7 +7,6 @@
 #define ZRMEMORYPOOL_H
 
 #include <zrlib/config.h>
-#include <zrlib/syntax_pad.h>
 
 #include <stdalign.h>
 #include <stddef.h>
@@ -35,8 +34,6 @@ struct ZRMemoryPoolS
 
 struct ZRMemoryPoolStrategyS
 {
-	size_t (*fstrategySize)(void);
-
 	void (*finit)(ZRMemoryPool *pool);
 	void (*fdone)(ZRMemoryPool *pool);
 	void (*fdestroy)(ZRMemoryPool *pool);

@@ -9,15 +9,7 @@
 #include <zrlib/config.h>
 
 #include <stddef.h>
-#include <zrlib/syntax_pad.h>
 
-typedef struct
-{
-	size_t alignment;
-	size_t nbBytes;
-}ZRMemoryBlocSpecification;
-
-#define ZRMEMORYBLOCSPEC_ARG_UNWRAP(SPEC) (SPEC).ALIGNMENT, (SPEC).SIZE
 
 // ============================================================================
 

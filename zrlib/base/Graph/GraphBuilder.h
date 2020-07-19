@@ -10,7 +10,6 @@
 #ifndef ZRGRAPHBUILDER_H
 #define ZRGRAPHBUILDER_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/Allocator/Allocator.h>
 
 typedef struct ZRGraphBuilderS ZRGraphBuilder;
@@ -25,7 +24,6 @@ typedef ZRGraphNode ZRGraphBuilderNode;
 struct ZRGraphBuilderStrategyS
 {
 	ZRGraphStrategy graph;
-	size_t (*fstrategySize)(void);
 
 	ZRGraph* (*fnew)(ZRGraphBuilder *builder, void **nodes, size_t nbNodes);
 

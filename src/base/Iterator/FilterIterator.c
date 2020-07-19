@@ -3,8 +3,6 @@
  * @date mardi 7 janvier 2020, 18:44:43 (UTC+0100)
  */
 
-#include <zrlib/config.h>
-
 #include <zrlib/base/Iterator/FilterIterator.h>
 
 #include <assert.h>

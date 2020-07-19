@@ -509,11 +509,6 @@ static void* freservePos_bits(ZRMemoryPool *pool, size_t pos, size_t nb)
 
 // ============================================================================
 
-static size_t fstrategySize(void)
-{
-	return sizeof(ZRMPoolReserveStrategy);
-}
-
 /**
  * Clean the memory used by the pool.
  * The pool MUST NOT be used after this call.
@@ -529,7 +524,6 @@ void ZRMPoolReserveStrategy_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *al
 	case ZRMPoolReserveMode_bits:
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
 			.strategy = (ZRMemoryPoolStrategy ) { //
-				.fstrategySize = fstrategySize, //
 				.finit = finitPool_bits, //
 				.fdone = fdone, //
 				.fclean = fclean_bits, //
@@ -544,7 +538,6 @@ void ZRMPoolReserveStrategy_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *al
 	case ZRMPoolReserveMode_list:
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
 			.strategy = (ZRMemoryPoolStrategy ) { //
-				.fstrategySize = fstrategySize, //
 				.finit = finitPool_list, //
 				.fdone = fdone, //
 				.fclean = fclean_list, //
@@ -559,7 +552,6 @@ void ZRMPoolReserveStrategy_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *al
 	case ZRMPoolReserveMode_chunk:
 		*(ZRMPoolReserveStrategy*)strategy = (ZRMPoolReserveStrategy ) { //
 			.strategy = (ZRMemoryPoolStrategy ) { //
-				.fstrategySize = fstrategySize, //
 				.finit = finitPool_chunk, //
 				.fdone = fdone, //
 				.fclean = fclean_chunk, //

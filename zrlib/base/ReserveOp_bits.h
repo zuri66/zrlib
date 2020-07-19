@@ -6,7 +6,6 @@
 #ifndef ZRMEMORY_RESERVE_OP_BITS_H
 #define ZRMEMORY_RESERVE_OP_BITS_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/Bits/Bits.h>
 
 #include <stdlib.h>

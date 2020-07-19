@@ -6,8 +6,6 @@
 #ifndef ZRVECTORMAP_H
 #define ZRVECTORMAP_H
 
-#include <zrlib/config.h>
-
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Map/Map.h>
 #include <zrlib/base/Vector/Vector.h>

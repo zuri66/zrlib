@@ -130,11 +130,6 @@ static inline void bucket_done_p(void *bucket)
 // ============================================================================
 // MemoryPool functions
 
-size_t fstrategySize(void)
-{
-	return sizeof(ZRMPoolDynamicStrategy);
-}
-
 void finitPool(ZRMemoryPool *pool)
 {
 	size_t const psize = sizeof(void*) * 2;
@@ -285,7 +280,6 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 {
 	*(ZRMPoolDynamicStrategy*)strategy = (ZRMPoolDynamicStrategy ) { //
 		.strategy = (ZRMemoryPoolStrategy ) { //
-			.fstrategySize = fstrategySize, //
 			.finit = finitPool, //
 			.fdone = fdone, //
 			.fclean = fclean, //

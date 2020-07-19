@@ -132,11 +132,6 @@ static inline bool ZRVector2SideStrategy_memoryIsAllocated(ZR2SSVector *vec)
 
 // ============================================================================
 
-size_t ZRVector2SideStrategy_size()
-{
-	return sizeof(ZRVector2SideStrategy);
-}
-
 /**
  * vec must be initialized to zero before.
  */

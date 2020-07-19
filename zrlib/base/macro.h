@@ -7,14 +7,16 @@
 #define ZRMACRO_H
 
 //#include <zrlib/config.h>
+#include <zrlib/syntax_pad.h>
+
 #include <stdalign.h>
 #include <stddef.h>
 
 typedef int (*zrfcmp)(void *a, void *b);
 typedef int (*zrfucmp)(void *a, void *b, void* data);
 
-#define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), alignof(T)
-#define ZRTYPE_ALIGNMENT_SIZE(T) alignof(T), sizeof(T)
+#define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), __alignof(T)
+#define ZRTYPE_ALIGNMENT_SIZE(T) __alignof(T), sizeof(T)
 
 #define ZRSIZE_UNKNOW SIZE_MAX
 #define ZRTOSTRING(V) #V

@@ -3,9 +3,9 @@
  * @date mercredi 4 décembre 2019, 23:53:30 (UTC+0100)
  */
 
-#include <stdalign.h>
-
 #include <zrlib/base/struct.h>
+
+#include <stdalign.h>
 
 typedef struct ZRSimpleTreeS ZRSimpleTree;
 typedef struct ZRSimpleTreeStrategyS ZRSimpleTreeStrategy;

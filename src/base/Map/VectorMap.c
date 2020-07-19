@@ -63,11 +63,6 @@ static void bucketInfos_make(ZRObjAlignInfos *out, size_t keySize, size_t keyAli
 
 //// ============================================================================
 
-static size_t fstrategySize()
-{
-	return sizeof(ZRVectorMapStrategy);
-}
-
 static void finitMap(ZRMap *map)
 {
 }
@@ -277,7 +272,6 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 			{
 				.strategy =
 					{
-						.fstrategySize = fstrategySize,
 						.finitMap = finitMap,
 						.fput = fput,
 						.fputIfAbsent = fputIfAbsent,
@@ -292,7 +286,6 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 			{
 				.strategy =
 					{
-						.fstrategySize = fstrategySize,
 						.finitMap = finitMap,
 						.fput = eq_fput,
 						.fputIfAbsent = eq_fputIfAbsent,
