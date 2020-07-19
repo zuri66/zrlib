@@ -35,16 +35,6 @@ ZRTree* ZRTreeBuilder_new(ZRTreeBuilder *builder)
 	return ZRTB_STRATEGY(builder)->fnew(builder);
 }
 
-void ZRTreeBuilder_done(ZRTreeBuilder *builder)
-{
-	ZRTB_STRATEGY(builder)->fdone(builder);
-}
-
-void ZRTreeBuilder_destroy(ZRTreeBuilder *builder)
-{
-	ZRTB_STRATEGY(builder)->fdestroy(builder);
-}
-
 // HELP
 
 /**

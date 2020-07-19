@@ -32,8 +32,6 @@ struct ZRTreeBuilderStrategyS
 	void __ (*fnode)(__ ZRTreeBuilder *builder, void *nodeData, void *edgeData);
 	void __ (*fend)(___ ZRTreeBuilder *builder);
 	ZRTree* (*fnew)(___ ZRTreeBuilder *builder);
-	void __ (*fdone)(__ ZRTreeBuilder *builder);
-	void __ (*fdestroy)(ZRTreeBuilder *builder);
 };
 
 #define ZRTBSTRATEGY(S) ((ZRTreeBuilderStrategy*)(S))
@@ -59,8 +57,6 @@ void* _ ZRTreeBuilder_currentObj(__ ZRTreeBuilder *builder);
 void __ ZRTreeBuilder_node(__ ZRTreeBuilder *builder, void *nodeData, void *edgeData);
 void __ ZRTreeBuilder_end(___ ZRTreeBuilder *builder);
 ZRTree* ZRTreeBuilder_new(___ ZRTreeBuilder *builder);
-void __ ZRTreeBuilder_done(__ ZRTreeBuilder *builder);
-void __ ZRTreeBuilder_destroy(ZRTreeBuilder *builder);
 
 // HELP
 
