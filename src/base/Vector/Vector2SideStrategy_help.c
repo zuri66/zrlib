@@ -39,6 +39,10 @@ void ZRVector2SideStrategy_destroy(ZRVector *vec)
 ZRVector* ZRVector2SideStrategy_alloc(size_t initialNbObjs, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
 {
 	ZRObjAlignInfos infos[ZRVECTOR_INFOS_NB];
+
+	if(initialNbObjs < 2)
+		initialNbObjs = 2;
+
 	vectorInfos(infos, initialNbObjs, objSize, objAlignment);
 
 	size_t const vecSize = infos[ZRVectorInfos_struct].size;

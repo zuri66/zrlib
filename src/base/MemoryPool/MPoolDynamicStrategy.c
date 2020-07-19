@@ -302,6 +302,15 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 		};
 }
 
+void ZRMPoolDS_destroy(ZRMemoryPool *pool)
+{
+	ZRAllocator *allocator = ZRMPOOL_STRATEGY(pool)->allocator;
+	ZRMPOOL_DONE(pool);
+	ZRFREE(allocator, pool->strategy);
+	ZRFREE(allocator, pool);
+}
+
+
 // ============================================================================
 
 #include "MPoolDynamicStrategy_help.c"

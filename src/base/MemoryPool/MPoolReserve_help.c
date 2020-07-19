@@ -91,7 +91,7 @@ ZRMemoryPool* ZRMPoolReserve_create(
 	pinfos->nbAvailables = nbBlocks;
 
 	strategy->fdestroy = ZRMPoolReserve_destroy;
-	ZRMPOOL_INIT(pool, blockSize, strategy);
+	ZRMPOOL_INIT(pool, blockSize, alignment, strategy);
 	return pool;
 }
 

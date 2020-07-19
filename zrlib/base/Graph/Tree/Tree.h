@@ -23,11 +23,7 @@ typedef struct ZRTreeStrategyS ZRTreeStrategy;
 typedef ZRGraphNode ZRTreeNode;
 typedef ZRGraphEdge ZRTreeEdge;
 
-#include "TreeBuilder.h"
-
-#define ZRTREE_GRAPH(TREE)         (&(TREE)->graph)
-#define ZRTREE_STRATEGY(TREE)      ((ZRTreeStrategy*) (ZRTREE_GRAPH(TREE)->strategy))
-#define ZRTREE_GRAPHSTRATEGY(TREE) (&(ZRTREE_GRAPH(TREE)->strategy->graph))
+typedef struct ZRTreeBuilderS ZRTreeBuilder;
 
 // ============================================================================
 
@@ -53,11 +49,19 @@ struct ZRTreeStrategyS
 	ZRIterator* (*ftreeNode_getDescendants_DF)(_ ZRTree*, ZRTreeNode*);
 };
 
+#define ZRTREESTRATEGY(S) ((ZRTreeStrategy*)(S))
+#define ZRTREESTRATEGY_GRAPH(TS) (&(TS)->graph)
+
 struct ZRTreeS
 {
 	ZRGraph graph;
 	ZRTreeNode *root;
 };
+
+#define ZRTREE(G) ((ZRTree*)(G))
+#define ZRTREE_GRAPH(T) (&(T)->graph)
+
+#define ZRTREE_STRATEGY(T) ((ZRTreeStrategy*)ZRTREE_GRAPH(T)->strategy)
 
 // ============================================================================
 
@@ -182,5 +186,9 @@ static inline void ZRTREENODE_CPYTHEPARENTEDGE(ZRTree *tree, ZRTreeNode *node, Z
 {
 	ZRGRAPHNODE_CPYNEDGES(ZRTREE_GRAPH(tree), node, edge, 0, 1, ZRGraphEdge_selectIN);
 }
+
+// ============================================================================
+
+#include "TreeBuilder.h"
 
 #endif

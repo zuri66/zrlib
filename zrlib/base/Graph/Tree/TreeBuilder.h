@@ -16,7 +16,7 @@
 
 typedef struct ZRTreeBuilderS ZRTreeBuilder;
 typedef struct ZRTreeBuilderStrategyS ZRTreeBuilderStrategy;
-typedef void ZRTreeBuilderNode;
+typedef ZRTreeNode ZRTreeBuilderNode;
 
 // ============================================================================
 
@@ -24,6 +24,7 @@ typedef void ZRTreeBuilderNode;
 
 struct ZRTreeBuilderStrategyS
 {
+	ZRTreeStrategy tree;
 	ZRTreeBuilderNode* (*fcurrentNode)(ZRTreeBuilder *builder);
 
 	void* (*fcurrentObj)(ZRTreeBuilder *builder);
@@ -31,14 +32,21 @@ struct ZRTreeBuilderStrategyS
 	void __ (*fnode)(__ ZRTreeBuilder *builder, void *nodeData, void *edgeData);
 	void __ (*fend)(___ ZRTreeBuilder *builder);
 	ZRTree* (*fnew)(___ ZRTreeBuilder *builder);
-	void __ (*fdone)(__ ZRTreeBuilder *builder);
-	void __ (*fdestroy)(ZRTreeBuilder *builder);
 };
+
+#define ZRTBSTRATEGY(S) ((ZRTreeBuilderStrategy*)(S))
+#define ZRTBSTRATEGY_T(TBS) (&(TBS)->tree)
+#define ZRTBSTRATEGY_G(TBS) (&ZRTBSTRATEGY_T(TBS)->graph)
 
 struct ZRTreeBuilderS
 {
-	ZRTreeBuilderStrategy *strategy;
+	ZRTree tree;
 };
+
+#define ZRTREEBUILDER(B) ((ZRTreeBuilder*)(B))
+#define ZRTB_TREE(TB) (&(TB)->tree)
+#define ZRTB_GRAPH(TB) ZRTREE_GRAPH(ZRTB_TREE(TB))
+#define ZRTB_STRATEGY(TB) ((ZRTreeBuilderStrategy*)ZRTB_GRAPH(TB)->strategy)
 
 // ============================================================================
 
@@ -49,8 +57,6 @@ void* _ ZRTreeBuilder_currentObj(__ ZRTreeBuilder *builder);
 void __ ZRTreeBuilder_node(__ ZRTreeBuilder *builder, void *nodeData, void *edgeData);
 void __ ZRTreeBuilder_end(___ ZRTreeBuilder *builder);
 ZRTree* ZRTreeBuilder_new(___ ZRTreeBuilder *builder);
-void __ ZRTreeBuilder_done(__ ZRTreeBuilder *builder);
-void __ ZRTreeBuilder_destroy(ZRTreeBuilder *builder);
 
 // HELP
 

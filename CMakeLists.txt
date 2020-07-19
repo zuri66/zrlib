@@ -10,6 +10,8 @@ include_directories(${PROJECT_BINARY_DIR})
 add_compile_options(-mbmi -mlzcnt -Winline)
 
 set(SRCS
+	src/base/Algorithm/fcmp.c
+	src/base/Algorithm/sort.c
 	src/base/AddressOp.c
 	src/base/Allocator/CAllocator.c
 	src/base/ArrayOp.c
@@ -22,6 +24,8 @@ set(SRCS
 	src/base/List/List.c
 	src/base/MemoryOp.c
 	src/base/struct.c
+	src/base/Graph/SimpleGraph.c
+	src/base/Graph/SimpleGraphBuilder.c
 	src/base/Graph/Graph.c
 	src/base/Graph/Tree/SimpleTree.c
 	src/base/Graph/Tree/SimpleTreeBuilder.c
@@ -30,12 +34,15 @@ set(SRCS
 	src/base/Vector/Vector2SideStrategy.c
 	src/base/Map/HashTable.c
 	src/base/Map/Map.c
+	src/base/Map/VectorMap.c
 	src/base/MemoryPool/MemoryPool.c
 	src/base/MemoryPool/MPoolDynamicStrategy.c
 	src/base/MemoryPool/MPoolReserve.c
     )
     
 set(HEADERS
+	zrlib/base/Algorithm/fcmp.h
+	zrlib/base/Algorithm/sort.h
 	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h
 	zrlib/base/Allocator/CAllocator.h
@@ -50,6 +57,7 @@ set(HEADERS
 	zrlib/base/struct.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
+	zrlib/base/Graph/SimpleGraph.h
 	zrlib/base/Graph/Graph.h
 	zrlib/base/Graph/Tree/SimpleTree.h
 	zrlib/base/Graph/Tree/Tree.h
@@ -57,6 +65,7 @@ set(HEADERS
 	zrlib/base/Vector/Vector2SideStrategy.h
 	zrlib/base/Map/HashTable.h
 	zrlib/base/Map/Map.h
+	zrlib/base/Map/VectorMap.h
 	zrlib/base/MemoryPool/MemoryPool.h
 	zrlib/base/MemoryPool/MPoolDynamicStrategy.h
 	zrlib/base/MemoryPool/MPoolReserve.h
