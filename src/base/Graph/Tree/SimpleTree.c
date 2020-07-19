@@ -111,8 +111,8 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t offset
 	{
 		*cpyTo = (ZRGraphEdge )
 			{
-				ZRSTNODE_TNODE(snode->parent),
-				ZRSTNODE_TNODE(snode),
+				ZRSTNODE_T(snode->parent),
+				ZRSTNODE_T(snode),
 				snode->edgeObj,
 			};
 		cpyTo++;
@@ -142,8 +142,8 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 		{
 			*cpyTo = (ZRGraphEdge )
 				{
-					ZRSTNODE_TNODE(snode->parent),
-					ZRSTNODE_TNODE(snode),
+					ZRSTNODE_T(snode->parent),
+					ZRSTNODE_T(snode),
 					snode->edgeObj,
 				};
 			cpyTo++;
@@ -164,8 +164,8 @@ static size_t fgraphNode_cpyNEdges(ZRGraph *graph, ZRGraphNode *node, ZRGraphEdg
 	{
 		*cpyTo = (ZRGraphEdge )
 			{
-				ZRSTNODE_TNODE(snode),
-				ZRSTNODE_TNODE(&snode->childs[i]),
+				ZRSTNODE_T(snode),
+				ZRSTNODE_T(&snode->childs[i]),
 				snode->edgeObj,
 			};
 		cpyTo++;

@@ -50,7 +50,8 @@ struct ZRSimpleTreeNodeS
 };
 
 #define ZRSTNODE(N) ((ZRSimpleTreeNode*)(N))
-#define ZRSTNODE_TNODE(STN) (&(STN)->node)
+#define ZRSTNODE_T(STN) (&(STN)->node)
+#define ZRSTNODE_G(STN) ZRSTNODE_T(STN)
 
 #define ZRSIMPLETREENODE_INFOS_NB 5
 
@@ -105,12 +106,22 @@ struct ZRSimpleTreeBuilderNodeS
 {
 	ZRTreeBuilderNode tbNode;
 	ZRSimpleTreeBuilderNode *parent;
+
 	ZRVector *childs;
+
+	void *edgeObj;
+
 	alignas(max_align_t) char obj[];
 };
 
 #define ZRSTBNODE(N) ((ZRSimpleTreeBuilderNode*)(N))
-#define ZRSTBNODE_TBNODE(STBN) (&(STBN)->tbNode)
+#define ZRSTBNODE_TB(STBN) (&(STBN)->tbNode)
+#define ZRSTBNODE_T(STBN) ZRSTBNODE_TB(STBN)
+#define ZRSTBNODE_G(STBN) ZRSTBNODE_T(STBN)
+
+#define ZRSTBNODE_NBPARENTS(STBN) ((STBN)->parent == NULL ? 0 : 1)
+#define ZRSTBNODE_NBCHILDS(STBN) ZRVECTOR_NBOBJ((STBN)->childs)
+#define ZRSTBNODE_OBJ(STBN) ZRSTBNODE_G(STBN)->obj
 
 struct ZRSimpleTreeBuilderS
 {
@@ -137,7 +148,13 @@ struct ZRSimpleTreeBuilderS
 #define ZRSTB_T(STB) (&ZRSTB_TB(STB)->tree)
 #define ZRSTB_G(STB) (&ZRSTB_T(STB)->graph)
 
+#define ZRSTB_NBNODES(STB) ZRSTB_G(STB)->nbNodes
+#define ZRSTB_NBEDGES(STB) ZRSTB_G(STB)->nbEdges
+
 #define ZRSTB_STRATEGY(STB) ZRSTBSTRATEGY(ZRSTB_G(STB)->strategy)
+
+#define ZRSTB_CURRENTNODE(STB) \
+	(*(ZRSimpleTreeBuilderNode**)ZRVECTOR_GET((STB)->nodeStack, ZRVECTOR_NBOBJ((STB)->nodeStack) - 1))
 
 
 // Node&Edge size
@@ -147,6 +164,5 @@ struct ZRSimpleTreeBuilderS
 #define ZRSTREEBUILDER_STRATEGY(STREEBUILDER)    (ZRSTREEBUILDER_TREEBUILDER(STREEBUILDER)->strategy)
 #define ZRSTREEBUILDER_NODESIZE(STREEBUILDER)    ZRSTREEBUILDERNODE_SIZE((STREEBUILDER)->nodeObjSize + (STREEBUILDER)->edgeObjSize)
 
-#define ZRSTREEBUILDER_CURRENTNODE(STREEBUILDER) *(void**)ZRVECTOR_GET((STREEBUILDER)->nodeStack, ZRVECTOR_NBOBJ((STREEBUILDER)->nodeStack) - 1)
 
 void fBuilder_build(ZRTreeBuilder *tbuilder, ZRTree *tree);
