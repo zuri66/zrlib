@@ -11,6 +11,7 @@
 #define ZRGRAPHBUILDER_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/Allocator/Allocator.h>
 
 typedef struct ZRGraphBuilderS ZRGraphBuilder;
 typedef struct ZRGraphBuilderStrategyS ZRGraphBuilderStrategy;
@@ -79,7 +80,11 @@ static inline ZRGraphBuilderNode* ZRGRAPHBUILDER_EDGENODE(ZRGraphBuilder *builde
 
 ZRGraph* ZRGraphBuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNodes);
 ZRGraphBuilderNode* ZRGraphBuilder_node(ZRGraphBuilder *builder, void *nodeData);
+ZRGraphBuilderNode* ZRGraphBuilder_cpyGraphNode(ZRGraphBuilder *builder, ZRGraph *graph, ZRGraphNode *gnode);
 void ZRGraphBuilder_edge(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGraphBuilderNode *b, void *edgeData);
 
+// Help
+
+void ZRGraphBuilder_cpyGraph(ZRGraphBuilder *to, ZRGraph *from, ZRGraphNode **refNodes, size_t nbNodes, ZRAllocator *allocator);
 
 #endif
