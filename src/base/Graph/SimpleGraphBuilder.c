@@ -33,7 +33,6 @@ typedef struct
 	ZRVector *parents;
 	ZRVector *childs;
 	ZRVector *childEdgeObjs;
-	int mark :1;
 } ZRSimpleGraphBuilderNode;
 
 typedef struct
@@ -260,9 +259,7 @@ static size_t fgraph_cpyNEdges(ZRGraph *graph, ZRGraphEdge *cpyTo, size_t edgeOf
 	return nb;
 }
 
-
 // ============================================================================
-
 
 ZRMUSTINLINE
 static inline void sbnode_cpyData(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode, void *nodeData)
@@ -341,123 +338,82 @@ static ZRGraphBuilderNode* fbuilder_node(ZRGraphBuilder *builder, void *nodeData
 	return ZRGRAPHNODE(bnode);
 }
 
-
 // ============================================================================
 // BUILD FUNCTIONS
 // ============================================================================
 
 ZRMUSTINLINE
-inline static void build_childEdges(
-	ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode,
-	ZRSimpleGraph *sgraph, ZRSimpleGraphNode *gnode,
-	ZRMap *map_bnodes
-	)
+static inline ZRSimpleGraphNode* build_graphGetNode(ZRSimpleGraphBuilderNode *bnode, ZRSimpleGraph *sgraph)
 {
-	size_t const edgeObjSize = sbuilder->edgeObjInfos.size;
-
-	for (size_t i = 0, c = ZRSGBNODE_NBCHILDS(sbnode) ; i < c; i++)
-	{
-		ZRSimpleGraphBuilderNode *sbnode_to = *(ZRSimpleGraphBuilderNode**)ZRVECTOR_GET(sbnode->childs, i);
-		ZRSimpleGraphNode *gnode_to = *(ZRSimpleGraphNode**)ZRMAP_GET(map_bnodes, &ZRSGBNODE_GNODE(sbnode_to)->id);
-
-		// Copy edge object
-		void *gedgeObj = ZRARRAYOP_GET(sgraph->edgeObjs, edgeObjSize, sbuilder->build_nbChildEdges);
-
-		if (edgeObjSize > 0)
-		{
-			void *bedgeObj = ZRVECTOR_GET(sbnode->childEdgeObjs, sbuilder->build_nbChildEdges);
-			memcpy(gedgeObj, bedgeObj, edgeObjSize);
-		}
-
-		// Set the edge
-		ZRSimpleGraphEdge *edge = &sgraph->childEdges[sbuilder->build_nbChildEdges];
-		*edge = (ZRSimpleGraphEdge ) { gnode, gnode_to, gedgeObj };
-
-		sbuilder->build_nbChildEdges++;
-	}
+	return &sgraph->nodes[ZRSGBNODE_GNODE(bnode)->id];
 }
 
 ZRMUSTINLINE
-inline static void build_parentEdges(
+static inline void* build_graphGetNodeObj(ZRSimpleGraphBuilderNode *bnode, ZRSimpleGraph *sgraph)
+{
+	return ZRARRAYOP_GET(sgraph->nodeObjs, ZRSGRAPH_GRAPH(sgraph)->nodeObjSize, ZRSGBNODE_GNODE(bnode)->id);
+}
+
+ZRMUSTINLINE
+inline static void build_nodeEdges(
 	ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode,
-	ZRSimpleGraph *sgraph, ZRSimpleGraphNode *gnode,
-	ZRMap *map_bnodes
+	ZRSimpleGraph *sgraph
 	)
 {
 	size_t const edgeObjSize = sbuilder->edgeObjInfos.size;
-	size_t childEdgesOffset = 0;
+	ZRSimpleGraphNode *gnode = build_graphGetNode(sbnode, sgraph);
 
-	for (size_t i = 0, c = sbnode->parents->nbObj; i < c; i++)
+	for (size_t i = 0, c = ZRSGBNODE_NBCHILDS(sbnode); i < c; i++)
 	{
-		VectorParents_item from = *(VectorParents_item*)ZRVECTOR_GET(sbnode->parents, i);
-		ZRSimpleGraphBuilderNode *bnode_from = from.node;
-		ZRSimpleGraphNode *gnode_from = *(ZRSimpleGraphNode**)ZRMAP_GET(map_bnodes, &ZRSGBNODE_GBNODE(bnode_from)->id);
+		ZRSimpleGraphBuilderNode *sbnode_to = *(ZRSimpleGraphBuilderNode**)ZRVECTOR_GET(sbnode->childs, i);
+		ZRSimpleGraphNode *gnode_to = build_graphGetNode(sbnode_to, sgraph);
 
-		/*
-		 * Get all the edges of the form (gnode_from, gnode).
-		 * We will use the first edge founded, that will be added to sbuilder->build_pedges and so will not be used anymore.
-		 *
-		 * We use this strategy because it can be multiple edges between two nodes.
-		 */
-		ZRSimpleGraph_getEdges(sgraph, gnode_from, gnode, sbuilder->build_pedges);
-		size_t const nbChilds = sbuilder->build_pedges->nbObj;
-		size_t const nbFounded = nbChilds - childEdgesOffset;
-		assert(nbFounded > 0);
-		ZRSimpleGraphEdge *edge = ZRVECTOR_GET(sbuilder->build_pedges, childEdgesOffset);
+		// Copy edge object
+		void *gedgeObj = ZRARRAYOP_GET(gnode->edgeChildsObjs, edgeObjSize, i);
 
+		if (edgeObjSize > 0)
+		{
+			void *bedgeObj = ZRVECTOR_GET(sbnode->childEdgeObjs, i);
+			memcpy(gedgeObj, bedgeObj, edgeObjSize);
+		}
 		// Set the edge
-		sgraph->parentEdges[sbuilder->build_nbParentEdges] = edge;
-		sbuilder->build_nbParentEdges++;
+		ZRSimpleGraphEdge *edge = &gnode->childs[i];
+		*edge = (ZRSimpleGraphEdge ) { gnode, gnode_to, gedgeObj };
 
-		childEdgesOffset++;
-
-		// Delete the edges after the used one
-		if (nbFounded > 1)
-			ZRVECTOR_DELETE_NB(sbuilder->build_pedges, childEdgesOffset, nbFounded - 1);
+		/* Build the parent edge */
+		gnode_to->parents[gnode_to->nbParents++] = edge;
 	}
-	ZRVECTOR_DELETE_ALL(sbuilder->build_pedges);
 }
 
 ZRMUSTINLINE
 static inline void build_node(
 	ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode,
-	ZRSimpleGraph *sgraph, ZRSimpleGraphNode *gnode, size_t pos,
-	ZRMap *map_bnodes
+	ZRSimpleGraph *sgraph, ZRSimpleGraphNode *gnode
 	)
 {
-	if (sbnode->mark == 1)
-		return;
-
 	size_t const nodeObjSize = sbuilder->nodeObjInfos.size;
 
-	sbnode->mark = 1;
 	*gnode = (ZRSimpleGraphNode ) { //
 		.node = (ZRGraphNode ) { //
 			.id = ZRGRAPHNODE(sbnode)->id, //
-			.obj = ZRARRAYOP_GET(sgraph->nodeObjs, ZRSGRAPH_GRAPH(sgraph)->nodeObjSize, pos), //
+			.obj = build_graphGetNodeObj(sbnode, sgraph), //
 			},//
-		.nbParents = sbnode->parents->nbObj, //
+		.nbParents = 0, /* Must be set by the building phase */
 		.nbChilds = sbnode->childs->nbObj, //
 		.parents = &sgraph->parentEdges[sbuilder->build_nbParentEdges],
 		.childs = &sgraph->childEdges[sbuilder->build_nbChildEdges],
+		.edgeChildsObjs = ZRARRAYOP_GET(sgraph->edgeObjs, ZRSGRAPH_GRAPH(sgraph)->edgeObjSize, sbuilder->build_nbChildEdges), //
 		};
 
 	if ( ZRSGBNODE_GBNODE(sbnode)->obj != NULL)
 		memcpy(ZRSGRAPHNODE_GN(gnode)->obj, ZRSGBNODE_GBNODE(sbnode)->obj, nodeObjSize);
 
-	build_childEdges(sbuilder, sbnode, sgraph, gnode, map_bnodes);
-	build_parentEdges(sbuilder, sbnode, sgraph, gnode, map_bnodes);
+	sbuilder->build_nbParentEdges += ZRSGBNODE_NBPARENTS(sbnode);
+	sbuilder->build_nbChildEdges += ZRSGBNODE_NBCHILDS(sbnode);
 }
 
 static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph, ZRMap *bnodesRef)
 {
-	ZRMap *map_bnodes = ZRVectorMap_create(
-		ZRTYPE_SIZE_ALIGNMENT(size_t) /* id of ZRSimpleGraphBuilderNode */,
-		ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphNode*),
-		zrfcmp_size_t, NULL, sbuilder->allocator,
-		ZRVectorMap_modeOrder
-		);
-
 	ZRSimpleGraphNode *gnode;
 	ZRSimpleGraphBuilderNode *bnode;
 	size_t const graphNbNodes = ZRSGRAPHBUILDER_NBNODES(sbuilder);
@@ -467,7 +423,6 @@ static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph
 	{
 		bnode = *(ZRSimpleGraphBuilderNode**)(ZRVECTOR_GET(sbuilder->pnodes, i));
 		gnode = &sgraph->nodes[i];
-		ZRMAP_PUT(map_bnodes, &ZRSGBNODE_GNODE(bnode)->id, &gnode);
 		void ***refNode = ZRMAP_GET(bnodesRef, &ZRGRAPHNODE(bnode)->id);
 
 		if (refNode != NULL)
@@ -481,10 +436,14 @@ static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph
 	for (size_t i = 0; i < graphNbNodes; i++)
 	{
 		bnode = *(ZRSimpleGraphBuilderNode**)(ZRVECTOR_GET(sbuilder->pnodes, i));
-		gnode = &sgraph->nodes[i];
-		build_node(sbuilder, bnode, sgraph, gnode, i, map_bnodes);
+		build_node(sbuilder, bnode, sgraph, build_graphGetNode(bnode, sgraph));
 	}
-	ZRMAP_DESTROY(map_bnodes);
+// Build edges
+	for (size_t i = 0; i < graphNbNodes; i++)
+	{
+		bnode = *(ZRSimpleGraphBuilderNode**)(ZRVECTOR_GET(sbuilder->pnodes, i));
+		build_nodeEdges(sbuilder, bnode, sgraph);
+	}
 
 // Set to null resting nodes from 'noderef'
 // TODO: is it a good strategy ? Best to avoid this ?
@@ -497,9 +456,6 @@ static void fBuilder_build(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraph *sgraph
 	sbuilder->build_nbParentEdges = 0;
 	sbuilder->build_nbChildEdges = 0;
 	ZRVECTOR_DELETE_ALL(sbuilder->build_pedges);
-
-	for (size_t i = 0; i < graphNbNodes; i++)
-		(*(ZRSimpleGraphBuilderNode**)(ZRVECTOR_GET(sbuilder->pnodes, i)))->mark = 0;
 }
 
 static ZRGraph* fbuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNodes)
