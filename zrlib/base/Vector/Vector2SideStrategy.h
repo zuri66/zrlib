@@ -6,20 +6,14 @@
 #ifndef ZRVECTOR2SIDESTRATEGY_H
 #define ZRVECTOR2SIDESTRATEGY_H
 
-#include <zrlib/config.h>
 #include <zrlib/base/Allocator/Allocator.h>
+#include <zrlib/base/struct.h>
 #include <zrlib/base/Vector/Vector.h>
 
 #include <stdbool.h>
 
 // ============================================================================
 // STRATEGY
-
-void ZRVector2SideStrategy_fixedMemory(______ ZRVectorStrategy *strategy);
-void ZRVector2SideStrategy_dynamicMemory(____ ZRVectorStrategy *strategy);
-
-void ZRVector2SideStrategy_growOnAdd(____ ZRVectorStrategy *strategy, bool v);
-void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v);
 
 void ZRVector2SideStrategy_growStrategy( //
 	ZRVectorStrategy *strategy, //
@@ -36,13 +30,27 @@ void ZRVector2SideStrategy_shrinkStrategy( //
 // ============================================================================
 // HELPERS
 
-size_t __ ZRVector2SideStrategy_vectorSize(__ size_t initialSpace, size_t objSize);
-ZRVector* ZRVector2SideStrategy_alloc(_______ size_t initialSpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
-ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialSpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
-ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialSpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+/**
+ * The ObjInfos of the information object for initialization of the vector.
+ */
+ZRObjInfos ZRVector2SideStrategyInfos_objInfos(void);
 
-ZRVector* ZRVector2SideStrategy_createFixedM(_ size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
-ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+void ZRVector2SideStrategyInfos(_______ void *infos_out, size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator, bool fixed);
+void ZRVector2SideStrategyInfos_fixed(_ void *infos_out, size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+void ZRVector2SideStrategyInfos_dynamic(void *infos_out, size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+
+/**
+ * The ObjInfos of the vector object.
+ */
+ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos);
+
+void ZRVector2SideStrategy_init(ZRVector *vector, void *infos);
+
+ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+
+ZRVector* ZRVector2SideStrategy_createFixedM(_ size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
+ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 
 // ============================================================================
 // SPACE STRATEGIES
