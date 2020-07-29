@@ -7,6 +7,7 @@
 #define ZRMAP_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/struct.h>
 
 #include <stdalign.h>
 #include <stddef.h>
@@ -51,10 +52,8 @@ struct ZRMapStrategyS
 
 struct ZRMapS
 {
-	size_t keySize;
-	size_t keyAlignment;
-	size_t objSize;
-	size_t objAlignment;
+	ZRObjInfos keyInfos;
+	ZRObjInfos objInfos;
 	size_t nbObj;
 
 	/*
@@ -66,16 +65,16 @@ struct ZRMapS
 // ============================================================================
 
 ZRMUSTINLINE
-static inline void ZRMAP_INIT(ZRMap *map, size_t keySize, size_t objSize, ZRMapStrategy *strategy)
+static inline void ZRMAP_INIT(ZRMap *map, ZRObjInfos key, ZRObjInfos obj, ZRMapStrategy *strategy)
 {
-	*map = (ZRMap)
-		{
-		.keySize = keySize,
-			.objSize = objSize,
-			.nbObj = 0,
-			.strategy = strategy,
+	ZRMap cpy = { //
+		.keyInfos = key,
+		.objInfos = obj,
+		.nbObj = 0,
+		.strategy = strategy,
 		}
 	;
+	*map = cpy;
 
 	if (strategy->finitMap)
 		strategy->finitMap(map);
@@ -91,24 +90,6 @@ ZRMUSTINLINE
 static inline void ZRMAP_DESTROY(ZRMap *map)
 {
 	map->strategy->fdestroy(map);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRMAP_NBOBJ(ZRMap *map)
-{
-	return map->nbObj;
-}
-
-ZRMUSTINLINE
-static inline size_t ZRMAP_KEYSIZE(ZRMap *map)
-{
-	return map->keySize;
-}
-
-ZRMUSTINLINE
-static inline size_t ZRMAP_OBJSIZE(ZRMap *map)
-{
-	return map->objSize;
 }
 
 ZRMUSTINLINE
@@ -141,17 +122,33 @@ static inline bool ZRMAP_DELETE(ZRMap *map, void *key)
 	return map->strategy->fdelete(map, key);
 }
 
+// Help
+
+ZRMUSTINLINE
+static inline size_t ZRMAP_NBOBJ(ZRMap *map)
+{
+	return map->nbObj;
+}
+
+ZRMUSTINLINE
+static inline size_t ZRMAP_KEYSIZE(ZRMap *map)
+{
+	return map->keyInfos.size;
+}
+
+ZRMUSTINLINE
+static inline size_t ZRMAP_OBJSIZE(ZRMap *map)
+{
+	return map->objInfos.size;
+}
+
 // ============================================================================
 
-void ZRMap_init(ZRMap *map, size_t keySize, size_t objSize, ZRMapStrategy *strategy);
+void ZRMap_init(ZRMap *map, ZRObjInfos key, ZRObjInfos obj, ZRMapStrategy *strategy);
 void ZRMap_done(ZRMap *map);
 void ZRMap_destroy(ZRMap *map);
 
-size_t ZRMap_nbObj(_ ZRMap *map);
-size_t ZRMap_keySize(ZRMap *map);
-size_t ZRMap_objSize(ZRMap *map);
-
-void * ZRMap_get(_______ ZRMap *map, void *key);
+void* ZRMap_get(_______ ZRMap *map, void *key);
 void _ ZRMap_put(_______ ZRMap *map, void *key, void *value);
 bool _ ZRMap_putIfAbsent(ZRMap *map, void *key, void *value);
 bool _ ZRMap_replace(___ ZRMap *map, void *key, void *value);
