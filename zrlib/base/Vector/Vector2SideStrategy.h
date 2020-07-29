@@ -40,6 +40,12 @@ void ZRVector2SideStrategyInfos_fixed(_ void *infos_out, size_t initialArrayNbOb
 void ZRVector2SideStrategyInfos_dynamic(void *infos_out, size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 
 /**
+ * The strategy object is store inside the vector object
+ */
+void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out);
+
+
+/**
  * The ObjInfos of the vector object.
  */
 ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos);
