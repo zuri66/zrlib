@@ -51,6 +51,7 @@ void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out);
 ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos);
 
 void ZRVector2SideStrategy_init(ZRVector *vector, void *infos);
+ZRVector* ZRVector2SideStrategy_new(void *infos);
 
 ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
