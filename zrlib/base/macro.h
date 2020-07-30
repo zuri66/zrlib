@@ -12,6 +12,9 @@
 #include <stdalign.h>
 #include <stddef.h>
 
+typedef size_t (*zrfhash)(void *a);
+typedef size_t (*zrfuhash)(void *a, void* data);
+
 typedef int (*zrfcmp)(void *a, void *b);
 typedef int (*zrfucmp)(void *a, void *b, void* data);
 
