@@ -62,12 +62,12 @@ ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArrayNbObj, size_t 
 // ============================================================================
 // SPACE STRATEGIES
 
-bool mustGrowSimple(size_t totalSpace, size_t usedSpace, ZRVector *vec);
-bool mustGrowTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
-size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
+bool mustGrowSimple(size_t totalSpace, size_t usedSpace,  void* vec_p);
+bool mustGrowTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
+size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
 
-bool mustShrink4(size_t total, size_t used, ZRVector *vec);
-size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec);
+bool mustShrink4(size_t total, size_t used,  void* vec_p);
+size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
 
 // ============================================================================
 

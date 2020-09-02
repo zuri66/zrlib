@@ -1,27 +1,24 @@
-bool mustGrowSimple(size_t total, size_t used, ZRVector *vec)
+bool mustGrowSimple(size_t total, size_t used, void *vec_p)
 {
-	size_t const free = total - used;
-	return free < used;
+	return total < used;
 }
 
-bool mustGrowTwice(size_t total, size_t used, ZRVector *vec)
+bool mustGrowTwice(size_t total, size_t used, void *vec_p)
 {
-	size_t const free = total - used;
-	return (free / 2) < used;
+	return (total / 2) < used;
 }
 
-size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec)
+size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vec_p)
 {
 	return totalSpace * 2;
 }
 
-bool mustShrink4(size_t total, size_t used, ZRVector *vec)
+bool mustShrink4(size_t total, size_t used, void *vec_p)
 {
-	size_t const free = total - used;
-	return (free / 4) > used;
+	return (total / 4) > used;
 }
 
-size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, ZRVector *vec)
+size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vec_p)
 {
 	return totalSpace / 2;
 }
