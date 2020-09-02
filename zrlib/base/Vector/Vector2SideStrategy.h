@@ -17,14 +17,14 @@
 
 void ZRVector2SideStrategy_growStrategy( //
 	ZRVectorStrategy *strategy, //
-	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
-	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, void *vec), //
+	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
 		);
 
 void ZRVector2SideStrategy_shrinkStrategy( //
 	ZRVectorStrategy *strategy, //
-	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
-	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec), //
+	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
 		);
 
 // ============================================================================

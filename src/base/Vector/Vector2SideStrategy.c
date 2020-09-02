@@ -3,6 +3,7 @@
  * @date samedi 19 janvier 2019, 18:03:00 (UTC+0100)
  */
 
+#include <zrlib/base/ResizeOp.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/struct.h>
@@ -22,11 +23,11 @@ struct ZRVector2SideStrategyS
 {
 	ZRVectorStrategy strategy;
 
-	bool _ (*fmustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector*);
-	size_t (*fincreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector*);
+	bool _ (*fmustGrow)(____ size_t totalSpace, size_t usedSpace, void *vec_p);
+	size_t (*fincreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec_p);
 
-	bool _ (*fmustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector*);
-	size_t (*fdecreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector*);
+	bool _ (*fmustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec_p);
+	size_t (*fdecreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec_p);
 };
 
 #define ZR2SSSTRATEGY_VECTOR(S) (&(S)->strategy)
@@ -253,8 +254,8 @@ void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
 
 void ZRVector2SideStrategy_growStrategy( //
 	ZRVectorStrategy *strategy, //
-	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, ZRVector*), //
-	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector*) //
+	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, void*), //
+	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, void*) //
 	)
 {
 	((ZRVector2SideStrategy*)strategy)->fmustGrow = mustGrow;
@@ -263,8 +264,8 @@ void ZRVector2SideStrategy_growStrategy( //
 
 void ZRVector2SideStrategy_shrinkStrategy( //
 	ZRVectorStrategy *strategy, //
-	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, ZRVector *vec), //
-	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, ZRVector *vec) //
+	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec), //
+	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
 	)
 {
 	((ZRVector2SideStrategy*)strategy)->fmustShrink = mustShrink;
@@ -353,57 +354,50 @@ static inline void centerFUEOSpaces(ZR2SSVector *svector, size_t nbMore)
 	ZRARRAYOP_CPY(ZR2SS_USPACE(svector), objSize, nbObj, lastUSpace);
 }
 
+static inline bool mustGrow(ZRVector *vec, size_t nbObjMore);
+
 static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 	size_t const objAlignment = vec->objAlignment;
 	size_t const objSize = vec->objSize;
 	size_t const nbObj = vec->nbObj;
-
-	size_t const newNbObj = nbObj + nbObjMore;
 	size_t const totalSpace = ZR2SS_TOTALSPACE_SIZEOF(svector);
-	size_t const moreNbBytes = nbObjMore * objSize;
-	size_t const nextUsedSpace = ZR2SS_USPACE_SIZEOF(svector) + moreNbBytes;
-	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
+	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 	size_t nextTotalSpace;
 
 	if (!isAllocated)
-	{
-		size_t const initialSize = getInitialMemoryNbObjs(svector);
-		nextTotalSpace = initialSize * objSize;
-	}
+		nextTotalSpace = getInitialMemoryNbObjs(svector) * objSize;
 	else
-	{
 		nextTotalSpace = totalSpace;
-	}
-	size_t (*const fincreaseSpace)(size_t, size_t, ZRVector*) = ZR2SS_STRATEGY(svector)->fincreaseSpace;
-	bool _ (*const fmustGrow)(____ size_t, size_t, ZRVector*) = ZR2SS_STRATEGY(svector)->fmustGrow;
 
-	while (nextTotalSpace < nextUsedSpace)
-		nextTotalSpace = fincreaseSpace(nextTotalSpace, nextUsedSpace, ZR2SS_VECTOR(svector));
-	while (fmustGrow(nextTotalSpace, nextUsedSpace, ZR2SS_VECTOR(svector)))
-		nextTotalSpace = fincreaseSpace(nextTotalSpace, nextUsedSpace, ZR2SS_VECTOR(svector));
+	size_t const moreUsedSpace = nbObjMore * objSize;
+	size_t const nextUsedSpace = ZR2SS_USPACE_SIZEOF(svector) + moreUsedSpace;
 
+	zrfincreaseSpace fincreaseSpace = ZR2SS_STRATEGY(svector)->fincreaseSpace;
+	zrfmustGrow fmustGrow = ZR2SS_STRATEGY(svector)->fmustGrow;
+
+	nextTotalSpace = ZRRESIZE_MORESIZE(nextTotalSpace, nextUsedSpace, fmustGrow, fincreaseSpace, svector);
 	size_t const nextTotalNbObj = nextTotalSpace / objSize;
 
 	if (!isAllocated)
 	{
 		svector->allocatedMemory = ZRAALLOC(svector->allocator, objAlignment, nextTotalSpace);
-		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, svector->initialArray, nbObj);
+		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 	}
 	else
 	{
+		assert(nextTotalSpace > totalSpace);
 		void *const lastMemory = svector->allocatedMemory;
-		void *const lastUSpace = lastMemory + ZR2SS_FSPACE_SIZEOF(svector);
 
 		svector->allocatedMemory = ZRAALLOC(svector->allocator, objAlignment, nextTotalSpace);
 		memcpy(svector->allocatedMemory, lastMemory, totalSpace);
 
-		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, lastUSpace, nbObj);
+		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 		ZRFREE(svector->allocator, lastMemory);
 	}
-	ZR2SS_VECTOR(svector)->capacity = ZR2SS_TOTALSPACE_SIZEOF(svector);
+	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
@@ -416,25 +410,22 @@ static inline void lessSize(ZRVector *vec)
 	size_t const nbObj = vec->nbObj;
 	size_t const totalSpace = ZR2SS_TOTALSPACE_SIZEOF(svector);
 	size_t const usedSpace = ZR2SS_USPACE_SIZEOF(svector);
-	size_t const initialMemorySize = getInitialMemoryNbObjs(svector);
+	size_t const initialMemorySpace = getInitialMemoryNbObjs(svector) * objSize;
 
-	size_t nextTotalSpace = totalSpace;
+	zrfdecreaseSpace fdecreaseSpace = ZR2SS_STRATEGY(svector)->fdecreaseSpace;
+	zrfmustShrink fmustShrink = ZR2SS_STRATEGY(svector)->fmustShrink;
 
-	size_t (*const fdecreaseSpace)(size_t, size_t, ZRVector*) = ZR2SS_STRATEGY(svector)->fdecreaseSpace;
-	bool _ (*const fmustShrink)(__ size_t, size_t, ZRVector*) = ZR2SS_STRATEGY(svector)->fmustShrink;
-
-	while (fmustShrink(nextTotalSpace, usedSpace, ZR2SS_VECTOR(svector)))
-		nextTotalSpace = fdecreaseSpace(nextTotalSpace, usedSpace, ZR2SS_VECTOR(svector));
+	size_t nextTotalSpace = ZRRESIZE_LESSSIZE(totalSpace, usedSpace, fmustShrink, fdecreaseSpace, svector);
 
 // If we can store it into the initial array
 	if ((nextTotalSpace / objSize) <= ZRVECTOR_2SS(svector)->initialArraySize)
 	{
 		// Nothing to do
 	}
-// We cant get a memory space less than the initial memory size
-	else if (nextTotalSpace < initialMemorySize)
+// We can't get a memory space less than the initial memory size
+	else if (nextTotalSpace < initialMemorySpace)
 	{
-		nextTotalSpace = initialMemorySize;
+		nextTotalSpace = initialMemorySpace;
 	}
 	size_t const nextTotalNbObj = nextTotalSpace / objSize;
 	ZR2SSVector *const sdata = ZRVECTOR_2SS(svector);
@@ -447,6 +438,7 @@ static inline void lessSize(ZRVector *vec)
 	}
 	else
 	{
+		assert(nextTotalSpace < totalSpace);
 		void *const lastMemory = sdata->allocatedMemory;
 		void *const lastUSpace = lastMemory + ZR2SS_FSPACE_SIZEOF(svector);
 
@@ -455,7 +447,7 @@ static inline void lessSize(ZRVector *vec)
 
 		ZRFREE(svector->allocator, lastMemory);
 	}
-	ZR2SS_VECTOR(svector)->capacity = ZR2SS_TOTALSPACE_SIZEOF(svector);
+	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
@@ -470,7 +462,7 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 		return true;
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return ZR2SS_STRATEGY(svector)->fmustGrow(free, used + objNbBytes, ZR2SS_VECTOR(svector));
+		return ZR2SS_STRATEGY(svector)->fmustGrow(ZR2SS_TOTALSPACE_SIZEOF(svector), used + objNbBytes, ZR2SS_VECTOR(svector));
 
 	return false;
 }
