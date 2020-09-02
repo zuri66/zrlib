@@ -5,7 +5,9 @@
 
 #include <zrlib/config.h>
 #include <zrlib/base/Allocator/Allocator.h>
+#include <zrlib/base/ArrayOp.h>
 
+#include <assert.h>
 #include <stdbool.h>
 
 typedef bool (*zrfmustGrow)(size_t totalSpace, size_t usedSpace, void *userData);
@@ -42,4 +44,60 @@ static inline size_t ZRRESIZE_LESSSIZE(
 		nextTotalSpace = fdecreaseSpace(nextTotalSpace, usedSpace, userData);
 
 	return nextTotalSpace;
+}
+
+static inline ZRArray2 ZRRESIZE_MAKEMORESIZE(
+	size_t totalSpace, size_t usedSpace, size_t initialSpace,
+	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
+	zrfmustGrow fmustGrow, zrfincreaseSpace fincreaseSpace, void *userData
+	)
+{
+	bool const isAllocated = allocatedMemory != NULL;
+	size_t nextTotalSpace;
+
+	if (!isAllocated)
+		nextTotalSpace = initialSpace;
+	else
+		nextTotalSpace = totalSpace;
+
+	nextTotalSpace = ZRRESIZE_MORESIZE(nextTotalSpace, usedSpace, fmustGrow, fincreaseSpace, userData);
+
+	if (!isAllocated)
+	{
+		return ZRARRAY2_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalSpace);
+	}
+	else
+	{
+		assert(nextTotalSpace > totalSpace);
+		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
+		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
+	}
+}
+
+ZRMUSTINLINE
+static inline ZRArray2 ZRRESIZE_MAKELESSSIZE(
+	size_t totalSpace, size_t usedSpace, size_t initialSpace,
+	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArraySpace, ZRAllocator *allocator,
+	zrfmustShrink fmustShrink, zrfdecreaseSpace fdecreaseSpace, void *userData
+	)
+{
+	size_t nextTotalSpace = ZRRESIZE_LESSSIZE(totalSpace, usedSpace, fmustShrink, fdecreaseSpace, userData);
+
+// If we can store it into the initial array
+	if (nextTotalSpace <= staticArraySpace)
+	{
+		// Nothing to do
+	}
+// We can't get a memory space less than the initial memory size
+	else if (nextTotalSpace < initialSpace)
+		nextTotalSpace = initialSpace;
+
+	if (nextTotalSpace <= staticArraySpace)
+		return ZRARRAY2_DEF(staticArray, staticArraySpace);
+	else
+	{
+		assert(nextTotalSpace < totalSpace);
+		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
+		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
+	}
 }

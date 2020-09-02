@@ -13,6 +13,14 @@
 #include <stdbool.h>
 #include <string.h>
 
+
+typedef struct{
+	void *array;
+	size_t size;
+}ZRArray2;
+
+#define ZRARRAY2_DEF(A,S) ((ZRArray2) { (A), (S) })
+
 // ============================================================================
 
 #define ZRARRAYOP_GET(offset, objSize, pos) \
