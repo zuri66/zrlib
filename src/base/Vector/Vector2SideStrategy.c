@@ -365,12 +365,6 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	size_t const totalSpace = ZR2SS_TOTALSPACE_SIZEOF(svector);
 
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
-	size_t nextTotalSpace;
-
-	if (!isAllocated)
-		nextTotalSpace = getInitialMemoryNbObjs(svector) * objSize;
-	else
-		nextTotalSpace = totalSpace;
 
 	size_t const moreUsedSpace = nbObjMore * objSize;
 	size_t const nextUsedSpace = ZR2SS_USPACE_SIZEOF(svector) + moreUsedSpace;
@@ -378,25 +372,20 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	zrfincreaseSpace fincreaseSpace = ZR2SS_STRATEGY(svector)->fincreaseSpace;
 	zrfmustGrow fmustGrow = ZR2SS_STRATEGY(svector)->fmustGrow;
 
-	nextTotalSpace = ZRRESIZE_MORESIZE(nextTotalSpace, nextUsedSpace, fmustGrow, fincreaseSpace, svector);
-	size_t const nextTotalNbObj = nextTotalSpace / objSize;
+	ZRArray2 new = ZRRESIZE_MAKEMORESIZE(
+		totalSpace, nextUsedSpace, getInitialMemoryNbObjs(svector) * objSize, objAlignment,
+		svector->allocatedMemory, svector->allocator,
+		fmustGrow, fincreaseSpace, svector
+		);
 
-	if (!isAllocated)
-	{
-		svector->allocatedMemory = ZRAALLOC(svector->allocator, objAlignment, nextTotalSpace);
-		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
-	}
-	else
-	{
-		assert(nextTotalSpace > totalSpace);
-		void *const lastMemory = svector->allocatedMemory;
+	size_t const nextTotalNbObj = new.size / objSize;
 
-		svector->allocatedMemory = ZRAALLOC(svector->allocator, objAlignment, nextTotalSpace);
-		memcpy(svector->allocatedMemory, lastMemory, totalSpace);
+	setFUEOSpaces(svector, new.array, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 
-		setFUEOSpaces(svector, svector->allocatedMemory, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
-		ZRFREE(svector->allocator, lastMemory);
-	}
+	if (isAllocated)
+		ZRFREE(svector->allocator, svector->allocatedMemory);
+
+	svector->allocatedMemory = new.array;
 	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
 }
 
@@ -415,38 +404,21 @@ static inline void lessSize(ZRVector *vec)
 	zrfdecreaseSpace fdecreaseSpace = ZR2SS_STRATEGY(svector)->fdecreaseSpace;
 	zrfmustShrink fmustShrink = ZR2SS_STRATEGY(svector)->fmustShrink;
 
-	size_t nextTotalSpace = ZRRESIZE_LESSSIZE(totalSpace, usedSpace, fmustShrink, fdecreaseSpace, svector);
+	ZRArray2 new = ZRRESIZE_MAKELESSSIZE(
+		totalSpace, usedSpace, initialMemorySpace, objAlignment,
+		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
+		fmustShrink, fdecreaseSpace, svector
+		);
 
-// If we can store it into the initial array
-	if ((nextTotalSpace / objSize) <= ZRVECTOR_2SS(svector)->initialArraySize)
-	{
-		// Nothing to do
-	}
-// We can't get a memory space less than the initial memory size
-	else if (nextTotalSpace < initialMemorySpace)
-	{
-		nextTotalSpace = initialMemorySpace;
-	}
-	size_t const nextTotalNbObj = nextTotalSpace / objSize;
-	ZR2SSVector *const sdata = ZRVECTOR_2SS(svector);
+	size_t const nextTotalNbObj = new.size / objSize;
+	void *lastUSpace = ZR2SS_USPACE(svector);
+	setFUEOSpaces(svector, new.array, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 
-	if (nextTotalNbObj <= ZRVECTOR_2SS(svector)->initialArraySize)
-	{
-		ZRARRAYOP_CPY(ZRVECTOR_2SS(svector)->initialArray, objSize, nbObj, sdata->allocatedMemory);
-		ZRFREE(ZRVECTOR_2SS(svector)->allocator, sdata->allocatedMemory);
-		sdata->allocatedMemory = NULL;
-	}
-	else
-	{
-		assert(nextTotalSpace < totalSpace);
-		void *const lastMemory = sdata->allocatedMemory;
-		void *const lastUSpace = lastMemory + ZR2SS_FSPACE_SIZEOF(svector);
+	ZRFREE(svector->allocator, lastUSpace);
 
-		sdata->allocatedMemory = ZRAALLOC(svector->allocator, objAlignment, nextTotalSpace);
-		setFUEOSpaces(svector, sdata->allocatedMemory, nextTotalNbObj, lastUSpace, nbObj);
+	if (new.array == svector->initialArray)
+		svector->allocatedMemory = NULL;
 
-		ZRFREE(svector->allocator, lastMemory);
-	}
 	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
 }
 
