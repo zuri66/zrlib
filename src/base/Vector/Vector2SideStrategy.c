@@ -3,7 +3,6 @@
  * @date samedi 19 janvier 2019, 18:03:00 (UTC+0100)
  */
 
-#include <zrlib/base/ResizeOp.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/struct.h>
@@ -22,12 +21,6 @@ typedef struct ZR2SSVectorS ZR2SSVector;
 struct ZRVector2SideStrategyS
 {
 	ZRVectorStrategy strategy;
-
-	bool _ (*fmustGrow)(____ size_t totalSpace, size_t usedSpace, void *vec_p);
-	size_t (*fincreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec_p);
-
-	bool _ (*fmustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec_p);
-	size_t (*fdecreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec_p);
 };
 
 #define ZR2SSSTRATEGY_VECTOR(S) (&(S)->strategy)
@@ -46,6 +39,12 @@ typedef enum
 struct ZR2SSVectorS
 {
 	ZRVector vector;
+
+	zrfmustGrow fmustGrow;
+	zrfmustShrink fmustShrink;
+
+	zrfincreaseSpace fincreaseSpace;
+	zrfdecreaseSpace fdecreaseSpace;
 
 	size_t initialArrayOffset;
 
@@ -252,24 +251,18 @@ void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
 	twoSideStrategy->strategy.fdelete = v ? ZRVector2SideStrategy_fdeleteShrink : ZRVector2SideStrategy_fdelete;
 }
 
-void ZRVector2SideStrategy_growStrategy( //
-	ZRVectorStrategy *strategy, //
-	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, void*), //
-	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, void*) //
-	)
+void ZRVector2SideStrategy_growStrategy(ZRVector *vec, zrfmustGrow fmustGrow, zrfincreaseSpace fincreaseSpace)
 {
-	((ZRVector2SideStrategy*)strategy)->fmustGrow = mustGrow;
-	((ZRVector2SideStrategy*)strategy)->fincreaseSpace = increaseSpace;
+	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
+	svector->fmustGrow = fmustGrow;
+	svector->fincreaseSpace = fincreaseSpace;
 }
 
-void ZRVector2SideStrategy_shrinkStrategy( //
-	ZRVectorStrategy *strategy, //
-	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec), //
-	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
-	)
+void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrfmustShrink fmustShrink, zrfdecreaseSpace fdecreaseSpace)
 {
-	((ZRVector2SideStrategy*)strategy)->fmustShrink = mustShrink;
-	((ZRVector2SideStrategy*)strategy)->fdecreaseSpace = decreaseSpace;
+	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
+	svector->fmustShrink = fmustShrink;
+	svector->fdecreaseSpace = fdecreaseSpace;
 }
 
 static
@@ -359,7 +352,6 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore);
 static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	size_t const objAlignment = vec->objAlignment;
 	size_t const objSize = vec->objSize;
 	size_t const nbObj = vec->nbObj;
 	size_t const totalSpace = ZR2SS_TOTALSPACE_SIZEOF(svector);
@@ -369,13 +361,10 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	size_t const moreUsedSpace = nbObjMore * objSize;
 	size_t const nextUsedSpace = ZR2SS_USPACE_SIZEOF(svector) + moreUsedSpace;
 
-	zrfincreaseSpace fincreaseSpace = ZR2SS_STRATEGY(svector)->fincreaseSpace;
-	zrfmustGrow fmustGrow = ZR2SS_STRATEGY(svector)->fmustGrow;
-
 	ZRArray2 new = ZRRESIZE_MAKEMORESIZE(
-		totalSpace, nextUsedSpace, getInitialMemoryNbObjs(svector) * objSize, objAlignment,
+		totalSpace, nextUsedSpace, getInitialMemoryNbObjs(svector) * objSize, vec->objAlignment,
 		svector->allocatedMemory, svector->allocator,
-		fmustGrow, fincreaseSpace, svector
+		svector->fmustGrow, svector->fincreaseSpace, svector
 		);
 
 	size_t const nextTotalNbObj = new.size / objSize;
@@ -394,20 +383,15 @@ static inline void lessSize(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 	assert(ZRVector2SideStrategy_memoryIsAllocated(svector));
-	size_t const objAlignment = vec->objAlignment;
 	size_t const objSize = vec->objSize;
 	size_t const nbObj = vec->nbObj;
 	size_t const totalSpace = ZR2SS_TOTALSPACE_SIZEOF(svector);
 	size_t const usedSpace = ZR2SS_USPACE_SIZEOF(svector);
-	size_t const initialMemorySpace = getInitialMemoryNbObjs(svector) * objSize;
-
-	zrfdecreaseSpace fdecreaseSpace = ZR2SS_STRATEGY(svector)->fdecreaseSpace;
-	zrfmustShrink fmustShrink = ZR2SS_STRATEGY(svector)->fmustShrink;
 
 	ZRArray2 new = ZRRESIZE_MAKELESSSIZE(
-		totalSpace, usedSpace, initialMemorySpace, objAlignment,
+		totalSpace, usedSpace, getInitialMemoryNbObjs(svector) * objSize, vec->objAlignment,
 		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
-		fmustShrink, fdecreaseSpace, svector
+		svector->fmustShrink, svector->fdecreaseSpace, svector
 		);
 
 	size_t const nextTotalNbObj = new.size / objSize;
@@ -434,7 +418,7 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 		return true;
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return ZR2SS_STRATEGY(svector)->fmustGrow(ZR2SS_TOTALSPACE_SIZEOF(svector), used + objNbBytes, ZR2SS_VECTOR(svector));
+		return svector->fmustGrow(ZR2SS_TOTALSPACE_SIZEOF(svector), used + objNbBytes, ZR2SS_VECTOR(svector));
 
 	return false;
 }
@@ -447,7 +431,7 @@ static inline bool mustShrink(ZRVector *vec)
 	size_t const free = ZR2SS_FREESPACE_SIZEOF(svector);
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return ZR2SS_STRATEGY(svector)->fmustShrink(free, used, ZR2SS_VECTOR(svector));
+		return svector->fmustShrink(free, used, ZR2SS_VECTOR(svector));
 
 	return false;
 }
@@ -686,11 +670,7 @@ static void ZRVector2SideStrategy_initStrategy(ZRVector2SideStrategy *strategy)
 			.fmemoryTrim = ZRVector2SideStrategy_fmemoryTrim, //
 			.fdone = ZRVector2SideStrategy_fdone, //
 			.fdestroy = ZRVector2SideStrategy_fdone, //
-			},//
-		.fmustGrow = mustGrowSimple, //
-		.fincreaseSpace = increaseSpaceTwice, //
-		.fmustShrink = mustShrink4, //
-		.fdecreaseSpace = decreaseSpaceTwice, //
+			}, //
 		};
 }
 
@@ -708,6 +688,10 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 		.initialArraySize = infos[ZRVectorInfos_objs].size,
 		.initialMemoryNbObjs = initInfos->initialMemoryNbObj,
 		.staticStrategy = initInfos->staticStrategy,
+		.fmustGrow = mustGrowSimple,
+		.fincreaseSpace = increaseSpaceTwice,
+		.fmustShrink = mustShrink4,
+		.fdecreaseSpace = decreaseSpaceTwice,
 		};
 
 	ZRVector2SideStrategy *strategy;

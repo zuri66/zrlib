@@ -6,6 +6,7 @@
 #ifndef ZRVECTOR2SIDESTRATEGY_H
 #define ZRVECTOR2SIDESTRATEGY_H
 
+#include <zrlib/base/ResizeOp.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/struct.h>
 #include <zrlib/base/Vector/Vector.h>
@@ -15,17 +16,8 @@
 // ============================================================================
 // STRATEGY
 
-void ZRVector2SideStrategy_growStrategy( //
-	ZRVectorStrategy *strategy, //
-	bool _ (*mustGrow)(____ size_t totalSpace, size_t usedSpace, void *vec), //
-	size_t (*increaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
-		);
-
-void ZRVector2SideStrategy_shrinkStrategy( //
-	ZRVectorStrategy *strategy, //
-	bool _ (*mustShrink)(__ size_t totalSpace, size_t usedSpace, void *vec), //
-	size_t (*decreaseSpace)(size_t totalSpace, size_t usedSpace, void *vec) //
-		);
+void ZRVector2SideStrategy_growStrategy(_ ZRVector *vec, zrfmustGrow fmustGrow, ___ zrfincreaseSpace fincreaseSpace);
+void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrfmustShrink fmustShrink, zrfdecreaseSpace fdecreaseSpace);
 
 // ============================================================================
 // HELPERS
@@ -44,7 +36,6 @@ void ZRVector2SideStrategyInfos_dynamic(void *infos_out, size_t initialArrayNbOb
  */
 void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out);
 
-
 /**
  * The ObjInfos of the vector object.
  */
@@ -62,12 +53,12 @@ ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArrayNbObj, size_t 
 // ============================================================================
 // SPACE STRATEGIES
 
-bool mustGrowSimple(size_t totalSpace, size_t usedSpace,  void* vec_p);
-bool mustGrowTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
-size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
+bool mustGrowSimple(size_t totalSpace, size_t usedSpace, void *vec_p);
+bool mustGrowTwice(size_t totalSpace, size_t usedSpace, void *vec_p);
+size_t increaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vec_p);
 
-bool mustShrink4(size_t total, size_t used,  void* vec_p);
-size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace,  void* vec_p);
+bool mustShrink4(size_t total, size_t used, void *vec_p);
+size_t decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vec_p);
 
 // ============================================================================
 
