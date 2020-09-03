@@ -3,6 +3,9 @@
  * @date mer. 02 sept. 2020 15:48:02 CEST
  */
 
+#ifndef ZRRESIZE_OP_H
+#define ZRRESIZE_OP_H
+
 #include <zrlib/config.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/ArrayOp.h>
@@ -101,3 +104,5 @@ static inline ZRArray2 ZRRESIZE_MAKELESSSIZE(
 		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
 	}
 }
+
+#endif
