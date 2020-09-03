@@ -11,7 +11,6 @@
 #include <zrlib/base/ArrayOp.h>
 
 #include <assert.h>
-#include <stdbool.h>
 
 typedef bool (*zrfmustGrow)(size_t totalSpace, size_t usedSpace, void *userData);
 typedef size_t (*zrfincreaseSpace)(size_t totalSpace, size_t usedSpace, void *userData);
@@ -104,5 +103,17 @@ static inline ZRArray2 ZRRESIZE_MAKELESSSIZE(
 		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
 	}
 }
+
+// ============================================================================
+// SPACE STRATEGIES
+
+bool ZRResizeOp_mustGrowSimple(size_t totalSpace, size_t usedSpace, void *data);
+bool ZRResizeOp_mustGrowTwice(size_t totalSpace, size_t usedSpace, void *data);
+size_t ZRResizeOp_increaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vdata);
+
+bool ZRResizeOp_mustShrink4(size_t total, size_t used, void *vec_p);
+size_t ZRResizeOp_decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *data);
+
+// ============================================================================
 
 #endif

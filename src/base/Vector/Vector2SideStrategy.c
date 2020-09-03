@@ -152,10 +152,6 @@ static inline bool ZRVector2SideStrategy_memoryIsAllocated(ZR2SSVector *vec)
 
 // ============================================================================
 
-#include "Vector2SideStrategy_spaceStrategies.c"
-
-// ============================================================================
-
 /**
  * vec must be initialized to zero before.
  */
@@ -688,10 +684,10 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 		.initialArraySize = infos[ZRVectorInfos_objs].size,
 		.initialMemoryNbObjs = initInfos->initialMemoryNbObj,
 		.staticStrategy = initInfos->staticStrategy,
-		.fmustGrow = mustGrowSimple,
-		.fincreaseSpace = increaseSpaceTwice,
-		.fmustShrink = mustShrink4,
-		.fdecreaseSpace = decreaseSpaceTwice,
+		.fmustGrow = ZRResizeOp_mustGrowSimple,
+		.fincreaseSpace = ZRResizeOp_increaseSpaceTwice,
+		.fmustShrink = ZRResizeOp_mustShrink4,
+		.fdecreaseSpace = ZRResizeOp_decreaseSpaceTwice,
 		};
 
 	ZRVector2SideStrategy *strategy;
