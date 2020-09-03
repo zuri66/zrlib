@@ -12,108 +12,121 @@
 
 #include <assert.h>
 
-typedef bool (*zrfmustGrow)(size_t totalSpace, size_t usedSpace, void *userData);
-typedef size_t (*zrfincreaseSpace)(size_t totalSpace, size_t usedSpace, void *userData);
+typedef size_t (*zrflimit)(size_t totalSpace, void *userData);
+typedef size_t (*zrfincrease)(size_t totalSpace, void *userData);
+typedef size_t (*zrfdecrease)(size_t totalSpace, void *userData);
 
-typedef bool (*zrfmustShrink)(size_t totalSpace, size_t usedSpace, void *userData);
-typedef size_t (*zrfdecreaseSpace)(size_t totalSpace, size_t usedSpace, void *userData);
+typedef struct
+{
+	zrflimit fupLimit;
+	zrfincrease fincrease;
+} ZRResizeGrowStrategy;
 
-static inline size_t ZRRESIZE_MORESIZE(
+typedef struct
+{
+	zrflimit fdownLimit;
+	zrfincrease fdecrease;
+} ZRResizeShrinkStrategy;
+
+static inline size_t ZRRESIZELIMIT_MORESIZE(
 	size_t totalSpace, size_t usedSpace,
-	zrfmustGrow fmustGrow, zrfincreaseSpace fincreaseSpace,
+	zrflimit flimit, zrfincrease fincrease,
 	void *userData
 	)
 {
 	size_t nextTotalSpace = totalSpace;
 
 	while (nextTotalSpace < usedSpace)
-		nextTotalSpace = fincreaseSpace(nextTotalSpace, usedSpace, userData);
-	while (fmustGrow(nextTotalSpace, usedSpace, userData))
-		nextTotalSpace = fincreaseSpace(nextTotalSpace, usedSpace, userData);
+		nextTotalSpace = fincrease(nextTotalSpace, userData);
+	while (flimit(nextTotalSpace, userData) <= usedSpace)
+		nextTotalSpace = fincrease(nextTotalSpace, userData);
 
 	return nextTotalSpace;
 }
 
-static inline size_t ZRRESIZE_LESSSIZE(
+static inline size_t ZRRESIZELIMIT_LESSSIZE(
 	size_t totalSpace, size_t usedSpace,
-	zrfmustGrow fmustShrink, zrfincreaseSpace fdecreaseSpace,
+	zrflimit flimit, zrfdecrease fdecrease,
 	void *userData
 	)
 {
 	size_t nextTotalSpace = totalSpace;
 
-	while (fmustShrink(nextTotalSpace, usedSpace, userData))
-		nextTotalSpace = fdecreaseSpace(nextTotalSpace, usedSpace, userData);
+	while (flimit(nextTotalSpace, userData) > usedSpace)
+		nextTotalSpace = fdecrease(nextTotalSpace, userData);
 
 	return nextTotalSpace;
 }
 
-static inline ZRArray2 ZRRESIZE_MAKEMORESIZE(
-	size_t totalSpace, size_t usedSpace, size_t initialSpace,
+static inline ZRArray2 ZRRESIZELIMIT_MAKEMORESIZE(
+	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
-	zrfmustGrow fmustGrow, zrfincreaseSpace fincreaseSpace, void *userData
+	zrflimit flimit, zrfincrease fincrease, void *userData
 	)
 {
 	bool const isAllocated = allocatedMemory != NULL;
-	size_t nextTotalSpace;
+	size_t nextTotalNb;
+	nextTotalNb = (isAllocated) ? totalNb : initialNb;
+	nextTotalNb = ZRRESIZELIMIT_MORESIZE(nextTotalNb, usedNb, flimit, fincrease, userData);
+	size_t nextTotalSpace = nextTotalNb * objSize;
 
 	if (!isAllocated)
-		nextTotalSpace = initialSpace;
-	else
-		nextTotalSpace = totalSpace;
-
-	nextTotalSpace = ZRRESIZE_MORESIZE(nextTotalSpace, usedSpace, fmustGrow, fincreaseSpace, userData);
-
-	if (!isAllocated)
-	{
-		return ZRARRAY2_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalSpace);
-	}
+		return ZRARRAY2_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalNb);
 	else
 	{
-		assert(nextTotalSpace > totalSpace);
+		assert(nextTotalNb > totalNb);
 		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
-		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
+		return ZRARRAY2_DEF(newMemory, nextTotalNb);
 	}
 }
 
 ZRMUSTINLINE
-static inline ZRArray2 ZRRESIZE_MAKELESSSIZE(
-	size_t totalSpace, size_t usedSpace, size_t initialSpace,
-	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArraySpace, ZRAllocator *allocator,
-	zrfmustShrink fmustShrink, zrfdecreaseSpace fdecreaseSpace, void *userData
+static inline ZRArray2 ZRRESIZELIMIT_MAKELESSSIZE(
+	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
+	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
+	zrflimit flimit, zrfdecrease fdecrease, void *userData
 	)
 {
-	size_t nextTotalSpace = ZRRESIZE_LESSSIZE(totalSpace, usedSpace, fmustShrink, fdecreaseSpace, userData);
+	size_t nextTotalNb = ZRRESIZELIMIT_LESSSIZE(totalNb, usedNb, flimit, fdecrease, userData);
 
 // If we can store it into the initial array
-	if (nextTotalSpace <= staticArraySpace)
+	if (nextTotalNb <= staticArrayNb)
 	{
 		// Nothing to do
 	}
 // We can't get a memory space less than the initial memory size
-	else if (nextTotalSpace < initialSpace)
-		nextTotalSpace = initialSpace;
+	else if (nextTotalNb < initialNb)
+		nextTotalNb = initialNb;
 
-	if (nextTotalSpace <= staticArraySpace)
-		return ZRARRAY2_DEF(staticArray, staticArraySpace);
+	if (nextTotalNb <= staticArrayNb)
+		return ZRARRAY2_DEF(staticArray, staticArrayNb);
 	else
 	{
-		assert(nextTotalSpace < totalSpace);
+		assert(nextTotalNb < totalNb);
+		size_t nextTotalSpace = nextTotalNb * objSize;
 		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
-		return ZRARRAY2_DEF(newMemory, nextTotalSpace);
+		return ZRARRAY2_DEF(newMemory, nextTotalNb);
 	}
 }
 
 // ============================================================================
 // SPACE STRATEGIES
 
-bool ZRResizeOp_mustGrowSimple(size_t totalSpace, size_t usedSpace, void *data);
-bool ZRResizeOp_mustGrowTwice(size_t totalSpace, size_t usedSpace, void *data);
-size_t ZRResizeOp_increaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *vdata);
+size_t ZRResizeOp_limit_25(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_50(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_55(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_60(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_70(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_75(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_80(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_85(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_90(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_95(size_t totalSpace, void *data);
+size_t ZRResizeOp_limit_100(size_t totalSpace, void *data);
 
-bool ZRResizeOp_mustShrink4(size_t total, size_t used, void *vec_p);
-size_t ZRResizeOp_decreaseSpaceTwice(size_t totalSpace, size_t usedSpace, void *data);
-
-// ============================================================================
+size_t ZRResizeOp_increase_25(size_t totalSpace, void *vec_p);
+size_t ZRResizeOp_increase_50(size_t totalSpace, void *vec_p);
+size_t ZRResizeOp_increase_75(size_t totalSpace, void *vec_p);
+size_t ZRResizeOp_increase_100(size_t totalSpace, void *vec_p);
 
 #endif
