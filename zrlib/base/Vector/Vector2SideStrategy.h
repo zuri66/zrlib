@@ -16,8 +16,8 @@
 // ============================================================================
 // STRATEGY
 
-void ZRVector2SideStrategy_growStrategy(_ ZRVector *vec, zrfmustGrow fmustGrow, ___ zrfincreaseSpace fincreaseSpace);
-void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrfmustShrink fmustShrink, zrfdecreaseSpace fdecreaseSpace);
+void ZRVector2SideStrategy_growStrategy(_ ZRVector *vec, zrflimit fupLimit, _ zrfincrease fincrease);
+void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrflimit fdownLimit, zrfdecrease fdecrease);
 
 // ============================================================================
 // HELPERS
@@ -49,6 +49,5 @@ ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, size_t objSiz
 
 ZRVector* ZRVector2SideStrategy_createFixedM(_ size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
 ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator);
-
 
 #endif
