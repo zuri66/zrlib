@@ -39,7 +39,7 @@ typedef struct
 
 // ============================================================================
 
-static inline size_t ZRRESIZELIMIT_MORESIZE(
+static inline size_t ZRRESIZE_MORESIZE(
 	size_t totalSpace, size_t usedSpace,
 	zrflimit flimit, zrfincrease fincrease,
 	void *userData
@@ -55,7 +55,7 @@ static inline size_t ZRRESIZELIMIT_MORESIZE(
 	return nextTotalSpace;
 }
 
-static inline size_t ZRRESIZELIMIT_LESSSIZE(
+static inline size_t ZRRESIZE_LESSSIZE(
 	size_t totalSpace, size_t usedSpace,
 	zrflimit flimit, zrfdecrease fdecrease,
 	void *userData
@@ -84,7 +84,7 @@ static inline bool ZRRESIZE_MUSTSHRINK(size_t totalSpace, size_t usedSpace, ZRRe
 	return usedSpace < rdata->downLimit;
 }
 
-static inline ZRArrayAndNb ZRRESIZELIMIT_MAKEMORESIZE(
+static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
@@ -93,7 +93,7 @@ static inline ZRArrayAndNb ZRRESIZELIMIT_MAKEMORESIZE(
 	bool const isAllocated = allocatedMemory != NULL;
 	size_t nextTotalNb;
 	nextTotalNb = (isAllocated) ? totalNb : initialNb;
-	nextTotalNb = ZRRESIZELIMIT_MORESIZE(nextTotalNb, usedNb, rdata->growStrategy.fupLimit, rdata->growStrategy.fincrease, userData);
+	nextTotalNb = ZRRESIZE_MORESIZE(nextTotalNb, usedNb, rdata->growStrategy.fupLimit, rdata->growStrategy.fincrease, userData);
 	size_t nextTotalSpace = nextTotalNb * objSize;
 
 	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
@@ -112,13 +112,13 @@ static inline ZRArrayAndNb ZRRESIZELIMIT_MAKEMORESIZE(
 }
 
 ZRMUSTINLINE
-static inline ZRArrayAndNb ZRRESIZELIMIT_MAKELESSSIZE(
+static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
 	)
 {
-	size_t nextTotalNb = ZRRESIZELIMIT_LESSSIZE(totalNb, usedNb, rdata->shrinkStrategy.fdownLimit, rdata->shrinkStrategy.fdecrease, userData);
+	size_t nextTotalNb = ZRRESIZE_LESSSIZE(totalNb, usedNb, rdata->shrinkStrategy.fdownLimit, rdata->shrinkStrategy.fdecrease, userData);
 
 // If we can store it into the initial array
 	if (nextTotalNb <= staticArrayNb)

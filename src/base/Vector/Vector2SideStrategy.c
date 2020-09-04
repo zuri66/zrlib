@@ -346,7 +346,7 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	size_t const capacity = ZRVECTOR_LVSIZE(vec);
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
-	ZRArrayAndNb new = ZRRESIZELIMIT_MAKEMORESIZE(
+	ZRArrayAndNb new = ZRRESIZE_MAKEMORESIZE(
 		capacity, nbObj + nbObjMore, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->allocator,
 		&svector->resizeData, svector
@@ -371,7 +371,7 @@ static inline void lessSize(ZRVector *vec)
 	size_t const nbObj = ZRVECTOR_LVNBOBJ(vec);
 	size_t const capacity = ZRVECTOR_LVSIZE(vec);
 
-	ZRArrayAndNb new = ZRRESIZELIMIT_MAKELESSSIZE(
+	ZRArrayAndNb new = ZRRESIZE_MAKELESSSIZE(
 		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
 		&svector->resizeData, svector
