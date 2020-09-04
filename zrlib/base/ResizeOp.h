@@ -8,7 +8,7 @@
 
 #include <zrlib/config.h>
 #include <zrlib/base/Allocator/Allocator.h>
-#include <zrlib/base/ArrayOp.h>
+#include <zrlib/base/Array.h>
 
 #include <assert.h>
 
@@ -27,6 +27,17 @@ typedef struct
 	zrflimit fdownLimit;
 	zrfincrease fdecrease;
 } ZRResizeShrinkStrategy;
+
+typedef struct
+{
+	ZRResizeGrowStrategy growStrategy;
+	ZRResizeShrinkStrategy shrinkStrategy;
+
+	size_t upLimit;
+	size_t downLimit;
+} ZRResizeData;
+
+// ============================================================================
 
 static inline size_t ZRRESIZELIMIT_MORESIZE(
 	size_t totalSpace, size_t usedSpace,
@@ -58,36 +69,41 @@ static inline size_t ZRRESIZELIMIT_LESSSIZE(
 	return nextTotalSpace;
 }
 
-static inline ZRArray2 ZRRESIZELIMIT_MAKEMORESIZE(
+static inline ZRArrayAndNb ZRRESIZELIMIT_MAKEMORESIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
-	zrflimit flimit, zrfincrease fincrease, void *userData
+	ZRResizeData *rdata, void *userData
 	)
 {
 	bool const isAllocated = allocatedMemory != NULL;
 	size_t nextTotalNb;
 	nextTotalNb = (isAllocated) ? totalNb : initialNb;
-	nextTotalNb = ZRRESIZELIMIT_MORESIZE(nextTotalNb, usedNb, flimit, fincrease, userData);
+	nextTotalNb = ZRRESIZELIMIT_MORESIZE(nextTotalNb, usedNb, rdata->growStrategy.fupLimit, rdata->growStrategy.fincrease, userData);
 	size_t nextTotalSpace = nextTotalNb * objSize;
 
+	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
+	rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
+		rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
+		rdata);
+
 	if (!isAllocated)
-		return ZRARRAY2_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalNb);
+		return ZRARRAYN_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalNb);
 	else
 	{
 		assert(nextTotalNb > totalNb);
 		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
-		return ZRARRAY2_DEF(newMemory, nextTotalNb);
+		return ZRARRAYN_DEF(newMemory, nextTotalNb);
 	}
 }
 
 ZRMUSTINLINE
-static inline ZRArray2 ZRRESIZELIMIT_MAKELESSSIZE(
+static inline ZRArrayAndNb ZRRESIZELIMIT_MAKELESSSIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
-	zrflimit flimit, zrfdecrease fdecrease, void *userData
+	ZRResizeData *rdata, void *userData
 	)
 {
-	size_t nextTotalNb = ZRRESIZELIMIT_LESSSIZE(totalNb, usedNb, flimit, fdecrease, userData);
+	size_t nextTotalNb = ZRRESIZELIMIT_LESSSIZE(totalNb, usedNb, rdata->shrinkStrategy.fdownLimit, rdata->shrinkStrategy.fdecrease, userData);
 
 // If we can store it into the initial array
 	if (nextTotalNb <= staticArrayNb)
@@ -98,14 +114,19 @@ static inline ZRArray2 ZRRESIZELIMIT_MAKELESSSIZE(
 	else if (nextTotalNb < initialNb)
 		nextTotalNb = initialNb;
 
+	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
+	rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
+		rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
+		rdata);
+
 	if (nextTotalNb <= staticArrayNb)
-		return ZRARRAY2_DEF(staticArray, staticArrayNb);
+		return ZRARRAYN_DEF(staticArray, staticArrayNb);
 	else
 	{
 		assert(nextTotalNb < totalNb);
 		size_t nextTotalSpace = nextTotalNb * objSize;
 		void *const newMemory = ZRAALLOC(allocator, alignment, nextTotalSpace);
-		return ZRARRAY2_DEF(newMemory, nextTotalNb);
+		return ZRARRAYN_DEF(newMemory, nextTotalNb);
 	}
 }
 
