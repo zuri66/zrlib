@@ -393,26 +393,14 @@ ZRMUSTINLINE
 static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	size_t const free = vec->capacity - vec->nbObj;
-
-	if (free < nbObjMore)
-		return true;
-
-	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return vec->nbObj + nbObjMore >= svector->resizeData.upLimit;
-
-	return false;
+	return ZRRESIZE_MUSTGROW(vec->capacity, vec->nbObj + nbObjMore, &svector->resizeData);
 }
 
 ZRMUSTINLINE
 static inline bool mustShrink(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-
-	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return vec->nbObj < svector->resizeData.downLimit;
-
-	return false;
+	return ZRRESIZE_MUSTSHRINK(vec->capacity, vec->nbObj, &svector->resizeData);
 }
 
 static bool enoughSpaceForInsert(ZR2SSVector *svector, size_t pos, size_t nbMore)
