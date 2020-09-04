@@ -40,11 +40,7 @@ struct ZR2SSVectorS
 {
 	ZRVector vector;
 
-	ZRResizeGrowStrategy growStrategy;
-	ZRResizeShrinkStrategy shrinkStrategy;
-
-	size_t upLimit;
-	size_t downLimit;
+	ZRResizeData resizeData;
 
 	size_t initialArrayOffset;
 
@@ -250,13 +246,13 @@ void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
 void ZRVector2SideStrategy_growStrategy(ZRVector *vec, zrflimit fupLimit, zrfincrease fincrease)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	svector->growStrategy = (ZRResizeGrowStrategy ) { fupLimit, fincrease };
+	svector->resizeData.growStrategy = (ZRResizeGrowStrategy ) { fupLimit, fincrease };
 }
 
 void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrflimit fdownLimit, zrfdecrease fdecrease)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	svector->shrinkStrategy = (ZRResizeShrinkStrategy ) { fdownLimit, fdecrease };
+	svector->resizeData.shrinkStrategy = (ZRResizeShrinkStrategy ) { fdownLimit, fdecrease };
 }
 
 static
@@ -349,18 +345,13 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	size_t const capacity = vec->capacity;
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
-	ZRArray2 new = ZRRESIZELIMIT_MAKEMORESIZE(
+	ZRArrayAndNb new = ZRRESIZELIMIT_MAKEMORESIZE(
 		capacity, nbObj + nbObjMore, getInitialMemoryNbObjs(svector), objSize, vec->objAlignment,
 		svector->allocatedMemory, svector->allocator,
-		svector->growStrategy.fupLimit, svector->growStrategy.fincrease, svector
+		&svector->resizeData, svector
 		);
 
 	size_t const nextTotalNbObj = new.nbObj;
-	svector->upLimit = svector->growStrategy.fupLimit(nextTotalNbObj, svector);
-	svector->downLimit = svector->shrinkStrategy.fdownLimit(
-		svector->shrinkStrategy.fdecrease(nextTotalNbObj, svector),
-		svector);
-
 	setFUEOSpaces(svector, new.array, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 
 	if (isAllocated)
@@ -379,19 +370,13 @@ static inline void lessSize(ZRVector *vec)
 	size_t const nbObj = vec->nbObj;
 	size_t const capacity = vec->capacity;
 
-	ZRArray2 new = ZRRESIZELIMIT_MAKELESSSIZE(
+	ZRArrayAndNb new = ZRRESIZELIMIT_MAKELESSSIZE(
 		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, vec->objAlignment,
 		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
-		svector->shrinkStrategy.fdownLimit, svector->shrinkStrategy.fdecrease, svector
+		&svector->resizeData, svector
 		);
 
 	size_t const nextTotalNbObj = new.nbObj;
-
-	svector->upLimit = svector->growStrategy.fupLimit(nextTotalNbObj, svector);
-	svector->downLimit = svector->shrinkStrategy.fdownLimit(
-		svector->shrinkStrategy.fdecrease(nextTotalNbObj, svector),
-		svector);
-
 	setFUEOSpaces(svector, new.array, nextTotalNbObj, ZR2SS_USPACE(svector), nbObj);
 
 	ZRFREE(svector->allocator, svector->allocatedMemory);
@@ -414,7 +399,7 @@ static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 		return true;
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return vec->nbObj + nbObjMore >= svector->upLimit;
+		return vec->nbObj + nbObjMore >= svector->resizeData.upLimit;
 
 	return false;
 }
@@ -425,7 +410,7 @@ static inline bool mustShrink(ZRVector *vec)
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
-		return vec->nbObj < svector->downLimit;
+		return vec->nbObj < svector->resizeData.downLimit;
 
 	return false;
 }
@@ -682,8 +667,11 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 		.initialArraySize = infos[ZRVectorInfos_objs].size,
 		.initialMemoryNbObjs = initInfos->initialMemoryNbObj,
 		.staticStrategy = initInfos->staticStrategy,
-		.growStrategy = (ZRResizeGrowStrategy ) { ZRResizeOp_limit_100, ZRResizeOp_increase_100 },
-		.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 } ,
+
+		.resizeData = (ZRResizeData ) { //
+			.growStrategy = (ZRResizeGrowStrategy ) { ZRResizeOp_limit_100, ZRResizeOp_increase_100 },
+			.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 } ,
+			} ,
 		};
 
 	ZRVector2SideStrategy *strategy;
