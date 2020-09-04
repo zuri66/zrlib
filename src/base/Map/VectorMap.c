@@ -122,8 +122,8 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 
 		alignas(max_align_t) char tmpBucket[vmap->bucketInfos[BucketInfos_struct].size];
 
-		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
-		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
+		memcpy(bucket_key(vmap, tmpBucket), key, map->keyInfos.size);
+		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objInfos.size);
 		ZRVECTOR_INSERT(vmap->vector, pos, tmpBucket);
 		ZRVMAP_MAP(vmap)->nbObj++;
 	}
@@ -132,7 +132,7 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 		if (mode == PUTIFABSENT)
 			return false;
 
-		memcpy(bucket_obj(vmap, bucket), obj, map->objSize);
+		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
 	return true;
 }
@@ -208,8 +208,8 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 
 		alignas(max_align_t) char tmpBucket[vmap->bucketInfos[BucketInfos_struct].size];
 
-		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
-		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
+		memcpy(bucket_key(vmap, tmpBucket), key, map->keyInfos.size);
+		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objInfos.size);
 		ZRVECTOR_ADD(vmap->vector, tmpBucket);
 		ZRVMAP_MAP(vmap)->nbObj++;
 	}
@@ -219,7 +219,7 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 			return false;
 
 		bucket = ZRVECTOR_GET(vmap->vector, pos);
-		memcpy(bucket_obj(vmap, bucket), obj, map->objSize);
+		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
 	return true;
 }
@@ -343,7 +343,7 @@ ZRMap* ZRVectorMap_create(
 
 	ZRVectorMap *vmap = ZRALLOC(allocator, sizeof(ZRVectorMap));
 	ZRVectorMap_init(vmap, keySize, keyAlignment, objSize, objAlignment, fcmp, vector, allocator);
-	ZRMap_init(ZRVMAP_MAP(vmap), keySize, objSize, strategy);
+	ZRMap_init(ZRVMAP_MAP(vmap), ZROBJINFOS_DEF(0, keySize), ZROBJINFOS_DEF(0, objSize), strategy);
 
 	return ZRVMAP_MAP(vmap);
 }
