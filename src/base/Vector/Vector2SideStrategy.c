@@ -347,7 +347,7 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
 	ZRArrayAndNb new = ZRRESIZE_MAKEMORESIZE(
-		capacity, nbObj + nbObjMore, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
+		capacity, nbObj + nbObjMore, objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->allocator,
 		&svector->resizeData, svector
 		);
@@ -372,7 +372,7 @@ static inline void lessSize(ZRVector *vec)
 	size_t const capacity = ZRVECTOR_LVSIZE(vec);
 
 	ZRArrayAndNb new = ZRRESIZE_MAKELESSSIZE(
-		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
+		capacity, nbObj, objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->initialArray, svector->initialArraySize, svector->allocator,
 		&svector->resizeData, svector
 		);
@@ -662,6 +662,7 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 			.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 } ,
 			} ,
 		};
+	ssvector->resizeData.initialNb = getInitialMemoryNbObjs(ssvector);
 
 	ZRVector2SideStrategy *strategy;
 
@@ -673,11 +674,12 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 	ZRVector2SideStrategy_initStrategy(strategy);
 
 	if (initInfos->fixed)
+	{
 		/*
 		 * ZRVector2SideStrategy_fixedMemory(ZR2SSSTRATEGY_VECTOR(strategy));
 		 * Done in the initStrategy()
 		 */
-		;
+	}
 	else
 		ZRVector2SideStrategy_dynamicMemory(ZR2SSSTRATEGY_VECTOR(strategy));
 
