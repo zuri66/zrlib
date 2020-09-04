@@ -84,7 +84,7 @@ static int bucketCmp(void *a, void *b, void *vmap_p)
 
 static inline size_t getBucketPos(ZRVectorMap *vmap, void *key)
 {
-	return ZRARRAYOP_BSEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	return ZRARRAYOP_BSEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 }
 
 static inline void* getBucket(ZRVectorMap *vmap, void *key)
@@ -100,7 +100,7 @@ static inline void* getBucket(ZRVectorMap *vmap, void *key)
 static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
-	size_t const pos = ZRARRAYOP_BINSERT_POS_LAST(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	size_t const pos = ZRARRAYOP_BINSERT_POS_LAST(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 	void *bucket;
 
 	// Check if the bucket is at pos
@@ -181,7 +181,7 @@ static bool fdelete(ZRMap *map, void *key)
 
 static inline size_t eq_getBucketPos(ZRVectorMap *vmap, void *key)
 {
-	return ZRARRAYOP_SEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	return ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 }
 
 static inline void* eq_getBucket(ZRVectorMap *vmap, void *key)
@@ -197,7 +197,7 @@ static inline void* eq_getBucket(ZRVectorMap *vmap, void *key)
 static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
-	size_t const pos = ZRARRAYOP_SEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	size_t const pos = ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 	void *bucket;
 
 	// No bucket found

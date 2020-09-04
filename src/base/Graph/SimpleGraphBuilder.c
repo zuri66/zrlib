@@ -312,14 +312,14 @@ static void fbuilder_edge(ZRGraphBuilder *builder, ZRGraphBuilderNode *a, ZRGrap
 	{
 		if (NULL == edgeData)
 		{
-			size_t const pos = sa->childEdgeObjs->nbObj;
+			size_t const pos = ZRVECTOR_NBOBJ(sa->childEdgeObjs);
 			ZRVECTOR_RESERVE(sa->childEdgeObjs, pos, 1);
 			memset(ZRVECTOR_GET(sa->childEdgeObjs, pos), 0, sbuilder->edgeObjInfos.size);
 		}
 		else
 			ZRVECTOR_ADD(sa->childEdgeObjs, edgeData);
 	}
-	VectorParents_item item = { sa, ZRVECTOR_GET(sa->childEdgeObjs, sa->childEdgeObjs->nbObj - 1) };
+	VectorParents_item item = { sa, ZRVECTOR_GET(sa->childEdgeObjs, ZRVECTOR_NBOBJ(sa->childEdgeObjs) - 1) };
 	ZRVECTOR_ADD(sb->parents, &item);
 	ZRVECTOR_ADD(sa->childs, &sb);
 
@@ -399,7 +399,7 @@ static inline void build_node(
 			.obj = build_graphGetNodeObj(sbnode, sgraph), //
 			},//
 		.nbParents = 0, /* Must be set by the building phase */
-		.nbChilds = sbnode->childs->nbObj, //
+		.nbChilds = ZRVECTOR_NBOBJ(sbnode->childs), //
 		.parents = &sgraph->parentEdges[sbuilder->build_nbParentEdges],
 		.childs = &sgraph->childEdges[sbuilder->build_nbChildEdges],
 		.edgeChildsObjs = ZRARRAYOP_GET(sgraph->edgeObjs, ZRSGRAPH_GRAPH(sgraph)->edgeObjSize, sbuilder->build_nbChildEdges), //
@@ -556,7 +556,7 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 static void ZRSimpleGraphBuilder_done(ZRGraph *builder)
 {
 	ZRSimpleGraphBuilder *const sbuilder = ZRSGRAPHBUILDER(builder);
-	size_t const nbNodes = sbuilder->pnodes->nbObj;
+	size_t const nbNodes = ZRVECTOR_NBOBJ(sbuilder->pnodes);
 
 	for (size_t i = 0; i < nbNodes; i++)
 		sbnode_destroy(sbuilder, *(ZRSimpleGraphBuilderNode**)ZRVECTOR_GET(sbuilder->pnodes, i));

@@ -224,7 +224,7 @@ void ZRGraphBuilder_cpyGraph(ZRGraphBuilder *to, ZRGraph *from, ZRGraphNode **re
 	{
 		ZRVector *refVec = ZRVectorMap_vector(map_refNodes);
 
-		for (size_t i = 0, c = refVec->nbObj; i < c; i++)
+		for (size_t i = 0, c = ZRVECTOR_NBOBJ(refVec); i < c; i++)
 			**(ZRGraphNode***)ZRVECTOR_GET(refVec, i) = NULL;
 	}
 	ZRMAP_DESTROY(map_bnodes);

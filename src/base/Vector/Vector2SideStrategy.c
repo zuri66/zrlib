@@ -114,7 +114,7 @@ static void getVectorInfos(ZRObjAlignInfos *out, size_t initialArrayNbObj, size_
 #define ZR2SS_STRATEGY(V) ((ZRVector2SideStrategy*)(ZR2SS_VECTOR(V)->strategy))
 
 #define ZR2SS_FSPACE(V) (V)->FSpace
-#define ZR2SS_USPACE(V) ZR2SS_VECTOR(V)->array
+#define ZR2SS_USPACE(V) ZR2SS_VECTOR(V)->array.array
 #define ZR2SS_ESPACE(V) (V)->ESpace
 #define ZR2SS_OSPACE(V) (V)->OSpace
 
@@ -167,8 +167,8 @@ void ZRVector2SideStrategy_finitVec(ZRVector *vec)
 	}
 	else
 	{
-		ZR2SS_VECTOR(svector)->capacity = svector->initialArraySize / vec->objSize;
-		setFUEOSpaces(svector, svector->initialArray, vec->capacity, NULL, 0);
+		ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = svector->initialArraySize / ZRVECTOR_OBJSIZE(vec);
+		setFUEOSpaces(svector, svector->initialArray, ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)), NULL, 0);
 	}
 }
 
@@ -176,16 +176,16 @@ static
 void ZRVector2SideStrategy_fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vector);
-	size_t const lastAlignment = ZR2SS_VECTOR(svector)->objAlignment;
+	size_t const lastAlignment = ZRVECTOR_LVOBJALIGNMENT(vector);
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
 	{
 		ZRFREE(svector->allocator, svector->allocatedMemory);
 		svector->allocatedMemory = NULL;
 	}
-	ZR2SS_VECTOR(svector)->nbObj = 0;
-	ZR2SS_VECTOR(svector)->objAlignment = objAlignment;
-	ZR2SS_VECTOR(svector)->objSize = objSize;
+	ZRVECTOR_LVNBOBJ(ZR2SS_VECTOR(svector)) = 0;
+	ZRVECTOR_LVOBJALIGNMENT(ZR2SS_VECTOR(svector)) = objAlignment;
+	ZRVECTOR_LVOBJSIZE(ZR2SS_VECTOR(svector)) = objSize;
 
 	//Realign initial
 	if (svector->initialArraySize > 0)
@@ -198,8 +198,9 @@ void ZRVector2SideStrategy_fchangeObjSize(ZRVector *vector, size_t objSize, size
 				size_t const offset = ZRSTRUCT_ALIGNOFFSET(svector->initialArrayOffset, objAlignment);
 				size_t const offsetDiff = offset - svector->initialArrayOffset;
 				svector->initialArray = (char*)svector + offset;
-				ZR2SS_VECTOR(svector)->capacity = (svector->initialArraySize - offsetDiff) / objSize;
-				setFUEOSpaces(svector, svector->initialArray, ZR2SS_VECTOR(svector)->capacity, NULL, 0);
+				size_t const size = (svector->initialArraySize - offsetDiff) / objSize;
+				ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = size;
+				setFUEOSpaces(svector, svector->initialArray, size, NULL, 0);
 			}
 			else
 			{
@@ -263,9 +264,9 @@ void ZRVector2SideStrategy_fmemoryTrim(ZRVector *vec)
 	if (!ZRVector2SideStrategy_memoryIsAllocated(svector))
 		return;
 
-	size_t const objSize = vec->objSize;
-	size_t const nbObj = checkInitialNbObj(vec->nbObj);
-	size_t const objAlignment = vec->objAlignment;
+	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
+	size_t const nbObj = checkInitialNbObj(ZRVECTOR_LVNBOBJ(vec));
+	size_t const objAlignment = ZRVECTOR_OBJALIGNMENT(vec);
 	void *lastSpace = svector->allocatedMemory;
 
 	ZRArrayOp_deplace(ZR2SS_FSPACE(svector), objSize, nbObj, ZR2SS_USPACE(svector));
@@ -277,7 +278,7 @@ void ZRVector2SideStrategy_fmemoryTrim(ZRVector *vec)
 	ZR2SS_USPACE(svector) = svector->allocatedMemory;
 	ZR2SS_OSPACE(svector) =
 	ZR2SS_ESPACE(svector) = (char*)svector->allocatedMemory + nbObj * objSize;
-	ZR2SS_VECTOR(svector)->capacity = nbObj;
+	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nbObj;
 }
 
 // ============================================================================
@@ -289,7 +290,7 @@ static inline size_t getInitialMemoryNbObjs(ZR2SSVector *svector)
 		return svector->initialMemoryNbObjs;
 
 	if (svector->initialArraySize > 0)
-		return svector->initialArraySize / ZR2SS_VECTOR(svector)->objSize;
+		return svector->initialArraySize / ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
 
 	return INITIAL_SIZE;
 }
@@ -299,7 +300,7 @@ static inline void setFUEOSpaces(ZR2SSVector *svector, void *fspace, size_t fspa
 {
 	assert(fspaceNbObj >= sourceNbObj);
 	assert(fspaceNbObj >= 2);
-	size_t const objSize = ZR2SS_VECTOR(svector)->objSize;
+	size_t const objSize = ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
 
 	ZR2SS_FSPACE(svector) = fspace;
 	ZR2SS_OSPACE(svector) = (char*)ZR2SS_FSPACE(svector) + (fspaceNbObj * objSize);
@@ -323,8 +324,8 @@ ZRMUSTINLINE
 static inline void centerFUEOSpaces(ZR2SSVector *svector, size_t nbMore)
 {
 	assert(nbMore > 0);
-	size_t const objSize = ZR2SS_VECTOR(svector)->objSize;
-	size_t const nbObj = ZR2SS_VECTOR(svector)->nbObj;
+	size_t const objSize = ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
+	size_t const nbObj = ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector));
 	size_t const newNbObj = nbObj + nbMore;
 	void *const lastUSpace = ZR2SS_USPACE(svector);
 
@@ -340,13 +341,13 @@ static inline void centerFUEOSpaces(ZR2SSVector *svector, size_t nbMore)
 static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	size_t const objSize = vec->objSize;
-	size_t const nbObj = vec->nbObj;
-	size_t const capacity = vec->capacity;
+	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
+	size_t const nbObj = ZRVECTOR_LVNBOBJ(vec);
+	size_t const capacity = ZRVECTOR_LVSIZE(vec);
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
 	ZRArrayAndNb new = ZRRESIZELIMIT_MAKEMORESIZE(
-		capacity, nbObj + nbObjMore, getInitialMemoryNbObjs(svector), objSize, vec->objAlignment,
+		capacity, nbObj + nbObjMore, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->allocator,
 		&svector->resizeData, svector
 		);
@@ -358,7 +359,7 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 		ZRFREE(svector->allocator, svector->allocatedMemory);
 
 	svector->allocatedMemory = new.array;
-	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
+	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
@@ -366,12 +367,12 @@ static inline void lessSize(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 	assert(ZRVector2SideStrategy_memoryIsAllocated(svector));
-	size_t const objSize = vec->objSize;
-	size_t const nbObj = vec->nbObj;
-	size_t const capacity = vec->capacity;
+	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
+	size_t const nbObj = ZRVECTOR_LVNBOBJ(vec);
+	size_t const capacity = ZRVECTOR_LVSIZE(vec);
 
 	ZRArrayAndNb new = ZRRESIZELIMIT_MAKELESSSIZE(
-		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, vec->objAlignment,
+		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
 		&svector->resizeData, svector
 		);
@@ -386,28 +387,28 @@ static inline void lessSize(ZRVector *vec)
 	else
 		svector->allocatedMemory = new.array;
 
-	ZR2SS_VECTOR(svector)->capacity = nextTotalNbObj;
+	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
 static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	return ZRRESIZE_MUSTGROW(vec->capacity, vec->nbObj + nbObjMore, &svector->resizeData);
+	return ZRRESIZE_MUSTGROW(ZRVECTOR_LVSIZE(vec), ZRVECTOR_LVNBOBJ(vec) + nbObjMore, &svector->resizeData);
 }
 
 ZRMUSTINLINE
 static inline bool mustShrink(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	return ZRRESIZE_MUSTSHRINK(vec->capacity, vec->nbObj, &svector->resizeData);
+	return ZRRESIZE_MUSTSHRINK(ZRVECTOR_LVSIZE(vec), ZRVECTOR_LVNBOBJ(vec), &svector->resizeData);
 }
 
 static bool enoughSpaceForInsert(ZR2SSVector *svector, size_t pos, size_t nbMore)
 {
 	size_t freeSpace;
-	size_t const nbBytesMore = nbMore * ZR2SS_VECTOR(svector)->objSize;
-	size_t const middleOffset = ZR2SS_VECTOR(svector)->nbObj / 2;
+	size_t const nbBytesMore = nbMore * ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
+	size_t const middleOffset = ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector)) / 2;
 	bool const toTheRight = pos >= middleOffset;
 
 	if (toTheRight)
@@ -427,13 +428,13 @@ ZRMUSTINLINE
 static inline void operationAdd_shift(ZRVector *vec, size_t pos, size_t nbMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	assert(ZR2SS_FREESPACE_SIZEOF(svector) >= nbMore * ZR2SS_VECTOR(svector)->objSize);
+	assert(ZR2SS_FREESPACE_SIZEOF(svector) >= nbMore * ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector)));
 
 	if (!enoughSpaceForInsert(svector, pos, nbMore))
 		centerFUEOSpaces(svector, nbMore);
 
-	size_t const nbObj = ZR2SS_VECTOR(svector)->nbObj;
-	size_t const objSize = ZR2SS_VECTOR(svector)->objSize;
+	size_t const nbObj = ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector));
+	size_t const objSize = ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
 	size_t const nbBytesMore = nbMore * objSize;
 	size_t const middleOffset = nbObj / 2;
 
@@ -469,8 +470,8 @@ ZRMUSTINLINE
 static inline void operationDel_shift(ZRVector *vec, size_t pos, size_t nbLess)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	size_t const nbObj = ZR2SS_VECTOR(svector)->nbObj;
-	size_t const objSize = ZR2SS_VECTOR(svector)->objSize;
+	size_t const nbObj = ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector));
+	size_t const objSize = ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
 	size_t const nbBytesLess = nbLess * objSize;
 	size_t const middleOffset = nbObj / 2;
 	bool const toTheRight = pos >= middleOffset;
@@ -503,7 +504,7 @@ static inline void operationDel_shift(ZRVector *vec, size_t pos, size_t nbLess)
 void ZRVector2SideStrategy_finsert(ZRVector *vec, size_t pos, size_t nb)
 {
 	operationAdd_shift(vec, pos, nb);
-	vec->nbObj += nb;
+	ZRVECTOR_LVNBOBJ(vec) += nb;
 }
 
 void ZRVector2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb)
@@ -514,25 +515,25 @@ void ZRVector2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb)
 		moreSize(vec, nb);
 
 	operationAdd_shift(vec, pos, nb);
-	vec->nbObj += nb;
+	ZRVECTOR_LVNBOBJ(vec) += nb;
 }
 
 void ZRVector2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
-	assert(nb <= vec->nbObj);
+	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
 
 	operationDel_shift(vec, pos, nb);
-	vec->nbObj -= nb;
+	ZRVECTOR_LVNBOBJ(vec) -= nb;
 }
 
 void ZRVector2SideStrategy_fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
-	assert(nb <= vec->nbObj);
+	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
 
 	operationDel_shift(vec, pos, nb);
-	vec->nbObj -= nb;
+	ZRVECTOR_LVNBOBJ(vec) -= nb;
 
 	if (mustShrink(vec))
 		lessSize(vec);

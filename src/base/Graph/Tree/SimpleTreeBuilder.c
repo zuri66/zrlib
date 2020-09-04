@@ -205,7 +205,7 @@ void fgraph_done(ZRGraph *graph)
 static void ZRSimpleTreeBuilder_destroyNode(ZRSimpleTreeBuilder *sbuilder, ZRSimpleTreeBuilderNode *node)
 {
 	size_t i;
-	size_t const nb = node->childs->nbObj;
+	size_t const nb = ZRVECTOR_NBOBJ(node->childs);
 
 	for (i = 0; i < nb; i++)
 		ZRSimpleTreeBuilder_destroyNode(sbuilder, ZRVECTOR_GET(node->childs, i));

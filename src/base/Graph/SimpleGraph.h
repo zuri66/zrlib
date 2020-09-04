@@ -115,7 +115,7 @@ static int fucmp_edge(void *a, void *b, void *data)
 ZRMUSTINLINE
 static inline void ZRSimpleGraph_getEdges(ZRSimpleGraph *sgraph, ZRSimpleGraphNode *sa, ZRSimpleGraphNode *sb, ZRVector *out)
 {
-	size_t lastNbObj = out->nbObj;
+	size_t lastNbObj = ZRVECTOR_NBOBJ(out);
 
 	for (size_t i = 0, c = sa->nbChilds; i < c; i++)
 	{
@@ -123,7 +123,7 @@ static inline void ZRSimpleGraph_getEdges(ZRSimpleGraph *sgraph, ZRSimpleGraphNo
 
 		if (sedge->b == sb)
 		{
-			if (NULL != ZRARRAYOP_SEARCH(out->array, out->objSize, lastNbObj, sedge, fucmp_edge, NULL))
+			if (NULL != ZRARRAYOP_SEARCH(out->array.array, ZRVECTOR_OBJSIZE(out), lastNbObj, sedge, fucmp_edge, NULL))
 				continue;
 
 			ZRVECTOR_ADD(out, &sb);
