@@ -35,6 +35,7 @@ typedef struct
 
 	size_t upLimit;
 	size_t downLimit;
+	size_t initialNb;
 } ZRResizeData;
 
 // ============================================================================
@@ -85,13 +86,13 @@ static inline bool ZRRESIZE_MUSTSHRINK(size_t totalSpace, size_t usedSpace, ZRRe
 }
 
 static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
-	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
-	size_t alignment, bool isAllocated, ZRAllocator *allocator,
+	size_t totalNb, size_t usedNb, size_t objSize, size_t alignment,
+	bool isAllocated, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
 	)
 {
 	size_t nextTotalNb;
-	nextTotalNb = (isAllocated) ? totalNb : initialNb;
+	nextTotalNb = (isAllocated) ? totalNb : rdata->initialNb;
 	nextTotalNb = ZRRESIZE_MORESIZE(nextTotalNb, usedNb, rdata->growStrategy.fupLimit, rdata->growStrategy.fincrease, userData);
 	size_t nextTotalSpace = nextTotalNb * objSize;
 
@@ -112,8 +113,8 @@ static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 
 ZRMUSTINLINE
 static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
-	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
-	size_t alignment, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
+	size_t totalNb, size_t usedNb, size_t objSize, size_t alignment,
+	void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
 	)
 {
@@ -125,8 +126,8 @@ static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
 		// Nothing to do
 	}
 // We can't get a memory space less than the initial memory size
-	else if (nextTotalNb < initialNb)
-		nextTotalNb = initialNb;
+	else if (nextTotalNb < rdata->initialNb)
+		nextTotalNb = rdata->initialNb;
 
 	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
 	rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
