@@ -47,6 +47,7 @@ set(HEADERS
 	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h
 	zrlib/base/Allocator/CAllocator.h
+	zrlib/base/Array.h
 	zrlib/base/ArrayOp.h
 	zrlib/base/ReserveOp_bits.h
 	zrlib/base/ReserveOp_chunk.h
