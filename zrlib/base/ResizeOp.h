@@ -69,6 +69,21 @@ static inline size_t ZRRESIZELIMIT_LESSSIZE(
 	return nextTotalSpace;
 }
 
+ZRMUSTINLINE
+static inline bool ZRRESIZE_MUSTGROW(size_t totalSpace, size_t usedSpace, ZRResizeData *rdata)
+{
+	if (totalSpace < usedSpace)
+		return true;
+
+	return usedSpace >= rdata->upLimit;
+}
+
+ZRMUSTINLINE
+static inline bool ZRRESIZE_MUSTSHRINK(size_t totalSpace, size_t usedSpace, ZRResizeData *rdata)
+{
+	return usedSpace < rdata->downLimit;
+}
+
 static inline ZRArrayAndNb ZRRESIZELIMIT_MAKEMORESIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
 	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
