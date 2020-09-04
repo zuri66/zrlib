@@ -13,18 +13,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-
-typedef struct{
-	void *array;
-	size_t size;
-}ZRArray2;
-
-#define ZRARRAY2_DEF(A,S) ((ZRArray2) { (A), (S) })
-
 // ============================================================================
 
 #define ZRARRAYOP_GET(offset, objSize, pos) \
-	((char*)(offset) + (pos) * (objSize))
+	(void*)((char*)(offset) + (pos) * (objSize))
 
 #define ZRARRAYOP_SET(offset, objSize, pos, source) \
 	memcpy(ZRARRAYOP_GET(offset, objSize, pos), (source), (objSize))
@@ -99,7 +91,7 @@ static inline void* ZRARRAYOP_SEARCH(void *offset, size_t objSize, size_t nbObj,
 ZRMUSTINLINE
 static inline size_t ZRARRAYOP_BSEARCH_POS(void *offset, size_t objSize, size_t nbObj, void *search, zrfucmp fucmp, void *data)
 {
-	if(nbObj == 0)
+	if (nbObj == 0)
 		return SIZE_MAX;
 
 	size_t begin = 0;
@@ -137,7 +129,7 @@ static inline void* ZRARRAYOP_BSEARCH(void *offset, size_t objSize, size_t nbObj
 ZRMUSTINLINE
 static inline size_t ZRARRAYOP_BINSERT_POS(void *offset, size_t objSize, size_t nbObj, void *search, zrfucmp fucmp, void *data)
 {
-	if(nbObj == 0)
+	if (nbObj == 0)
 		return SIZE_MAX;
 
 	size_t begin = 0;
@@ -270,7 +262,7 @@ static inline void ZRARRAYOP_MAP(
 	void *restrict offset, size_t objSize, size_t nbObj,
 	void (*fmap)(___ void *restrict item, void *restrict out),
 	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
-	)
+)
 {
 	while (nbObj-- && dest_nbObj--)
 	{
@@ -349,6 +341,6 @@ void ZRArrayOp_map(
 	void *restrict offset, size_t objSize, size_t nbObj,
 	void (*fmap)(void *restrict item, void *restrict out),
 	void *restrict dest, size_t dest_objSize, size_t dest_nbObj
-	);
+);
 
 #endif
