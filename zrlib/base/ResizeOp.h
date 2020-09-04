@@ -86,11 +86,10 @@ static inline bool ZRRESIZE_MUSTSHRINK(size_t totalSpace, size_t usedSpace, ZRRe
 
 static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
-	size_t alignment, void *allocatedMemory, ZRAllocator *allocator,
+	size_t alignment, bool isAllocated, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
 	)
 {
-	bool const isAllocated = allocatedMemory != NULL;
 	size_t nextTotalNb;
 	nextTotalNb = (isAllocated) ? totalNb : initialNb;
 	nextTotalNb = ZRRESIZE_MORESIZE(nextTotalNb, usedNb, rdata->growStrategy.fupLimit, rdata->growStrategy.fincrease, userData);
@@ -114,7 +113,7 @@ static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 ZRMUSTINLINE
 static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
 	size_t totalNb, size_t usedNb, size_t initialNb, size_t objSize,
-	size_t alignment, void *allocatedMemory, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
+	size_t alignment, void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
 	)
 {

@@ -373,7 +373,7 @@ static inline void lessSize(ZRVector *vec)
 
 	ZRArrayAndNb new = ZRRESIZE_MAKELESSSIZE(
 		capacity, nbObj, getInitialMemoryNbObjs(svector), objSize, ZRVECTOR_OBJALIGNMENT(vec),
-		svector->allocatedMemory, svector->initialArray, svector->initialArraySize, svector->allocator,
+		svector->initialArray, svector->initialArraySize, svector->allocator,
 		&svector->resizeData, svector
 		);
 
