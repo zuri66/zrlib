@@ -62,6 +62,8 @@ struct ZRMapS
 	ZRMapStrategy *strategy;
 };
 
+#define ZRMAP(M) ((ZRMap*)(M))
+
 // ============================================================================
 
 ZRMUSTINLINE
