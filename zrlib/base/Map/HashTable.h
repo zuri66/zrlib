@@ -11,8 +11,6 @@
 #include <zrlib/base/Vector/Vector.h>
 #include <zrlib/base/struct.h>
 
-typedef size_t (*fhash_t)(void *key);
-
 // ============================================================================
 
 ZRObjInfos ZRHashTableInfos_objInfos(void);
@@ -21,7 +19,7 @@ ZRObjInfos ZRHashTable_objInfos(void *infos);
 void ZRHashTableInfos( //
 	void *infos_out, //
 	ZRObjInfos key, ZRObjInfos obj,
-	fhash_t fhash[], //
+	zrfuhash fhash[], //
 	size_t nbfhash, //
 	ZRVector *table, //
 	ZRAllocator *allocator //
@@ -35,7 +33,7 @@ ZRMap* ZRHashTable_new(void *initInfos);
 
 ZRMap* ZRHashTable_create(
 	ZRObjInfos key, ZRObjInfos obj,
-	fhash_t fhash[], //
+	zrfuhash fhash[], //
 	size_t nbfhash, //
 	ZRVector *table, //
 	ZRAllocator *allocator //
