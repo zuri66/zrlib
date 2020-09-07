@@ -142,6 +142,29 @@ static inline bool ZRRESERVEOPLIST_AVAILABLES(void *reserve, size_t objSize, siz
 	return true;
 }
 
+/**
+ * Cpy pointers to all reserved blocks
+ */
+ZRMUSTINLINE
+static inline size_t ZRRESERVEOPLIST_TOPOINTERS(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, void **outptr, size_t max)
+{
+	char *current = (char*)reserve;
+	char *end = current + objSize * nbObj;
+	size_t out_i = 0;
+	size_t max_i = ZRMIN(max, nbObj);
+
+	while (out_i < max_i && current != end)
+	{
+		ZRReserveNextUnused *next = (ZRReserveNextUnused*)current + offsetReserveNextUnused;
+
+		if (*next != 0)
+			outptr[out_i++] = current;
+
+		current += objSize;
+	}
+	return out_i;
+}
+
 ZRMUSTINLINE
 static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused, size_t pos, size_t nbToRelease)
 {
@@ -175,6 +198,7 @@ static inline void ZRRESERVEOPLIST_RELEASENB(void *reserve, size_t objSize, size
 		i++;
 	}
 }
+
 // ============================================================================
 
 void ZRReserveOpList_init(____ void *reserve, size_t objSize, size_t nbObj, size_t offsetReserveNextUnused);
