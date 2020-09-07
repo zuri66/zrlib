@@ -49,7 +49,7 @@ struct ZR2SSVectorS
 	 */
 	size_t initialArraySize;
 
-	size_t initialMemoryNbObjs;
+	size_t initialMemoryNbObj;
 
 	ZRAllocator *allocator;
 
@@ -284,13 +284,13 @@ void ZRVector2SideStrategy_fmemoryTrim(ZRVector *vec)
 // ============================================================================
 
 ZRMUSTINLINE
-static inline size_t getInitialMemoryNbObjs(ZR2SSVector *svector)
+static inline size_t getInitialMemoryNbObjs(size_t initialMemoryNbObj, size_t initialArraySize, size_t objSize)
 {
-	if (svector->initialMemoryNbObjs > 0)
-		return svector->initialMemoryNbObjs;
+	if (initialMemoryNbObj > 0)
+		return initialMemoryNbObj;
 
-	if (svector->initialArraySize > 0)
-		return svector->initialArraySize / ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector));
+	if (initialArraySize > 0)
+		return initialArraySize / objSize;
 
 	return INITIAL_SIZE;
 }
@@ -654,7 +654,7 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 		.initialArrayOffset = infos[ZRVectorInfos_objs].offset,
 		.initialArray = (char*)vector + infos[ZRVectorInfos_objs].offset,
 		.initialArraySize = infos[ZRVectorInfos_objs].size,
-		.initialMemoryNbObjs = initInfos->initialMemoryNbObj,
+		.initialMemoryNbObj = initInfos->initialMemoryNbObj,
 		.staticStrategy = initInfos->staticStrategy,
 
 		.resizeData = (ZRResizeData ) { //
@@ -662,7 +662,7 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 			.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 } ,
 			} ,
 		};
-	ssvector->resizeData.initialNb = getInitialMemoryNbObjs(ssvector);
+	ssvector->resizeData.initialNb = getInitialMemoryNbObjs(initInfos->initialMemoryNbObj, initInfos->initialArrayNbObj, initInfos->objInfos.size);
 
 	ZRVector2SideStrategy *strategy;
 
