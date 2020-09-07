@@ -63,11 +63,14 @@ static inline size_t ZRRESIZE_LESSSIZE(
 	)
 {
 	size_t nextTotalSpace = totalSpace;
+	size_t lastTotalSpace;
 
 	while (flimit(nextTotalSpace, userData) > usedSpace)
+	{
+		lastTotalSpace = nextTotalSpace;
 		nextTotalSpace = fdecrease(nextTotalSpace, userData);
-
-	return nextTotalSpace;
+	}
+	return lastTotalSpace;
 }
 
 ZRMUSTINLINE
