@@ -100,9 +100,13 @@ static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 	size_t nextTotalSpace = nextTotalNb * objSize;
 
 	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
-	rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
-		rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
-		rdata);
+
+	if (nextTotalNb <= rdata->initialNb)
+		rdata->downLimit = 0;
+	else
+		rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
+			rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
+			rdata);
 
 	if (!isAllocated)
 		return ZRARRAYN_DEF(ZRAALLOC(allocator, alignment, nextTotalSpace), nextTotalNb);
@@ -133,9 +137,13 @@ static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
 		nextTotalNb = rdata->initialNb;
 
 	rdata->upLimit = rdata->growStrategy.fupLimit(nextTotalNb, rdata);
-	rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
-		rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
-		rdata);
+
+	if (nextTotalNb <= rdata->initialNb)
+		rdata->downLimit = 0;
+	else
+		rdata->downLimit = rdata->shrinkStrategy.fdownLimit(
+			rdata->shrinkStrategy.fdecrease(nextTotalNb, rdata),
+			rdata);
 
 	if (nextTotalNb <= staticArrayNb)
 		return ZRARRAYN_DEF(staticArray, staticArrayNb);
