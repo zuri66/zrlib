@@ -5,9 +5,9 @@
 
 #include <zrlib/base/Map/Map.h>
 
-void ZRMap_init(ZRMap *map, size_t keySize, size_t objSize, ZRMapStrategy *strategy)
+void ZRMap_init(ZRMap *map, ZRObjInfos key, ZRObjInfos obj, ZRMapStrategy *strategy)
 {
-	ZRMAP_INIT(map, keySize, objSize, strategy);
+	ZRMAP_INIT(map, key, obj, strategy);
 }
 
 void ZRMap_done(ZRMap *map)
@@ -18,21 +18,6 @@ void ZRMap_done(ZRMap *map)
 void ZRMap_destroy(ZRMap *map)
 {
 	ZRMAP_DESTROY(map);
-}
-
-size_t ZRMap_nbObj(ZRMap *map)
-{
-	return ZRMAP_NBOBJ(map);
-}
-
-size_t ZRMap_keySize(ZRMap *map)
-{
-	return ZRMAP_KEYSIZE(map);
-}
-
-size_t ZRMap_objSize(ZRMap *map)
-{
-	return ZRMAP_OBJSIZE(map);
 }
 
 void ZRMap_put(ZRMap *map, void *key, void *value)

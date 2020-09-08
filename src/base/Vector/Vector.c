@@ -35,9 +35,8 @@ void ZRVector_memoryTrim(ZRVector *vec)
 	ZRVECTOR_MEMORYTRIM(vec);
 }
 
-size_t ZRVector_strategySize(ZRVector *vec)
-{
-	return ZRVECTOR_STRATEGYSIZE(vec);
+void *ZRVector_parray(ZRVector *vec){
+	return ZRVECTOR_PARRAY(vec);
 }
 
 size_t ZRVector_nbObj(ZRVector *vec)

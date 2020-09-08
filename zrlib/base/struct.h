@@ -9,14 +9,25 @@
 #include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-
 #ifndef ZRSTRUCT_MAXFIELDS
 #	define ZRSTRUCT_MAXFIELDS 128
 #endif
+
+typedef struct ZRObjInfosS
+{
+	size_t alignment;
+	size_t size;
+} ZRObjInfos;
+
+#define ZROBJINFOS_SIZE_ALIGNMENT(I) (I).size, (I).alignment
+#define ZROBJINFOS_ALIGNMENT_SIZE(I) (I).alignment, (I).size
+
+#define ZROBJINFOS_DEF(A,S) ((ZRObjInfos) { (A), (S) })
 
 typedef struct ZRObjAlignInfosS
 {
@@ -25,15 +36,37 @@ typedef struct ZRObjAlignInfosS
 	size_t size;
 } ZRObjAlignInfos;
 
-
 #define ZROBJALIGNINFOS_SIZE_ALIGNMENT(I) (I).size, (I).alignment
 #define ZROBJALIGNINFOS_ALIGNMENT_SIZE(I) (I).alignment, (I).size
 
+#define ZROBJALIGNINFOS_DEF(O,A,S)  ((ZRObjAlignInfos) { (O), (A), (S) })
+#define ZROBJALIGNINFOS_DEF_AS(A,S) ((ZRObjAlignInfos) { 0, (A), (S) })
+
+ZRMUSTINLINE
+static inline ZRObjAlignInfos ZROBJINFOS_CPYOBJALIGNINFOS(ZRObjInfos objInfos)
+{
+	ZRObjAlignInfos ret = { 0, objInfos.alignment, objInfos.size };
+	return ret;
+}
+
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJALIGNINFOS_CPYOBJINFOS(ZRObjAlignInfos alignInfos)
+{
+	ZRObjInfos ret = { alignInfos.alignment, alignInfos.size };
+	return ret;
+}
+
+ZRMUSTINLINE
+static inline void ZROBJALIGNINFOS_SETOBJINFOS(ZRObjAlignInfos *alignInfos, ZRObjInfos objInfos)
+{
+	alignInfos->alignment = objInfos.alignment;
+	alignInfos->size = objInfos.size;
+}
 
 ZRMUSTINLINE
 static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 {
-//	assert(alignment != 0);
+	assert(alignment != 0);
 	size_t rest = fieldOffset % alignment;
 
 	if (rest)
@@ -45,6 +78,8 @@ static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 /**
  * Size for structure with a flexible array member which conserve the structure alignment.
  * The size of the FAM must be counted in the structSize argument.
+ *
+ * DEPRECATED
  */
 ZRMUSTINLINE
 static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)

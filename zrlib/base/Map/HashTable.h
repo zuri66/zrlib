@@ -9,22 +9,34 @@
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Map/Map.h>
 #include <zrlib/base/Vector/Vector.h>
+#include <zrlib/base/struct.h>
 
-#define ZRHASHTABLE_CREATEMAXALIGN(KS,OS,NBFH,FH,TB,AL) ZRHashTable_create(KS, alignof(max_align_t), OS, alignof(max_align_t), NBFH FH, TB, AL)
+// ============================================================================
 
-typedef size_t (*fhash_t)(void *key);
+ZRObjInfos ZRHashTableInfos_objInfos(void);
+ZRObjInfos ZRHashTable_objInfos(void *infos);
 
-ZRMap* ZRHashTable_alloc(size_t nbfhash, ZRAllocator *allocator);
-ZRMap* ZRHashTable_create( //
-	size_t keySize, size_t keyAlignment, //
-	size_t objSize, size_t objAlignment, //
-	fhash_t fhash[], //
+void ZRHashTableInfos( //
+	void *infos_out, //
+	ZRObjInfos key, ZRObjInfos obj,
+	zrfuhash fhash[], //
 	size_t nbfhash, //
 	ZRVector *table, //
 	ZRAllocator *allocator //
 	);
-size_t ZRHashTable_bucketSize(size_t keySize, size_t valueSize);
 
-void ZRHashTable_destroy(ZRMap *htable);
+void ZRHashTableInfos_staticStrategy(void *infos_out);
+
+void ZRHashTable_init(ZRMap *map, void *initInfos);
+ZRMap* ZRHashTable_new(void *initInfos);
+
+
+ZRMap* ZRHashTable_create(
+	ZRObjInfos key, ZRObjInfos obj,
+	zrfuhash fhash[], //
+	size_t nbfhash, //
+	ZRVector *table, //
+	ZRAllocator *allocator //
+	);
 
 #endif

@@ -7,6 +7,12 @@
 
 #include <assert.h>
 
+
+void ZRStruct_makeOffsets(size_t nb, ZRObjAlignInfos *infos)
+{
+	ZRSTRUCT_MAKEOFFSETS(nb, infos);
+}
+
 void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos)
 {
 	ZRStruct_bestOffsetsPos(nb, infos, 0);

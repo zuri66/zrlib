@@ -23,6 +23,7 @@ set(SRCS
 	src/base/Iterator/Iterator.c
 	src/base/List/List.c
 	src/base/MemoryOp.c
+	src/base/ResizeOp.c
 	src/base/struct.c
 	src/base/Graph/SimpleGraph.c
 	src/base/Graph/SimpleGraphBuilder.c
@@ -46,6 +47,7 @@ set(HEADERS
 	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h
 	zrlib/base/Allocator/CAllocator.h
+	zrlib/base/Array.h
 	zrlib/base/ArrayOp.h
 	zrlib/base/ReserveOp_bits.h
 	zrlib/base/ReserveOp_chunk.h
@@ -57,6 +59,7 @@ set(HEADERS
 	zrlib/base/struct.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h
+	zrlib/base/ResizeOp.h
 	zrlib/base/Graph/SimpleGraph.h
 	zrlib/base/Graph/Graph.h
 	zrlib/base/Graph/Tree/SimpleTree.h
@@ -72,5 +75,6 @@ set(HEADERS
 	zrlib/config.h
     )
 
+add_compile_options(-std=c11)
 add_library(zrlib ${SRCS} ${HEADERS})
 set_property(TARGET zrlib PROPERTY C_STANDARD 11)

@@ -7,7 +7,6 @@
 #define ZRGRAPH_H
 
 #include <zrlib/config.h>
-#include <zrlib/syntax_pad.h>
 
 #include <stddef.h>
 
@@ -30,8 +29,6 @@ enum ZRGraphEdge_selectE
 
 struct ZRGraphStrategyS
 {
-	size_t (*fstrategySize)(void);
-
 	size_t _____ (*fnode_getNbParents)(_ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbChilds)(__ ZRGraph*, ZRGraphNode*);
 	size_t _____ (*fnode_getNbEdges)(___ ZRGraph*, ZRGraphNode*, enum ZRGraphEdge_selectE);

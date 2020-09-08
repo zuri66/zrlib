@@ -9,7 +9,6 @@
 
 #include <zrlib/config.h>
 
-#include <zrlib/syntax_pad.h>
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 #include <zrlib/base/Allocator/Allocator.h>
 

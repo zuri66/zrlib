@@ -3,7 +3,6 @@
  * @date samedi 23 novembre 2019, 20:53:19 (UTC+0100)
  */
 
-#include <zrlib/config.h>
 #include <zrlib/base/ReserveOp_bits.h>
 
 // ============================================================================

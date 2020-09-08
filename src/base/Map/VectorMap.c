@@ -63,11 +63,6 @@ static void bucketInfos_make(ZRObjAlignInfos *out, size_t keySize, size_t keyAli
 
 //// ============================================================================
 
-static size_t fstrategySize()
-{
-	return sizeof(ZRVectorMapStrategy);
-}
-
 static void finitMap(ZRMap *map)
 {
 }
@@ -89,7 +84,7 @@ static int bucketCmp(void *a, void *b, void *vmap_p)
 
 static inline size_t getBucketPos(ZRVectorMap *vmap, void *key)
 {
-	return ZRARRAYOP_BSEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	return ZRARRAYOP_BSEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 }
 
 static inline void* getBucket(ZRVectorMap *vmap, void *key)
@@ -105,7 +100,7 @@ static inline void* getBucket(ZRVectorMap *vmap, void *key)
 static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
-	size_t const pos = ZRARRAYOP_BINSERT_POS_LAST(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	size_t const pos = ZRARRAYOP_BINSERT_POS_LAST(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 	void *bucket;
 
 	// Check if the bucket is at pos
@@ -127,8 +122,8 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 
 		alignas(max_align_t) char tmpBucket[vmap->bucketInfos[BucketInfos_struct].size];
 
-		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
-		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
+		memcpy(bucket_key(vmap, tmpBucket), key, map->keyInfos.size);
+		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objInfos.size);
 		ZRVECTOR_INSERT(vmap->vector, pos, tmpBucket);
 		ZRVMAP_MAP(vmap)->nbObj++;
 	}
@@ -137,7 +132,7 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 		if (mode == PUTIFABSENT)
 			return false;
 
-		memcpy(bucket_obj(vmap, bucket), obj, map->objSize);
+		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
 	return true;
 }
@@ -186,7 +181,7 @@ static bool fdelete(ZRMap *map, void *key)
 
 static inline size_t eq_getBucketPos(ZRVectorMap *vmap, void *key)
 {
-	return ZRARRAYOP_SEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	return ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 }
 
 static inline void* eq_getBucket(ZRVectorMap *vmap, void *key)
@@ -202,7 +197,7 @@ static inline void* eq_getBucket(ZRVectorMap *vmap, void *key)
 static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
-	size_t const pos = ZRARRAYOP_SEARCH_POS(vmap->vector->array, vmap->vector->objSize, vmap->vector->nbObj, key, bucketCmp, vmap);
+	size_t const pos = ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
 	void *bucket;
 
 	// No bucket found
@@ -213,8 +208,8 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 
 		alignas(max_align_t) char tmpBucket[vmap->bucketInfos[BucketInfos_struct].size];
 
-		memcpy(bucket_key(vmap, tmpBucket), key, map->keySize);
-		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objSize);
+		memcpy(bucket_key(vmap, tmpBucket), key, map->keyInfos.size);
+		memcpy(bucket_obj(vmap, tmpBucket), obj, map->objInfos.size);
 		ZRVECTOR_ADD(vmap->vector, tmpBucket);
 		ZRVMAP_MAP(vmap)->nbObj++;
 	}
@@ -224,7 +219,7 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 			return false;
 
 		bucket = ZRVECTOR_GET(vmap->vector, pos);
-		memcpy(bucket_obj(vmap, bucket), obj, map->objSize);
+		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
 	return true;
 }
@@ -277,7 +272,6 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 			{
 				.strategy =
 					{
-						.fstrategySize = fstrategySize,
 						.finitMap = finitMap,
 						.fput = fput,
 						.fputIfAbsent = fputIfAbsent,
@@ -292,7 +286,6 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 			{
 				.strategy =
 					{
-						.fstrategySize = fstrategySize,
 						.finitMap = finitMap,
 						.fput = eq_fput,
 						.fputIfAbsent = eq_fputIfAbsent,
@@ -350,7 +343,7 @@ ZRMap* ZRVectorMap_create(
 
 	ZRVectorMap *vmap = ZRALLOC(allocator, sizeof(ZRVectorMap));
 	ZRVectorMap_init(vmap, keySize, keyAlignment, objSize, objAlignment, fcmp, vector, allocator);
-	ZRMap_init(ZRVMAP_MAP(vmap), keySize, objSize, strategy);
+	ZRMap_init(ZRVMAP_MAP(vmap), ZROBJINFOS_DEF(0, keySize), ZROBJINFOS_DEF(0, objSize), strategy);
 
 	return ZRVMAP_MAP(vmap);
 }

@@ -130,11 +130,6 @@ static inline void bucket_done_p(void *bucket)
 // ============================================================================
 // MemoryPool functions
 
-size_t fstrategySize(void)
-{
-	return sizeof(ZRMPoolDynamicStrategy);
-}
-
 void finitPool(ZRMemoryPool *pool)
 {
 	size_t const psize = sizeof(void*) * 2;
@@ -147,7 +142,7 @@ void finitPool(ZRMemoryPool *pool)
 void fclean(ZRMemoryPool *pool)
 {
 	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
-	size_t const nbBuckets = dspool->buckets->nbObj;
+	size_t const nbBuckets = ZRVECTOR_NBOBJ(dspool->buckets);
 
 	for (int i = 0; i < nbBuckets; i++)
 		bucket_clean(ZRVECTOR_GET(dspool->buckets, i));
@@ -194,7 +189,7 @@ static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bu
 void* freserve(ZRMemoryPool *pool, size_t nb)
 {
 	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
-	size_t const nbBuckets = dspool->buckets->nbObj;
+	size_t const nbBuckets = ZRVECTOR_NBOBJ(dspool->buckets);
 
 	for (int i = 0; i < nbBuckets; i++)
 	{
@@ -244,7 +239,7 @@ void* frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	size_t i, c;
 
 // Search the bucket in the vector
-	for (i = 0, c = dspool->buckets->nbObj; i < c; i++)
+	for (i = 0, c = ZRVECTOR_NBOBJ(dspool->buckets) ; i < c; i++)
 	{
 		bucket = ZRVECTOR_GET(dspool->buckets, i);
 
@@ -277,7 +272,7 @@ static ZRVector* fcreateBuckets(ZRMemoryPool *pool)
 
 static void fdestroyBuckets(ZRVector *buckets)
 {
-	ZRARRAYOP_WALK(buckets->array, buckets->objSize, buckets->nbObj, bucket_done_p);
+	ZRARRAYOP_WALK(ZRARRAY_OON(buckets->array), bucket_done_p);
 	ZRVector_destroy(buckets);
 }
 
@@ -285,7 +280,6 @@ void ZRMPoolDS_init(ZRMemoryPoolStrategy *strategy, ZRAllocator *allocator, size
 {
 	*(ZRMPoolDynamicStrategy*)strategy = (ZRMPoolDynamicStrategy ) { //
 		.strategy = (ZRMemoryPoolStrategy ) { //
-			.fstrategySize = fstrategySize, //
 			.finit = finitPool, //
 			.fdone = fdone, //
 			.fclean = fclean, //

@@ -7,7 +7,6 @@
 #define ZRITERATOR_H
 
 #include <zrlib/config.h>
-#include <zrlib/syntax_pad.h>
 
 #include <stdlib.h>
 #include <stdbool.h>
