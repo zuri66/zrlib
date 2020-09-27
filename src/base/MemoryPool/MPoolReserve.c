@@ -46,11 +46,11 @@ typedef struct
 	size_t nbBlocks;
 } ZRAreaHead;
 
-#define ZRAREAHEADINFOS_NB 2
-
 typedef enum
 {
-	ZRAreaHeadInfos_base, ZRAreaHeadInfos_struct
+	ZRAreaHeadInfos_base = 0,
+	ZRAreaHeadInfos_struct,
+	ZRAREAHEADINFOS_NB,
 } ZRAreaHeadInfos;
 
 ZRMUSTINLINE
@@ -222,11 +222,13 @@ static inline void fclean_common(ZRMemoryPool *pool, ZRMPoolInfos *infos)
 
 typedef struct ZRMPoolRChunkS ZRMPoolRChunk;
 
-#define ZRMPOOLRCHUNK_INFOS_NB 4
-
 typedef enum
 {
-	ZRMPoolRChunkInfos_base, ZRMPoolRChunkInfos_chunk, ZRMPoolRChunkInfos_reserve, ZRMPoolRChunkInfos_struct
+	ZRMPoolRChunkInfos_base = 0,
+	ZRMPoolRChunkInfos_chunk,
+	ZRMPoolRChunkInfos_reserve,
+	ZRMPoolRChunkInfos_struct,
+	ZRMPOOLRCHUNK_INFOS_NB,
 } ZRMPoolRChunkInfos;
 
 struct ZRMPoolRChunkS
@@ -272,7 +274,7 @@ static size_t fareaNbBlocks_chunk(ZRMemoryPool *pool, void *firstBlock)
 	ZRMPoolRChunk *rcpool = ZRMPOOLRCHUNK(pool);
 	ZRAreaHead_checkAndGet(pool, &rcpool->infos, firstBlock, &areaHead);
 	return areaHead.nbBlocks - ZRMPOOLRCHUNK(pool)->infos.nbBlocksForAreaHead;
-	}
+}
 
 static void* freserve_chunk(ZRMemoryPool *pool, size_t nb)
 {
@@ -283,7 +285,7 @@ static void* freserve_chunk(ZRMemoryPool *pool, size_t nb)
 	if (nb > rcpool->infos.nbBlocksTotal - pool->nbBlocks)
 		return NULL ;
 
-	size_t const offset = ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(&rcpool->firstChunk, nb, NULL);
+	size_t const offset = ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(&rcpool->firstChunk, nb, ZRReserveOpChunk_init);
 	return freserve(pool, &rcpool->infos, nb, offset);
 }
 
@@ -297,6 +299,7 @@ static void* frelease_chunk(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	ZRReserveMemoryChunk *freeChunk = rcpool->chunks;
 	size_t i, c;
 
+	/* Get a free chunk in memory */
 	for (i = 0, c = rcpool->nbChunks; i < c; i++)
 	{
 		if (ZRRESERVEOPCHUNK_INITED(freeChunk))
@@ -305,7 +308,7 @@ static void* frelease_chunk(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 		freeChunk++;
 	}
 	assert(i < c);
-	ZRRESERVEOPCHUNK_RELEASENB(&rcpool->firstChunk, freeChunk, rcpool->infos.nbBlocksTotal, areaPos, nb, NULL);
+	ZRRESERVEOPCHUNK_RELEASENB(&rcpool->firstChunk, freeChunk, rcpool->infos.nbBlocksTotal, areaPos, nb, ZRReserveOpChunk_init);
 	return newFirstBlock;
 }
 
