@@ -29,10 +29,13 @@ struct ZRMapStrategyS
 
 	/*
 	 * The insert/delete functions are responsible to update properly the map.nbObj value.
+	 *
+	 * @parameter
+	 * **out a pointer to the added object, may be NULL
 	 */
-	void (*fput)(_______ ZRMap *map, void *key, void *value);
-	bool (*fputIfAbsent)(ZRMap *map, void *key, void *value);
-	bool (*freplace)(___ ZRMap *map, void *key, void *value);
+	void (*fput)(_______ ZRMap *map, void *key, void *value, void **out);
+	bool (*fputIfAbsent)(ZRMap *map, void *key, void *value, void **out);
+	bool (*freplace)(___ ZRMap *map, void *key, void *value, void **out);
 
 	void* (*fget)(ZRMap *map, void *key);
 
@@ -103,19 +106,37 @@ static inline void* ZRMAP_GET(ZRMap *map, void *key)
 ZRMUSTINLINE
 static inline void ZRMAP_PUT(ZRMap *map, void *key, void *value)
 {
-	map->strategy->fput(map, key, value);
+	map->strategy->fput(map, key, value, NULL);
 }
 
 ZRMUSTINLINE
 static inline bool ZRMAP_PUTIFABSENT(ZRMap *map, void *key, void *value)
 {
-	return map->strategy->fputIfAbsent(map, key, value);
+	return map->strategy->fputIfAbsent(map, key, value, NULL);
 }
 
 ZRMUSTINLINE
 static inline bool ZRMAP_REPLACE(ZRMap *map, void *key, void *value)
 {
-	return map->strategy->freplace(map, key, value);
+	return map->strategy->freplace(map, key, value, NULL);
+}
+
+ZRMUSTINLINE
+static inline void ZRMAP_PUTTHENGET(ZRMap *map, void *key, void *value, void **out)
+{
+	map->strategy->fput(map, key, value, out);
+}
+
+ZRMUSTINLINE
+static inline bool ZRMAP_PUTIFABSENTTHENGET(ZRMap *map, void *key, void *value, void **out)
+{
+	return map->strategy->fputIfAbsent(map, key, value, out);
+}
+
+ZRMUSTINLINE
+static inline bool ZRMAP_REPLACETHENGET(ZRMap *map, void *key, void *value, void **out)
+{
+	return map->strategy->freplace(map, key, value, out);
 }
 
 ZRMUSTINLINE
@@ -149,6 +170,10 @@ static inline size_t ZRMAP_OBJSIZE(ZRMap *map)
 void ZRMap_init(ZRMap *map, ZRObjInfos key, ZRObjInfos obj, ZRMapStrategy *strategy);
 void ZRMap_done(ZRMap *map);
 void ZRMap_destroy(ZRMap *map);
+
+void ZRMap_putThenGet(_______ ZRMap *map, void *key, void *value, void **out);
+bool ZRMap_putIfAbsentThenGet(ZRMap *map, void *key, void *value, void **out);
+bool ZRMap_replaceThenGet(___ ZRMap *map, void *key, void *value, void **out);
 
 void* ZRMap_get(_______ ZRMap *map, void *key);
 void _ ZRMap_put(_______ ZRMap *map, void *key, void *value);
