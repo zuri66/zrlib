@@ -97,7 +97,13 @@ static inline void* getBucket(ZRVectorMap *vmap, void *key)
 	return ZRVECTOR_GET(vmap->vector, pos);
 }
 
-static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
+#define insert_return(B) ZRBLOCK( \
+	if (out) \
+		*out = bucket_obj(vmap, bucket); \
+	return B; \
+)
+
+static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode, void **out)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
 	size_t const pos = ZRARRAYOP_BINSERT_POS_LAST(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
@@ -118,7 +124,7 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 	if (bucket == NULL)
 	{
 		if (mode == REPLACE)
-			return false;
+			insert_return(false);
 
 		alignas(max_align_t) char tmpBucket[vmap->bucketInfos[BucketInfos_struct].size];
 
@@ -130,26 +136,26 @@ static inline bool insert(ZRMap *map, void *key, void *obj, enum InsertModeE mod
 	else
 	{
 		if (mode == PUTIFABSENT)
-			return false;
+			insert_return(false);
 
 		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
-	return true;
+	insert_return(true);
 }
 
-static void fput(ZRMap *map, void *key, void *obj)
+static void fput(ZRMap *map, void *key, void *obj, void **out)
 {
-	insert(map, key, obj, PUT);
+	insert(map, key, obj, PUT, out);
 }
 
-static bool fputIfAbsent(ZRMap *map, void *key, void *obj)
+static bool fputIfAbsent(ZRMap *map, void *key, void *obj, void **out)
 {
-	return insert(map, key, obj, PUTIFABSENT);
+	return insert(map, key, obj, PUTIFABSENT, out);
 }
 
-static bool freplace(ZRMap *map, void *key, void *obj)
+static bool freplace(ZRMap *map, void *key, void *obj, void **out)
 {
-	return insert(map, key, obj, REPLACE);
+	return insert(map, key, obj, REPLACE, out);
 }
 
 static void* fget(ZRMap *map, void *key)
@@ -194,7 +200,7 @@ static inline void* eq_getBucket(ZRVectorMap *vmap, void *key)
 	return ZRVECTOR_GET(vmap->vector, pos);
 }
 
-static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode)
+static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE mode, void **out)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
 	size_t const pos = ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(vmap->vector->array), key, bucketCmp, vmap);
@@ -221,22 +227,26 @@ static inline bool eq_insert(ZRMap *map, void *key, void *obj, enum InsertModeE 
 		bucket = ZRVECTOR_GET(vmap->vector, pos);
 		memcpy(bucket_obj(vmap, bucket), obj, map->objInfos.size);
 	}
+
+	if (out)
+		*out = bucket_obj(vmap, bucket);
+
 	return true;
 }
 
-static void eq_fput(ZRMap *map, void *key, void *obj)
+static void eq_fput(ZRMap *map, void *key, void *obj, void **out)
 {
-	eq_insert(map, key, obj, PUT);
+	eq_insert(map, key, obj, PUT, out);
 }
 
-static bool eq_fputIfAbsent(ZRMap *map, void *key, void *obj)
+static bool eq_fputIfAbsent(ZRMap *map, void *key, void *obj, void **out)
 {
-	return eq_insert(map, key, obj, PUTIFABSENT);
+	return eq_insert(map, key, obj, PUTIFABSENT, out);
 }
 
-static bool eq_freplace(ZRMap *map, void *key, void *obj)
+static bool eq_freplace(ZRMap *map, void *key, void *obj, void **out)
 {
-	return eq_insert(map, key, obj, REPLACE);
+	return eq_insert(map, key, obj, REPLACE, out);
 }
 
 static void* eq_fget(ZRMap *map, void *key)

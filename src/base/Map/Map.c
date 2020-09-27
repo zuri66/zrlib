@@ -35,6 +35,21 @@ bool ZRMap_replace(ZRMap *map, void *key, void *value)
 	return ZRMAP_REPLACE(map, key, value);
 }
 
+void ZRMap_putThenGet(ZRMap *map, void *key, void *value, void **out)
+{
+	ZRMAP_PUTTHENGET(map, key, value, out);
+}
+
+bool ZRMap_putIfAbsentThenGet(ZRMap *map, void *key, void *value, void **out)
+{
+	return ZRMAP_PUTIFABSENTTHENGET(map, key, value, out);
+}
+
+bool ZRMap_replaceThenGet(ZRMap *map, void *key, void *value, void **out)
+{
+	return ZRMAP_REPLACETHENGET(map, key, value, out);
+}
+
 bool ZRMap_delete(ZRMap *map, void *key)
 {
 	return ZRMAP_DELETE(map, key);

@@ -61,12 +61,13 @@ static inline size_t ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(ZRReserveMemoryChun
 
 		if (chunk->nbFree == nbObj)
 		{
+			size_t offset = chunk->offset;
 			*firstChunk = (*firstChunk)->nextChunk;
 
 			if (fchunkDone)
 				fchunkDone(chunk);
 
-			return chunk->offset;
+			return offset;
 		}
 		else if (chunk->nbFree > nbObj)
 		{
@@ -82,8 +83,6 @@ static inline size_t ZRRESERVEOPCHUNK_RESERVEFIRSTAVAILABLES(ZRReserveMemoryChun
 ZRMUSTINLINE
 static inline bool ZRRESERVEOPCHUNK_AVAILABLES(ZRReserveMemoryChunk *firstChunk, size_t nbObj)
 {
-	ZRReserveMemoryChunk *chunk = firstChunk;
-
 	while (true)
 	{
 		if (firstChunk->nbFree >= nbObj)
@@ -100,6 +99,7 @@ static inline void ZRRESERVEOPCHUNK_RELEASENB(ZRReserveMemoryChunk **firstChunk,
 	ZRReserveMemoryChunk *leftChunk;
 	ZRReserveMemoryChunk *rightChunk;
 
+	/* The chunk list is empty */
 	if (*firstChunk == NULL)
 	{
 		*firstChunk = newChunk;
@@ -109,7 +109,7 @@ static inline void ZRRESERVEOPCHUNK_RELEASENB(ZRReserveMemoryChunk **firstChunk,
 		return;
 	}
 
-	// We must insert it on the first place
+	/* We must insert it on the first place */
 	if ((*firstChunk)->offset > pos)
 	{
 		rightChunk = *firstChunk;
@@ -119,7 +119,7 @@ static inline void ZRRESERVEOPCHUNK_RELEASENB(ZRReserveMemoryChunk **firstChunk,
 	{
 		leftChunk = *firstChunk;
 
-		// Find the place to be
+		/* Find the place to be */
 		while (true)
 		{
 			rightChunk = leftChunk->nextChunk;
@@ -157,11 +157,11 @@ static inline void ZRRESERVEOPCHUNK_RELEASENB(ZRReserveMemoryChunk **firstChunk,
 
 	if (rightChunk == NULL)
 		;
-	// The current chunk end just before the next
 	else
 	{
 		assert(current->offset + current->nbFree <= rightChunk->offset);
 
+		/* The current chunk end just before the next */
 		if (current->offset + current->nbFree == rightChunk->offset)
 		{
 			current->nbFree += rightChunk->nbFree;

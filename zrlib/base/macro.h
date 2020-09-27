@@ -21,6 +21,8 @@ typedef int (*zrfucmp)(void *a, void *b, void* data);
 #define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), __alignof(T)
 #define ZRTYPE_ALIGNMENT_SIZE(T) __alignof(T), sizeof(T)
 #define ZRTYPE_OBJINFOS(T) ZROBJINFOS_DEF(__alignof(T), sizeof(T))
+#define ZRTYPE_OBJALIGNINFOS(T) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T))
+
 
 #define ZRSIZE_UNKNOW SIZE_MAX
 #define ZRTOSTRING(V) #V
