@@ -290,7 +290,11 @@ static inline void insertInBucket(ZRHashTable *htable, ZRHashTableBucket *bucket
 	memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
 	memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
 	bucket_flags(htable, bucket) = FLAG_NONE;
-	ZRRESERVEOPLIST_RESERVENB(ZRHTABLE_LVPARRAY(htable), htable->bucketInfos[ZRHashTableBucketInfos_struct].size, ZRHTABLE_LVSIZE(htable), htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset, pos, 1);
+	ZRRESERVEOPLIST_RESERVENB(ZRHTABLE_LVPARRAY(htable),
+		htable->bucketInfos[ZRHashTableBucketInfos_struct].size, ZRHTABLE_LVSIZE(htable),
+		htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset,
+		pos, 1
+		);
 	ZRHASHTABLE_MAP(htable)->nbObj++;
 	ZRHTABLE_LVNBOBJ(htable)++;
 
@@ -513,7 +517,10 @@ static inline bool delete(ZRHashTable *htable, void *key, void *cpy_out)
 		memcpy(cpy_out, bucket_obj(htable, bucket), ZRHASHTABLE_MAP(htable)->objInfos.size);
 
 	size_t bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
-	ZRRESERVEOPLIST_RELEASENB(ZRHTABLE_LVPARRAY(htable), bucketSize, ZRHTABLE_LVSIZE(htable), htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset, pos, 1);
+	ZRRESERVEOPLIST_RELEASENB(ZRHTABLE_LVPARRAY(htable), bucketSize, ZRHTABLE_LVSIZE(htable),
+		htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset,
+		pos, 1
+		);
 	bucket_flags(htable, bucket) = FLAG_DELETED;
 
 	size_t *bucketPos_p = ZRARRAYOP_SEARCH(ZRARRAY_OON(htable->bucketPos->array), &pos, cmp_size_t, htable);
@@ -537,6 +544,18 @@ static bool fdeleteShrink(ZRMap *map, void *key, void *cpy_out)
 static bool fdelete(ZRMap *map, void *key, void *cpy_out)
 {
 	return delete(ZRHASHTABLE(map), key, cpy_out);
+}
+
+static void fdeleteAll(ZRMap *map)
+{
+	ZRHashTable *const htable = ZRHASHTABLE(map);
+	size_t bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
+	ZRRESERVEOPLIST_INIT(ZRHTABLE_LVPARRAY(htable), bucketSize, ZRHTABLE_LVSIZE(htable),
+		htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset
+		);
+	ZRVECTOR_DELETE_ALL(htable->bucketPos);
+	ZRHASHTABLE_MAP(htable)->nbObj = 0;
+	ZRHTABLE_LVNBOBJ(htable) = 0;
 }
 
 // ============================================================================
@@ -658,6 +677,7 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 			.freplace = freplaceGrow, //
 			.fget = fget, //
 			.fdelete = fdeleteShrink, //
+			.fdeleteAll = fdeleteAll,
 			.fdone = fdone, //
 			.fdestroy = fdone, //
 			}, //

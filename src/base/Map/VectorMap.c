@@ -177,7 +177,7 @@ static bool fdelete(ZRMap *map, void *key, void *cpy_out)
 	if (pos == SIZE_MAX)
 		return false;
 
-	if(cpy_out)
+	if (cpy_out)
 		memcpy(cpy_out, ZRVECTOR_GET(vmap->vector, pos), ZRVECTOR_OBJSIZE(vmap->vector));
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
@@ -271,7 +271,7 @@ static bool eq_fdelete(ZRMap *map, void *key, void *cpy_out)
 	if (pos == SIZE_MAX)
 		return false;
 
-	if(cpy_out)
+	if (cpy_out)
 		memcpy(cpy_out, ZRVECTOR_GET(vmap->vector, pos), ZRVECTOR_OBJSIZE(vmap->vector));
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
@@ -280,6 +280,13 @@ static bool eq_fdelete(ZRMap *map, void *key, void *cpy_out)
 }
 
 // ============================================================================
+
+static void fdeleteAll(ZRMap *map)
+{
+	ZRVectorMap *const vmap = ZRVMAP(map);
+	ZRVECTOR_DELETE_ALL(vmap->vector);
+	ZRVMAP_MAP(vmap)->nbObj = 0;
+}
 
 static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_modeE mode)
 {
@@ -294,6 +301,7 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 						.freplace = freplace,
 						.fget = fget,
 						.fdelete = fdelete,
+						.fdeleteAll = fdeleteAll,
 						.fdone = fdone,
 					},
 			};
@@ -308,6 +316,7 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 						.freplace = eq_freplace,
 						.fget = eq_fget,
 						.fdelete = eq_fdelete,
+						.fdeleteAll = fdeleteAll,
 						.fdone = fdone,
 					},
 			};
