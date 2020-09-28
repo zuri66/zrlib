@@ -35,17 +35,22 @@ void* ZRIdentifier_fromID(ZRIdentifier *identifier, ZRID id)
 	return ZRIDENTIFIER_FROMID(identifier, id);
 }
 
-void ZRIdentifier_release(ZRIdentifier *identifier, void *obj)
+bool ZRIdentifier_contains(ZRIdentifier *identifier, void *obj)
 {
-	ZRIDENTIFIER_RELEASE(identifier, obj);
+	return ZRIDENTIFIER_CONTAINS(identifier, obj);
 }
 
-void ZRIdentifier_releaseID(ZRIdentifier *identifier, ZRID id)
+bool ZRIdentifier_release(ZRIdentifier *identifier, void *obj)
 {
-	ZRIDENTIFIER_RELEASEID(identifier, id);
+	return ZRIDENTIFIER_RELEASE(identifier, obj);
 }
 
-void ZRIdentifier_releaseAll(ZRIdentifier *identifier)
+bool ZRIdentifier_releaseID(ZRIdentifier *identifier, ZRID id)
+{
+	return ZRIDENTIFIER_RELEASEID(identifier, id);
+}
+
+bool ZRIdentifier_releaseAll(ZRIdentifier *identifier)
 {
 	return ZRIDENTIFIER_RELEASEALL(identifier);
 }
