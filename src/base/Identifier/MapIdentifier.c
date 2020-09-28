@@ -81,10 +81,6 @@ static ZRID fgetID(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
 	MapBucket *found = getPool_p(mapIdentifier, obj);
-
-//	if (found == NULL)
-//		return ZRID_ABSENT;
-
 	return found->id;
 }
 
@@ -93,10 +89,6 @@ void* fintern(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
 	MapBucket *found = getPool_p(mapIdentifier, obj);
-
-//	if (found == NULL)
-//		return NULL;
-
 	return found->objInPool;
 }
 
@@ -107,27 +99,56 @@ void* ffromID(ZRIdentifier *identifier, ZRID id)
 	MapBucket *found = (MapBucket*)ZRMAP_GET(mapIdentifier->map_ID, &id);
 
 	if (found == NULL)
-		return NULL;
+		return NULL ;
 
 	return found->objInPool;
 }
 
 static
-void frelease(ZRIdentifier *identifier, void *obj)
+bool fcontains(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	return NULL != ZRMAP_GET(mapIdentifier->map, &obj);
 }
 
 static
-void freleaseID(ZRIdentifier *identifier, ZRID id)
+bool frelease(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket cpy;
+
+	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map, &obj, &cpy))
+		return false;
+
+	bool const del = ZRMAP_DELETE(mapIdentifier->map_ID, &cpy.id);
+	assert(del == true);
+	MAPID_ID(mapIdentifier)->nbObj--;
+	return true;
 }
 
 static
-void freleaseAll(ZRIdentifier *identifier)
+bool freleaseID(ZRIdentifier *identifier, ZRID id)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket cpy;
+
+	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map_ID, &id, &cpy))
+		return false;
+
+	bool const del = ZRMAP_DELETE(mapIdentifier->map, &cpy.objInPool);
+	assert(del == true);
+	MAPID_ID(mapIdentifier)->nbObj--;
+	return true;
+}
+
+static
+bool freleaseAll(ZRIdentifier *identifier)
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	ZRMAP_DELETEALL(mapIdentifier->map);
+	ZRMAP_DELETEALL(mapIdentifier->map_ID);
+	MAPID_ID(mapIdentifier)->nbObj = 0;
+	return true;
 }
 
 static
@@ -211,6 +232,7 @@ void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy)
 			.fintern = fintern,
 			.ffromID = ffromID,
 
+			.fcontains = fcontains,
 			.frelease = frelease,
 			.freleaseID = freleaseID,
 			.freleaseAll = freleaseAll,
