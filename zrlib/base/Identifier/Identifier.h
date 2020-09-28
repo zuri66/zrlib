@@ -7,6 +7,7 @@
 #define ZRIDENTIFIER_H
 
 #include <zrlib/config.h>
+#include <stdbool.h>
 
 // ============================================================================
 
@@ -25,9 +26,9 @@ struct ZRIdentifierStrategyS
 	void* (*fintern)(ZRIdentifier *identifier, void *obj);
 	void* (*ffromID)(ZRIdentifier *identifier, ZRID id);
 
-	void (*frelease)(ZRIdentifier *identifier, void *obj);
-	void (*freleaseID)(ZRIdentifier *identifier, ZRID id);
-	void (*freleaseAll)(ZRIdentifier *identifier);
+	bool (*frelease)(ZRIdentifier *identifier, void *obj);
+	bool (*freleaseID)(ZRIdentifier *identifier, ZRID id);
+	bool (*freleaseAll)(ZRIdentifier *identifier);
 
 	void (*fdone)(ZRIdentifier *identifier);
 	void (*fdestroy)(ZRIdentifier *identifier);
@@ -86,23 +87,22 @@ static inline void* ZRIDENTIFIER_FROMID(ZRIdentifier *identifier, ZRID id)
 {
 	return identifier->strategy->ffromID(identifier, id);
 }
-
 ZRMUSTINLINE
-static inline void ZRIDENTIFIER_RELEASE(ZRIdentifier *identifier, void *obj)
+static inline bool ZRIDENTIFIER_RELEASE(ZRIdentifier *identifier, void *obj)
 {
-	identifier->strategy->frelease(identifier, obj);
+	return identifier->strategy->frelease(identifier, obj);
 }
 
 ZRMUSTINLINE
-static inline void ZRIDENTIFIER_RELEASEID(ZRIdentifier *identifier, ZRID id)
+static inline bool ZRIDENTIFIER_RELEASEID(ZRIdentifier *identifier, ZRID id)
 {
-	identifier->strategy->freleaseID(identifier, id);
+	return identifier->strategy->freleaseID(identifier, id);
 }
 
 ZRMUSTINLINE
-static inline void ZRIDENTIFIER_RELEASEALL(ZRIdentifier *identifier)
+static inline bool ZRIDENTIFIER_RELEASEALL(ZRIdentifier *identifier)
 {
-	identifier->strategy->freleaseAll(identifier);
+	return identifier->strategy->freleaseAll(identifier);
 }
 
 // ============================================================================
@@ -114,11 +114,11 @@ void ZRIdentifier_destroy(ZRIdentifier *identifier);
 size_t ZRIdentifier_nbObj(ZRIdentifier *identifier);
 
 ZRID __ ZRIdentifier_getID(______ ZRIdentifier *identifier, void *obj);
-void* _ ZRIdentifier_intern(___ ZRIdentifier *identifier, void *obj);
-void* _ ZRIdentifier_fromID(___ ZRIdentifier *identifier, ZRID id);
-void __ ZRIdentifier_release(__ ZRIdentifier *identifier, void *obj);
-void __ ZRIdentifier_releaseID(__ ZRIdentifier *identifier, ZRID id);
-void __ ZRIdentifier_releaseAll(ZRIdentifier *identifier);
+void* _ ZRIdentifier_intern(_____ ZRIdentifier *identifier, void *obj);
+void* _ ZRIdentifier_fromID(_____ ZRIdentifier *identifier, ZRID id);
+bool __ ZRIdentifier_release(____ ZRIdentifier *identifier, void *obj);
+bool __ ZRIdentifier_releaseID(__ ZRIdentifier *identifier, ZRID id);
+bool __ ZRIdentifier_releaseAll(_ ZRIdentifier *identifier);
 
 
 #endif
