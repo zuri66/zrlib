@@ -39,7 +39,7 @@ struct ZRMapStrategyS
 
 	void* (*fget)(ZRMap *map, void *key);
 
-	bool (*fdelete)(ZRMap *map, void *key);
+	bool (*fdelete)(ZRMap *map, void *key, void *cpy_out);
 
 	/**
 	 * Clean the memory used by the map.
@@ -140,9 +140,15 @@ static inline bool ZRMAP_REPLACETHENGET(ZRMap *map, void *key, void *value, void
 }
 
 ZRMUSTINLINE
+static inline bool ZRMAP_CPYTHENDELETE(ZRMap *map, void *key, void *cpy_out)
+{
+	return map->strategy->fdelete(map, key, cpy_out);
+}
+
+ZRMUSTINLINE
 static inline bool ZRMAP_DELETE(ZRMap *map, void *key)
 {
-	return map->strategy->fdelete(map, key);
+	return map->strategy->fdelete(map, key, NULL);
 }
 
 // Help
@@ -174,6 +180,7 @@ void ZRMap_destroy(ZRMap *map);
 void ZRMap_putThenGet(_______ ZRMap *map, void *key, void *value, void **out);
 bool ZRMap_putIfAbsentThenGet(ZRMap *map, void *key, void *value, void **out);
 bool ZRMap_replaceThenGet(___ ZRMap *map, void *key, void *value, void **out);
+bool ZRMap_cpyThenDelete(____ ZRMap *map, void *key, void *cpy_out);
 
 void* ZRMap_get(_______ ZRMap *map, void *key);
 void _ ZRMap_put(_______ ZRMap *map, void *key, void *value);

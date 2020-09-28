@@ -50,6 +50,11 @@ bool ZRMap_replaceThenGet(ZRMap *map, void *key, void *value, void **out)
 	return ZRMAP_REPLACETHENGET(map, key, value, out);
 }
 
+bool ZRMap_cpyThenDelete(ZRMap *map, void *key, void *cpy_out)
+{
+	return ZRMAP_CPYTHENDELETE(map, key, cpy_out);
+}
+
 bool ZRMap_delete(ZRMap *map, void *key)
 {
 	return ZRMAP_DELETE(map, key);
