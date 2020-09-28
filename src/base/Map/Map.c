@@ -60,6 +60,11 @@ bool ZRMap_delete(ZRMap *map, void *key)
 	return ZRMAP_DELETE(map, key);
 }
 
+void ZRMap_deleteAll(ZRMap *map)
+{
+	ZRMAP_DELETEALL(map);
+}
+
 void* ZRMap_get(ZRMap *map, void *key)
 {
 	return ZRMAP_GET(map, key);
