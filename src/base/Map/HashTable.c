@@ -501,13 +501,16 @@ static int cmp_size_t(void *a, void *b, void *htable)
 }
 
 ZRMUSTINLINE
-static inline bool delete(ZRHashTable *htable, void *key)
+static inline bool delete(ZRHashTable *htable, void *key, void *cpy_out)
 {
 	size_t pos;
 	ZRHashTableBucket *const bucket = getBucket(htable, key, &pos);
 
 	if (bucket == NULL)
 		return false;
+
+	if (cpy_out)
+		memcpy(cpy_out, bucket_obj(htable, bucket), ZRHASHTABLE_MAP(htable)->objInfos.size);
 
 	size_t bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
 	ZRRESERVEOPLIST_RELEASENB(ZRHTABLE_LVPARRAY(htable), bucketSize, ZRHTABLE_LVSIZE(htable), htable->bucketInfos[ZRHashTableBucketInfos_nextUnused].offset, pos, 1);
@@ -521,19 +524,19 @@ static inline bool delete(ZRHashTable *htable, void *key)
 	return true;
 }
 
-static bool fdeleteShrink(ZRMap *map, void *key)
+static bool fdeleteShrink(ZRMap *map, void *key, void *cpy_out)
 {
 	ZRHashTable *const htable = ZRHASHTABLE(map);
 
 	if (mustShrink(htable))
 		lessSize(htable);
 
-	return delete(htable, key);
+	return delete(htable, key, cpy_out);
 }
 
-static bool fdelete(ZRMap *map, void *key)
+static bool fdelete(ZRMap *map, void *key, void *cpy_out)
 {
-	return delete(ZRHASHTABLE(map), key);
+	return delete(ZRHASHTABLE(map), key, cpy_out);
 }
 
 // ============================================================================

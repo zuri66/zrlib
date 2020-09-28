@@ -169,13 +169,16 @@ static void* fget(ZRMap *map, void *key)
 	return bucket_obj(vmap, bucket);
 }
 
-static bool fdelete(ZRMap *map, void *key)
+static bool fdelete(ZRMap *map, void *key, void *cpy_out)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
 	size_t pos = getBucketPos(vmap, key);
 
 	if (pos == SIZE_MAX)
 		return false;
+
+	if(cpy_out)
+		memcpy(cpy_out, ZRVECTOR_GET(vmap->vector, pos), ZRVECTOR_OBJSIZE(vmap->vector));
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
 	ZRVMAP_MAP(vmap)->nbObj--;
@@ -260,13 +263,16 @@ static void* eq_fget(ZRMap *map, void *key)
 	return bucket_obj(vmap, bucket);
 }
 
-static bool eq_fdelete(ZRMap *map, void *key)
+static bool eq_fdelete(ZRMap *map, void *key, void *cpy_out)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
 	size_t pos = eq_getBucketPos(vmap, key);
 
 	if (pos == SIZE_MAX)
 		return false;
+
+	if(cpy_out)
+		memcpy(cpy_out, ZRVECTOR_GET(vmap->vector, pos), ZRVECTOR_OBJSIZE(vmap->vector));
 
 	ZRVECTOR_DELETE(vmap->vector, pos);
 	ZRVMAP_MAP(vmap)->nbObj--;
