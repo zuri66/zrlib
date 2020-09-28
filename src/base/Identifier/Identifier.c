@@ -35,6 +35,11 @@ void* ZRIdentifier_fromID(ZRIdentifier *identifier, ZRID id)
 	return ZRIDENTIFIER_FROMID(identifier, id);
 }
 
+bool ZRIdentifier_contains(ZRIdentifier *identifier, void *obj)
+{
+	return ZRIDENTIFIER_CONTAINS(identifier, obj);
+}
+
 bool ZRIdentifier_release(ZRIdentifier *identifier, void *obj)
 {
 	return ZRIDENTIFIER_RELEASE(identifier, obj);
