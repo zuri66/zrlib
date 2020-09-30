@@ -705,6 +705,12 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 
 	hashTableStructInfos_validate(initInfos);
 
+	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyInfos_objInfos().size];
+	ZRVector2SideStrategyInfos(vector_initInfos, DEFAULT_CAPACITY, DEFAULT_CAPACITY * 2, ZRTYPE_SIZE_ALIGNMENT(size_t), initInfos->allocator, false);
+
+	if (initInfos->staticStrategy)
+		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
+
 	*htable = (ZRHashTable ) { //
 		.fhashPos = initInfos->dereferenceKey ? ptr_hashPos : hashPos,
 		.fcmp = initInfos->dereferenceKey ? ptr_cmp : cmp,
@@ -721,7 +727,7 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 			.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 },
 			.initialNb = DEFAULT_CAPACITY
 			},
-		.bucketPos = ZRVector2SideStrategy_createDynamic(DEFAULT_CAPACITY, ZRTYPE_SIZE_ALIGNMENT(size_t), initInfos->allocator),
+		.bucketPos = ZRVector2SideStrategy_new(vector_initInfos),
 		};
 	memcpy(htable->bucketInfos, initInfos->bucketInfos, sizeof(ZRObjAlignInfos[ZRHASHTABLEBUCKETINFOS_NB]));
 	memcpy(htable->fuhash, initInfos->fuhash, sizeof(zrfuhash) * initInfos->nbfhash);
