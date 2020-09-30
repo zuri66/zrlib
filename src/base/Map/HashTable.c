@@ -288,7 +288,10 @@ ZRMUSTINLINE
 static inline void insertInBucket(ZRHashTable *htable, ZRHashTableBucket *bucket, void *key, void *obj, size_t pos)
 {
 	memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
-	memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
+
+	if (obj != NULL)
+		memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
+
 	bucket_flags(htable, bucket) = FLAG_NONE;
 	ZRRESERVEOPLIST_RESERVENB(ZRHTABLE_LVPARRAY(htable),
 		htable->bucketInfos[ZRHashTableBucketInfos_struct].size, ZRHTABLE_LVSIZE(htable),
