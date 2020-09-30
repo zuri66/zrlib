@@ -85,6 +85,7 @@ struct ZRHashTableS
 	size_t nbfhash;
 
 	unsigned staticStrategy :1;
+	unsigned keyIsPtr :1;
 };
 
 #define ZRHTABLE_LVPARRAY(HT) (HT)->table.array
@@ -287,7 +288,10 @@ void fdestroy(ZRMap *map)
 ZRMUSTINLINE
 static inline void insertInBucket(ZRHashTable *htable, ZRHashTableBucket *bucket, void *key, void *obj, size_t pos)
 {
-	memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
+	if (htable->keyIsPtr)
+		memcpy(bucket_key(htable, bucket), key, sizeof(void*));
+	else
+		memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
 
 	if (obj != NULL)
 		memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
@@ -728,6 +732,7 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 			.initialNb = DEFAULT_CAPACITY
 			},
 		.bucketPos = ZRVector2SideStrategy_new(vector_initInfos),
+		.keyIsPtr = initInfos->dereferenceKey,
 		};
 	memcpy(htable->bucketInfos, initInfos->bucketInfos, sizeof(ZRObjAlignInfos[ZRHASHTABLEBUCKETINFOS_NB]));
 	memcpy(htable->fuhash, initInfos->fuhash, sizeof(zrfuhash) * initInfos->nbfhash);
