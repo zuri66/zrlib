@@ -506,6 +506,29 @@ static void* fget(ZRMap *map, void *key)
 	return bucket_obj(htable, bucket);
 }
 
+size_t fcpyKeyValPtr(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	ZRHashTable *const htable = ZRHASHTABLE(map);
+	size_t const bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
+	size_t const nbObj = ZRVECTOR_NBOBJ(htable->bucketPos);
+
+	if (offset > nbObj)
+		return 0;
+
+	size_t const nbCpy = ZRMIN(maxNbCpy, nbObj - offset);
+	size_t i = nbCpy;
+
+	while (i--)
+	{
+		size_t pos = *(size_t*)ZRVECTOR_GET(htable->bucketPos, offset++);
+		ZRHashTableBucket *bucket = ZRARRAYOP_GET(ZRHTABLE_LVPARRAY(htable), bucketSize, pos);
+		cpyTo->key = bucket_key(htable, bucket);
+		cpyTo->val = bucket_obj(htable, bucket);
+		cpyTo++;
+	}
+	return nbCpy;
+}
+
 static int cmp_size_t(void *a, void *b, void *htable)
 {
 	return zrfcmp_size_t(a, b);
@@ -682,6 +705,7 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 			.fput = fputGrow, //
 			.fputIfAbsent = fputIfAbsentGrow, //
 			.freplace = freplaceGrow, //
+			.fcpyKeyValPtr = fcpyKeyValPtr,
 			.fget = fget, //
 			.fdelete = fdeleteShrink, //
 			.fdeleteAll = fdeleteAll,

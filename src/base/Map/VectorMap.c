@@ -61,7 +61,7 @@ static void bucketInfos_make(ZRObjAlignInfos *out, size_t keySize, size_t keyAli
 	ZRStruct_bestOffsets(ZRVMAP_INFOS_NB - 1, out);
 }
 
-//// ============================================================================
+// ============================================================================
 
 static void finitMap(ZRMap *map)
 {
@@ -281,6 +281,27 @@ static bool eq_fdelete(ZRMap *map, void *key, void *cpy_out)
 
 // ============================================================================
 
+static size_t fcpyKeyValPtr(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	ZRVectorMap *const vmap = ZRVMAP(map);
+	size_t const nbObj = ZRVECTOR_NBOBJ(vmap->vector);
+
+	if (offset > nbObj)
+		return 0;
+
+	size_t const nbCpy = ZRMIN(maxNbCpy, nbObj - offset);
+	size_t i = nbCpy;
+
+	while (i--)
+	{
+		void *bucket = ZRVECTOR_GET(vmap->vector, offset++);
+		cpyTo->key = bucket_key(vmap,bucket);
+		cpyTo->val = bucket_obj(vmap,bucket);
+		cpyTo++;
+	}
+	return nbCpy;
+}
+
 static void fdeleteAll(ZRMap *map)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
@@ -299,6 +320,7 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 						.fput = fput,
 						.fputIfAbsent = fputIfAbsent,
 						.freplace = freplace,
+						.fcpyKeyValPtr = fcpyKeyValPtr,
 						.fget = fget,
 						.fdelete = fdelete,
 						.fdeleteAll = fdeleteAll,
@@ -314,6 +336,7 @@ static void ZRVectorMapStrategy_init(ZRMapStrategy *strategy, enum ZRVectorMap_m
 						.fput = eq_fput,
 						.fputIfAbsent = eq_fputIfAbsent,
 						.freplace = eq_freplace,
+						.fcpyKeyValPtr = fcpyKeyValPtr,
 						.fget = eq_fget,
 						.fdelete = eq_fdelete,
 						.fdeleteAll = fdeleteAll,
