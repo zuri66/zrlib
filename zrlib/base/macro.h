@@ -24,7 +24,9 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), __alignof(T)
 #define ZRTYPE_ALIGNMENT_SIZE(T) __alignof(T), sizeof(T)
 #define ZRTYPE_OBJINFOS(T) ZROBJINFOS_DEF(__alignof(T), sizeof(T))
+#define ZRTYPENB_OBJINFOS(T,NB) ZROBJINFOS_DEF(__alignof(T), sizeof(T) * (NB))
 #define ZRTYPE_OBJALIGNINFOS(T) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T))
+#define ZRTYPENB_OBJALIGNINFOS(T,NB) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T) * (NB))
 
 #define ZRSIZE_UNKNOW SIZE_MAX
 #define ZRTOSTRING(V) #V
@@ -52,6 +54,7 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRISPOW2SAFE(I) ((I) > 0 && ZRISPOW2(I))
 
 #define ZRCARRAY_NBOBJ(array) (sizeof(array)/sizeof(*array))
+#define ZRCARRAY_CPY(A,B) memcpy(A, B, sizeof(A))
 
 #ifdef __GNUC__
 #define ZRMUSTINLINE __attribute__((always_inline))

@@ -3,8 +3,10 @@
  * @date samedi 19 janvier 2019, 18:03:00 (UTC+0100)
  */
 
+#include <zrlib/lib/init.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
 #include <zrlib/base/Allocator/Allocator.h>
+#include <zrlib/base/Identifier/Identifier.h>
 #include <zrlib/base/struct.h>
 
 #include <assert.h>
@@ -126,11 +128,11 @@ static void getVectorInfos(ZRObjAlignInfos *out, size_t initialArrayNbObj, size_
 
 // ============================================================================
 
-void ZRVector2SideStrategy_finsert(ZRVector *vec, size_t pos, size_t nb);
-void ZRVector2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb);
+static void finsert(ZRVector *vec, size_t pos, size_t nb);
+static void fdelete(ZRVector *vec, size_t pos, size_t nb);
 
-void ZRVector2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb);
-void ZRVector2SideStrategy_fdeleteShrink(ZRVector *vec, size_t pos, size_t nb);
+static void finsertGrow(ZRVector *vec, size_t pos, size_t nb);
+static void fdeleteShrink(ZRVector *vec, size_t pos, size_t nb);
 
 static void ZRVector2SideStrategy_growOnAdd(ZRVectorStrategy *strategy, bool v);
 static void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v);
@@ -151,8 +153,7 @@ static inline bool ZRVector2SideStrategy_memoryIsAllocated(ZR2SSVector *vec)
 /**
  * vec must be initialized to zero before.
  */
-static
-void ZRVector2SideStrategy_finitVec(ZRVector *vec)
+static void finitVec(ZRVector *vec)
 {
 	ZR2SSVector *svector = ZRVECTOR_2SS(vec);
 
@@ -172,8 +173,7 @@ void ZRVector2SideStrategy_finitVec(ZRVector *vec)
 	}
 }
 
-static
-void ZRVector2SideStrategy_fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment)
+static void fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vector);
 	size_t const lastAlignment = ZRVECTOR_LVOBJALIGNMENT(vector);
@@ -234,14 +234,14 @@ static
 void ZRVector2SideStrategy_growOnAdd(ZRVectorStrategy *strategy, bool v)
 {
 	ZRVector2SideStrategy *twoSideStrategy = (ZRVector2SideStrategy*)strategy;
-	twoSideStrategy->strategy.finsert = v ? ZRVector2SideStrategy_finsertGrow : ZRVector2SideStrategy_finsert;
+	twoSideStrategy->strategy.finsert = v ? finsertGrow : finsert;
 }
 
 static
 void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
 {
 	ZRVector2SideStrategy *twoSideStrategy = (ZRVector2SideStrategy*)strategy;
-	twoSideStrategy->strategy.fdelete = v ? ZRVector2SideStrategy_fdeleteShrink : ZRVector2SideStrategy_fdelete;
+	twoSideStrategy->strategy.fdelete = v ? fdeleteShrink : fdelete;
 }
 
 void ZRVector2SideStrategy_growStrategy(ZRVector *vec, zrflimit fupLimit, zrfincrease fincrease)
@@ -256,8 +256,7 @@ void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrflimit fdownLimit, zr
 	svector->resizeData.shrinkStrategy = (ZRResizeShrinkStrategy ) { fdownLimit, fdecrease };
 }
 
-static
-void ZRVector2SideStrategy_fmemoryTrim(ZRVector *vec)
+static void fmemoryTrim(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 
@@ -284,13 +283,13 @@ void ZRVector2SideStrategy_fmemoryTrim(ZRVector *vec)
 // ============================================================================
 
 ZRMUSTINLINE
-static inline size_t getInitialMemoryNbObjs(size_t initialMemoryNbObj, size_t initialArraySize, size_t objSize)
+static inline size_t getInitialMemoryNbObjs(size_t initialMemoryNbObj, size_t initialArrayNbObj, size_t objSize)
 {
 	if (initialMemoryNbObj > 0)
 		return initialMemoryNbObj;
 
-	if (initialArraySize > 0)
-		return initialArraySize / objSize;
+	if (initialArrayNbObj > 0)
+		return initialArrayNbObj;
 
 	return INITIAL_SIZE;
 }
@@ -501,13 +500,13 @@ static inline void operationDel_shift(ZRVector *vec, size_t pos, size_t nbLess)
 
 // ============================================================================
 
-void ZRVector2SideStrategy_finsert(ZRVector *vec, size_t pos, size_t nb)
+static void finsert(ZRVector *vec, size_t pos, size_t nb)
 {
 	operationAdd_shift(vec, pos, nb);
 	ZRVECTOR_LVNBOBJ(vec) += nb;
 }
 
-void ZRVector2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb)
+static void finsertGrow(ZRVector *vec, size_t pos, size_t nb)
 {
 	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
 
@@ -518,7 +517,7 @@ void ZRVector2SideStrategy_finsertGrow(ZRVector *vec, size_t pos, size_t nb)
 	ZRVECTOR_LVNBOBJ(vec) += nb;
 }
 
-void ZRVector2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb)
+static void fdelete(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
 	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
@@ -527,7 +526,7 @@ void ZRVector2SideStrategy_fdelete(ZRVector *vec, size_t pos, size_t nb)
 	ZRVECTOR_LVNBOBJ(vec) -= nb;
 }
 
-void ZRVector2SideStrategy_fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
+static void fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
 	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
@@ -539,21 +538,16 @@ void ZRVector2SideStrategy_fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
 		lessSize(vec);
 }
 
-static
-void ZRVector2SideStrategy_fdone(ZRVector *vec)
+static void fdone(ZRVector *vec)
 {
 	if (ZRVector2SideStrategy_memoryIsAllocated(ZRVECTOR_2SS(vec)))
 		ZRFREE(ZRVECTOR_2SS(vec)->allocator, ZRVECTOR_2SS(vec)->allocatedMemory);
-
-	if (ZRVECTOR_2SS(vec)->staticStrategy == 0)
-		ZRFREE(ZRVECTOR_2SS(vec)->allocator, vec->strategy);
 }
 
 /**
  * Delete a vector created by one of the creation helper functions
  */
-static
-void ZRVector2SideStrategy_fdestroy(ZRVector *vec)
+static void fdestroy(ZRVector *vec)
 {
 	ZRAllocator *const allocator = ZRVECTOR_2SS(vec)->allocator;
 	ZRVECTOR_DONE(vec);
@@ -573,6 +567,7 @@ typedef struct
 	ZRAllocator *allocator;
 	unsigned fixed :1;
 	unsigned staticStrategy :1;
+	unsigned changefdestroy :1;
 } ZR2SSInitInfos;
 
 ZRObjInfos ZRVector2SideStrategyInfos_objInfos(void)
@@ -626,19 +621,18 @@ ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->vectorInfos[ZRVectorInfos_struct]);
 }
 
-static void ZRVector2SideStrategy_initStrategy(ZRVector2SideStrategy *strategy)
+static void ZRVector2SideStrategy_initStrategy(ZRVector2SideStrategy *strategy, ZR2SSInitInfos *infos)
 {
-	*strategy = (ZRVector2SideStrategy ) //
-		{ //
+	*strategy = (ZRVector2SideStrategy ) { //
 		.strategy = { //
-			.finitVec = ZRVector2SideStrategy_finitVec, //
-			.finsert = ZRVector2SideStrategy_finsert, //
-			.fdelete = ZRVector2SideStrategy_fdelete, //
-			.fchangeObjSize = ZRVector2SideStrategy_fchangeObjSize, //
-			.fmemoryTrim = ZRVector2SideStrategy_fmemoryTrim, //
-			.fdone = ZRVector2SideStrategy_fdone, //
-			.fdestroy = ZRVector2SideStrategy_fdone, //
-			}, //
+			.finitVec = finitVec,
+			.finsert = infos->fixed ? finsert : finsertGrow,
+			.fdelete = infos->fixed ? fdelete : fdeleteShrink,
+			.fchangeObjSize = fchangeObjSize,
+			.fmemoryTrim = fmemoryTrim,
+			.fdone = fdone,
+			.fdestroy = infos->changefdestroy ? fdestroy : fdone,
+			},
 		};
 }
 
@@ -665,23 +659,17 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 	ssvector->resizeData.initialNb = getInitialMemoryNbObjs(initInfos->initialMemoryNbObj, initInfos->initialArrayNbObj, initInfos->objInfos.size);
 
 	ZRVector2SideStrategy *strategy;
+	ZRVector2SideStrategy ref;
+	zrlib_initPType(&ref);
+	ZRVector2SideStrategy_initStrategy(&ref, initInfos);
 
 	if (initInfos->staticStrategy)
-		strategy = (ZRVector2SideStrategy*)((char*)vector + infos[ZRVectorInfos_strategy].offset);
-	else
-		strategy = ZRALLOC(initInfos->allocator, sizeof(*strategy));
-
-	ZRVector2SideStrategy_initStrategy(strategy);
-
-	if (initInfos->fixed)
 	{
-		/*
-		 * ZRVector2SideStrategy_fixedMemory(ZR2SSSTRATEGY_VECTOR(strategy));
-		 * Done in the initStrategy()
-		 */
+		strategy = ZRARRAYOP_GET(vector, 1, infos[ZRVectorInfos_strategy].offset);
+		ZRPTYPE_CPY(strategy, &ref);
 	}
 	else
-		ZRVector2SideStrategy_dynamicMemory(ZR2SSSTRATEGY_VECTOR(strategy));
+		strategy = zrlib_internPType(&ref);
 
 	ZRVECTOR_INIT(vector, initInfos->objInfos.size, initInfos->objInfos.alignment, ZR2SSSTRATEGY_VECTOR(strategy));
 }
@@ -691,8 +679,10 @@ ZRVector* ZRVector2SideStrategy_new(void *infos_p)
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_p;
 
 	ZR2SSVector *ret = ZRALLOC(initInfos->allocator, initInfos->vectorInfos[ZRVectorInfos_struct].size);
+
+	initInfos->changefdestroy = 1;
 	ZRVector2SideStrategy_init(ZR2SS_VECTOR(ret), infos_p);
-	ZR2SSSTRATEGY_VECTOR(ZR2SS_STRATEGY(ret))->fdestroy = ZRVector2SideStrategy_fdestroy;
+	initInfos->changefdestroy = 0;
 	return ZR2SS_VECTOR(ret);
 }
 

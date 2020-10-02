@@ -3,6 +3,7 @@
  * @date mardi 19 novembre 2019, 21:52:33 (UTC+0100)
  */
 
+#include <zrlib/lib/init.h>
 #include <zrlib/base/Algorithm/fcmp.h>
 #include <zrlib/base/struct.h>
 #include <zrlib/base/ReserveOp_list.h>
@@ -273,16 +274,11 @@ static void fdone(ZRMap *map)
 	ZRVECTOR_DESTROY(htable->bucketPos);
 }
 
-void fdestroy(ZRMap *map)
+static void fdestroy(ZRMap *map)
 {
 	ZRHashTable *const htable = ZRHASHTABLE(map);
 	ZRMap_done(map);
-	ZRAllocator *allocator = htable->allocator;
-
-	if (htable->staticStrategy == 0)
-		ZRFREE(allocator, ZRHASHTABLESTRATEGY(htable));
-
-	ZRFREE(allocator, htable);
+	ZRFREE(htable->allocator, htable);
 }
 
 ZRMUSTINLINE
@@ -606,6 +602,7 @@ typedef struct
 
 	unsigned staticStrategy :1;
 	unsigned dereferenceKey :1;
+	unsigned changefdestroy :1;
 } ZRHashTableInitInfos;
 
 static void tableInitInfos(void *tableInfos_out, ZRHashTableInitInfos *initInfos)
@@ -697,9 +694,9 @@ void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp)
 	initInfos->fucmp = fucmp;
 }
 
-static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
+static void ZRHashTableStrategy_init(ZRHashTableStrategy *strategy, ZRHashTableInitInfos *infos)
 {
-	*(ZRHashTableStrategy*)strategy = (ZRHashTableStrategy ) { //
+	*strategy = (ZRHashTableStrategy ) { //
 		.map = { //
 			.finitMap = finitMap, //
 			.fput = fputGrow, //
@@ -710,7 +707,7 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 			.fdelete = fdeleteShrink, //
 			.fdeleteAll = fdeleteAll,
 			.fdone = fdone, //
-			.fdestroy = fdone, //
+			.fdestroy = infos->changefdestroy ? fdestroy : fdone, //
 			}, //
 		};
 }
@@ -718,10 +715,13 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 ZRMap* ZRHashTable_new(void *initInfos_p)
 {
 	ZRHashTableInitInfos *initInfos = initInfos_p;
+	initInfos->changefdestroy = 1;
+
 	hashTableStructInfos_validate(initInfos);
 	ZRHashTable *ret = ZRALLOC(initInfos->allocator, initInfos->infos[ZRHashTableStructInfos_struct].size);
 	ZRHashTable_init(ZRHASHTABLE_MAP(ret), initInfos);
-	ZRHASHTABLESTRATEGY_MAP(ZRHASHTABLESTRATEGY(ret))->fdestroy = fdestroy;
+
+	initInfos->changefdestroy = 0;
 	return ZRHASHTABLE_MAP(ret);
 }
 
@@ -764,12 +764,17 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 // There must be a guard
 	htable->fuhash[initInfos->nbfhash] = NULL;
 
-	if (initInfos->staticStrategy)
-		strategy = (void*)((char*)htable + initInfos->infos[ZRHashTableStructInfos_strategy].offset);
-	else
-		strategy = ZRALLOC(initInfos->allocator, sizeof(ZRHashTableStrategy));
+	ZRHashTableStrategy ref;
+	zrlib_initPType(&ref);
+	ZRHashTableStrategy_init(&ref, initInfos);
 
-	ZRHashTableStrategy_init(strategy);
+	if (initInfos->staticStrategy)
+	{
+		strategy = ZRARRAYOP_GET(htable, 1, initInfos->infos[ZRHashTableStructInfos_strategy].offset);
+		ZRPTYPE_CPY(strategy, &ref);
+	}
+	else
+		strategy = zrlib_internPType(&ref);
 
 	free(initInfos->tableInitInfos);
 	initInfos->tableInitInfos = NULL;

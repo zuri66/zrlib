@@ -288,7 +288,7 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	ZRMemoryPool *pool;
 
 	if (initInfos->staticStrategy)
-		strategy = (MAPIDSTRATEGY((char* )identifier + initInfos->infos[MapIdentifierInfos_strategy].offset));
+		strategy = ZRARRAYOP_GET(identifier, 1, initInfos->infos[MapIdentifierInfos_strategy].offset);
 	else
 		strategy = ZRALLOC(initInfos->allocator, sizeof(MapIdentifierStrategy));
 
@@ -314,7 +314,12 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	}
 	/* Pool init */
 	{
-		pool = ZRMPoolDS_createDefault(ZROBJALIGNINFOS_SIZE_ALIGNMENT(initInfos->objInfos), initInfos->allocator);
+		ZRMPoolDSInfos(infoBuffer, initInfos->objInfos, initInfos->allocator);
+
+		if (initInfos->staticStrategy)
+			ZRMPoolDSInfos_staticStrategy(infoBuffer);
+
+		pool = ZRMPoolDS_new(infoBuffer);
 	}
 	ZRMapIdentifierStrategy_init(strategy);
 	*mapIdentifier = (MapIdentifier ) { //
