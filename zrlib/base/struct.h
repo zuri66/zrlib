@@ -40,6 +40,7 @@ typedef struct ZRObjAlignInfosS
 #define ZROBJALIGNINFOS_ALIGNMENT_SIZE(I) (I).alignment, (I).size
 
 #define ZROBJALIGNINFOS_DEF(O,A,S)  ((ZRObjAlignInfos) { (O), (A), (S) })
+#define ZROBJALIGNINFOS_DEF0()      ((ZRObjAlignInfos) { 0, 0, 0 })
 #define ZROBJALIGNINFOS_DEF_AS(A,S) ((ZRObjAlignInfos) { 0, (A), (S) })
 
 ZRMUSTINLINE
