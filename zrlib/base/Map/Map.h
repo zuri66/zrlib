@@ -18,6 +18,12 @@
 typedef struct ZRMapS ZRMap;
 typedef struct ZRMapStrategyS ZRMapStrategy;
 
+typedef struct ZRMapKeyValS
+{
+	void *key;
+	void *val;
+} ZRMapKeyVal;
+
 // ============================================================================
 
 struct ZRMapStrategyS
@@ -41,6 +47,8 @@ struct ZRMapStrategyS
 
 	bool (*fdelete)(ZRMap *map, void *key, void *cpy_out);
 	void (*fdeleteAll)(ZRMap *map);
+
+	size_t (*fcpyKeyValPtr)(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy);
 
 	/**
 	 * Clean the memory used by the map.
@@ -96,6 +104,12 @@ ZRMUSTINLINE
 static inline void ZRMAP_DESTROY(ZRMap *map)
 {
 	map->strategy->fdestroy(map);
+}
+
+ZRMUSTINLINE
+static inline size_t ZRMAP_CPYKEYVALPTR(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	return map->strategy->fcpyKeyValPtr(map, cpyTo, offset, maxNbCpy);
 }
 
 ZRMUSTINLINE
@@ -179,10 +193,23 @@ static inline size_t ZRMAP_OBJSIZE(ZRMap *map)
 }
 
 // ============================================================================
+// HELP
+
+ZRMUSTINLINE
+static inline ZRMapKeyVal ZRMAP_GETKEYVALPTR(ZRMap *map, size_t offset)
+{
+	ZRMapKeyVal ret;
+	ZRMAP_CPYKEYVALPTR(map, &ret, offset, 1);
+	return ret;
+}
+
+// ============================================================================
 
 void ZRMap_init(ZRMap *map, ZRObjInfos key, ZRObjInfos obj, ZRMapStrategy *strategy);
 void ZRMap_done(ZRMap *map);
 void ZRMap_destroy(ZRMap *map);
+
+size_t ZRMap_cpyKeyValPtr(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy);
 
 void ZRMap_putThenGet(_______ ZRMap *map, void *key, void *value, void **out);
 bool ZRMap_putIfAbsentThenGet(ZRMap *map, void *key, void *value, void **out);
