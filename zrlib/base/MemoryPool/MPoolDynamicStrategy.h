@@ -21,6 +21,7 @@ ZRObjInfos ZRMPoolDSInfos_objInfos(void);
 
 void ZRMPoolDSInfos(void *infos_out, ZRObjInfos objInfos, ZRAllocator *allocator);
 
+ZRObjInfos ZRMPoolDS_objInfos(void *infos);
 void ZRMPoolDSInfos_staticStrategy(__ void *infos);
 void ZRMPoolDSInfos_initialBucketSize(void *infos, size_t initialBucketSize);
 void ZRMPoolDSInfos_maxFreeBuckets(__ void *infos, size_t maxFreeBuckets);

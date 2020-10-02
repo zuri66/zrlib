@@ -353,6 +353,12 @@ ZRObjInfos ZRMPoolDSInfos_objInfos(void)
 	return ret;
 }
 
+ZRObjInfos ZRMPoolDS_objInfos(void *infos)
+{
+	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos;
+	return ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->infos[MPoolDSInfos_struct]);
+}
+
 ZRMUSTINLINE
 static inline void ZRMPoolDSInfos_validate(ZRMPoolDSInitInfos *initInfos)
 {
