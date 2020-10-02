@@ -41,6 +41,7 @@ set(SRCS
 	src/base/MemoryPool/MemoryPool.c
 	src/base/MemoryPool/MPoolDynamicStrategy.c
 	src/base/MemoryPool/MPoolReserve.c
+	src/lib/init.c
     )
     
 set(HEADERS
@@ -76,6 +77,7 @@ set(HEADERS
 	zrlib/base/MemoryPool/MemoryPool.h
 	zrlib/base/MemoryPool/MPoolDynamicStrategy.h
 	zrlib/base/MemoryPool/MPoolReserve.h
+	zrlib/lib/init.h
 	zrlib/config.h
     )
 

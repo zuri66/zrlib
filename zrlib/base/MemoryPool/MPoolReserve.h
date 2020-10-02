@@ -16,25 +16,29 @@
 
 // ============================================================================
 
-typedef struct ZRMPoolReserveStrategyS ZRMPoolReserveStrategy;
-
-// ============================================================================
-
-struct ZRMPoolReserveStrategyS
-{
-	ZRMemoryPoolStrategy strategy;
-
-	ZRAllocator *allocator;
-};
-
 // ============================================================================
 // HELP
 // ============================================================================
 
+#define ZRMPoolReserveMode_default ZRMPoolReserveMode_list
+
 enum ZRMPoolReserveModeE
 {
-	ZRMPoolReserveMode_bits, ZRMPoolReserveMode_list, ZRMPoolReserveMode_chunk
+	ZRMPoolReserveMode_bits,
+	ZRMPoolReserveMode_list,
+	ZRMPoolReserveMode_chunk,
 };
+
+ZRObjInfos ZRMPoolReserveInfos_objInfos(void);
+
+void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks, ZRAllocator *allocator);
+void ZRMPoolReserveInfos_mode(void *infos, enum ZRMPoolReserveModeE mode);
+void ZRMPoolReserveInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData);
+void ZRMPoolReserveInfos_staticStrategy(void *infos);
+
+ZRObjInfos ZRMPoolReserve_objInfos(void *infos);
+void ZRMPoolReserve_init(ZRMemoryPool *pool, void *infos);
+ZRMemoryPool* ZRMPoolReserve_new(void *infos);
 
 ZRMemoryPool* ZRMPoolReserve_createSimple(
 	size_t blockSize, size_t alignment, size_t nbBlocks,
@@ -46,8 +50,5 @@ ZRMemoryPool* ZRMPoolReserve_create(
 	ZRObjAlignInfos *areaMetaData,
 	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
 	);
-void ZRMPoolReserve_destroy(ZRMemoryPool *pool);
-
-// ============================================================================
 
 #endif

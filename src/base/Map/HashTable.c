@@ -3,6 +3,7 @@
  * @date mardi 19 novembre 2019, 21:52:33 (UTC+0100)
  */
 
+#include <zrlib/lib/init.h>
 #include <zrlib/base/Algorithm/fcmp.h>
 #include <zrlib/base/struct.h>
 #include <zrlib/base/ReserveOp_list.h>
@@ -85,6 +86,7 @@ struct ZRHashTableS
 	size_t nbfhash;
 
 	unsigned staticStrategy :1;
+	unsigned keyIsPtr :1;
 };
 
 #define ZRHTABLE_LVPARRAY(HT) (HT)->table.array
@@ -272,23 +274,24 @@ static void fdone(ZRMap *map)
 	ZRVECTOR_DESTROY(htable->bucketPos);
 }
 
-void fdestroy(ZRMap *map)
+static void fdestroy(ZRMap *map)
 {
 	ZRHashTable *const htable = ZRHASHTABLE(map);
 	ZRMap_done(map);
-	ZRAllocator *allocator = htable->allocator;
-
-	if (htable->staticStrategy == 0)
-		ZRFREE(allocator, ZRHASHTABLESTRATEGY(htable));
-
-	ZRFREE(allocator, htable);
+	ZRFREE(htable->allocator, htable);
 }
 
 ZRMUSTINLINE
 static inline void insertInBucket(ZRHashTable *htable, ZRHashTableBucket *bucket, void *key, void *obj, size_t pos)
 {
-	memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
-	memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
+	if (htable->keyIsPtr)
+		memcpy(bucket_key(htable, bucket), key, sizeof(void*));
+	else
+		memcpy(bucket_key(htable, bucket), key, ZRHASHTABLE_MAP(htable)->keyInfos.size);
+
+	if (obj != NULL)
+		memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
+
 	bucket_flags(htable, bucket) = FLAG_NONE;
 	ZRRESERVEOPLIST_RESERVENB(ZRHTABLE_LVPARRAY(htable),
 		htable->bucketInfos[ZRHashTableBucketInfos_struct].size, ZRHTABLE_LVSIZE(htable),
@@ -499,6 +502,29 @@ static void* fget(ZRMap *map, void *key)
 	return bucket_obj(htable, bucket);
 }
 
+size_t fcpyKeyValPtr(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	ZRHashTable *const htable = ZRHASHTABLE(map);
+	size_t const bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
+	size_t const nbObj = ZRVECTOR_NBOBJ(htable->bucketPos);
+
+	if (offset > nbObj)
+		return 0;
+
+	size_t const nbCpy = ZRMIN(maxNbCpy, nbObj - offset);
+	size_t i = nbCpy;
+
+	while (i--)
+	{
+		size_t pos = *(size_t*)ZRVECTOR_GET(htable->bucketPos, offset++);
+		ZRHashTableBucket *bucket = ZRARRAYOP_GET(ZRHTABLE_LVPARRAY(htable), bucketSize, pos);
+		cpyTo->key = bucket_key(htable, bucket);
+		cpyTo->val = bucket_obj(htable, bucket);
+		cpyTo++;
+	}
+	return nbCpy;
+}
+
 static int cmp_size_t(void *a, void *b, void *htable)
 {
 	return zrfcmp_size_t(a, b);
@@ -576,6 +602,7 @@ typedef struct
 
 	unsigned staticStrategy :1;
 	unsigned dereferenceKey :1;
+	unsigned changefdestroy :1;
 } ZRHashTableInitInfos;
 
 static void tableInitInfos(void *tableInfos_out, ZRHashTableInitInfos *initInfos)
@@ -667,19 +694,20 @@ void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp)
 	initInfos->fucmp = fucmp;
 }
 
-static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
+static void ZRHashTableStrategy_init(ZRHashTableStrategy *strategy, ZRHashTableInitInfos *infos)
 {
-	*(ZRHashTableStrategy*)strategy = (ZRHashTableStrategy ) { //
+	*strategy = (ZRHashTableStrategy ) { //
 		.map = { //
 			.finitMap = finitMap, //
 			.fput = fputGrow, //
 			.fputIfAbsent = fputIfAbsentGrow, //
 			.freplace = freplaceGrow, //
+			.fcpyKeyValPtr = fcpyKeyValPtr,
 			.fget = fget, //
 			.fdelete = fdeleteShrink, //
 			.fdeleteAll = fdeleteAll,
 			.fdone = fdone, //
-			.fdestroy = fdone, //
+			.fdestroy = infos->changefdestroy ? fdestroy : fdone, //
 			}, //
 		};
 }
@@ -687,10 +715,13 @@ static void ZRHashTableStrategy_init(ZRMapStrategy *strategy)
 ZRMap* ZRHashTable_new(void *initInfos_p)
 {
 	ZRHashTableInitInfos *initInfos = initInfos_p;
+	initInfos->changefdestroy = 1;
+
 	hashTableStructInfos_validate(initInfos);
 	ZRHashTable *ret = ZRALLOC(initInfos->allocator, initInfos->infos[ZRHashTableStructInfos_struct].size);
 	ZRHashTable_init(ZRHASHTABLE_MAP(ret), initInfos);
-	ZRHASHTABLESTRATEGY_MAP(ZRHASHTABLESTRATEGY(ret))->fdestroy = fdestroy;
+
+	initInfos->changefdestroy = 0;
 	return ZRHASHTABLE_MAP(ret);
 }
 
@@ -701,6 +732,12 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 	ZRHashTable *htable = (ZRHashTable*)map;
 
 	hashTableStructInfos_validate(initInfos);
+
+	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyInfos_objInfos().size];
+	ZRVector2SideStrategyInfos(vector_initInfos, DEFAULT_CAPACITY, DEFAULT_CAPACITY * 2, ZRTYPE_SIZE_ALIGNMENT(size_t), initInfos->allocator, false);
+
+	if (initInfos->staticStrategy)
+		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
 
 	*htable = (ZRHashTable ) { //
 		.fhashPos = initInfos->dereferenceKey ? ptr_hashPos : hashPos,
@@ -718,7 +755,8 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 			.shrinkStrategy = (ZRResizeShrinkStrategy ) { ZRResizeOp_limit_90, ZRResizeOp_limit_50 },
 			.initialNb = DEFAULT_CAPACITY
 			},
-		.bucketPos = ZRVector2SideStrategy_createDynamic(DEFAULT_CAPACITY, ZRTYPE_SIZE_ALIGNMENT(size_t), initInfos->allocator),
+		.bucketPos = ZRVector2SideStrategy_new(vector_initInfos),
+		.keyIsPtr = initInfos->dereferenceKey,
 		};
 	memcpy(htable->bucketInfos, initInfos->bucketInfos, sizeof(ZRObjAlignInfos[ZRHASHTABLEBUCKETINFOS_NB]));
 	memcpy(htable->fuhash, initInfos->fuhash, sizeof(zrfuhash) * initInfos->nbfhash);
@@ -726,12 +764,17 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 // There must be a guard
 	htable->fuhash[initInfos->nbfhash] = NULL;
 
-	if (initInfos->staticStrategy)
-		strategy = (void*)((char*)htable + initInfos->infos[ZRHashTableStructInfos_strategy].offset);
-	else
-		strategy = ZRALLOC(initInfos->allocator, sizeof(ZRHashTableStrategy));
+	ZRHashTableStrategy ref;
+	zrlib_initPType(&ref);
+	ZRHashTableStrategy_init(&ref, initInfos);
 
-	ZRHashTableStrategy_init(strategy);
+	if (initInfos->staticStrategy)
+	{
+		strategy = ZRARRAYOP_GET(htable, 1, initInfos->infos[ZRHashTableStructInfos_strategy].offset);
+		ZRPTYPE_CPY(strategy, &ref);
+	}
+	else
+		strategy = zrlib_internPType(&ref);
 
 	free(initInfos->tableInitInfos);
 	initInfos->tableInitInfos = NULL;

@@ -20,6 +20,11 @@ void ZRMap_destroy(ZRMap *map)
 	ZRMAP_DESTROY(map);
 }
 
+size_t ZRMap_cpyKeyValPtr(ZRMap *map, ZRMapKeyVal *cpyTo, size_t offset, size_t maxNbCpy)
+{
+	return ZRMAP_CPYKEYVALPTR(map, cpyTo, offset, maxNbCpy);
+}
+
 void ZRMap_put(ZRMap *map, void *key, void *value)
 {
 	ZRMAP_PUT(map, key, value);
