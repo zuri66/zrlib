@@ -33,6 +33,7 @@ set(SRCS
 	src/base/Graph/Tree/Tree.c
 	src/base/Identifier/Identifier.c
 	src/base/Identifier/MapIdentifier.c
+	src/base/Identifier/IDGenerator/IDGenerator.c
 	src/base/Vector/Vector.c
 	src/base/Vector/Vector2SideStrategy.c
 	src/base/Map/HashTable.c
@@ -69,6 +70,7 @@ set(HEADERS
 	zrlib/base/Graph/Tree/Tree.h
 	zrlib/base/Identifier/Identifier.h
 	zrlib/base/Identifier/MapIdentifier.h
+	zrlib/base/Identifier/IDGenerator/IDGenerator.h
 	zrlib/base/Vector/Vector.h
 	zrlib/base/Vector/Vector2SideStrategy.h
 	zrlib/base/Map/HashTable.h
