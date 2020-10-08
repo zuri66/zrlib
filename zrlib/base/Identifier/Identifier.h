@@ -11,10 +11,6 @@
 
 // ============================================================================
 
-typedef size_t ZRID;
-
-#define ZRID_ABSENT SIZE_MAX
-
 typedef struct ZRIdentifierStrategyS ZRIdentifierStrategy;
 typedef struct ZRIdentifierS ZRIdentifier;
 

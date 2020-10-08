@@ -12,6 +12,9 @@
 #include <stdalign.h>
 #include <stddef.h>
 
+typedef size_t ZRID;
+#define ZRID_ABSENT SIZE_MAX
+
 typedef size_t (*zrfhash)(void *a);
 typedef size_t (*zrfuhash)(void *a, void *data);
 
