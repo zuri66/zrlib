@@ -196,6 +196,7 @@ typedef struct
 	ZRObjInfos objInfos;
 	ZRAllocator *allocator;
 	zrfuhash *fuhash;
+	zrfucmp fucmp;
 	size_t nbfhash;
 	unsigned int staticStrategy :1;
 } MapIdentifierInitInfos;
@@ -243,6 +244,13 @@ void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash
 	ZRIDGeneratorInfos(initInfos->generatorInfos, allocator);
 	ZRMapIdentifierInfos_validate(initInfos);
 }
+
+void ZRMapIdentifierInfos_fucmp(void *infos_out, zrfucmp fucmp)
+{
+	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
+	initInfos->fucmp = fucmp;
+}
+
 
 void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 {
@@ -293,6 +301,7 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 		assert(init_objInfos.size <= ZRCARRAY_NBOBJ(infoBuffer));
 
 		ZRHashTableInfos(infoBuffer, initInfos->objInfos, ZRTYPE_OBJINFOS(MapBucket), initInfos->fuhash, initInfos->nbfhash, NULL, initInfos->allocator);
+		ZRHashTableInfos_fucmp(infoBuffer, initInfos->fucmp);
 		ZRHashTableInfos_dereferenceKey(infoBuffer);
 
 		if (initInfos->staticStrategy)
