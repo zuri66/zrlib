@@ -183,7 +183,6 @@ ZRMUSTINLINE
 static inline void reinsertBuckets(ZRHashTable *htable, ZRHashTableBucket *lastTable, size_t lastTableSize, size_t lastTableNbBuckets)
 {
 	size_t bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
-	void *buffer[512];
 	size_t offset = 0;
 	size_t nb = 0;
 	ZRHASHTABLE_MAP(htable)->nbObj = 0;
@@ -535,9 +534,9 @@ static inline bool delete(ZRHashTable *htable, void *key, void *cpy_out)
 		);
 	bucket_flags(htable, bucket) = FLAG_DELETED;
 
-	size_t *bucketPos_p = ZRARRAYOP_SEARCH(ZRARRAY_OON(htable->bucketPos->array), &pos, cmp_size_t, htable);
-	assert(bucketPos_p != NULL);
-	ZRVECTOR_DELETE(htable->bucketPos, ((char*)bucketPos_p - (char*)ZRVECTOR_LVPARRAY(htable->bucketPos)) / bucketSize);
+	size_t bucketPos = ZRARRAYOP_SEARCH_POS(ZRARRAY_OON(htable->bucketPos->array), &pos, cmp_size_t, htable);
+	assert(bucketPos != SIZE_MAX);
+	ZRVECTOR_DELETE(htable->bucketPos, bucketPos);
 	ZRHASHTABLE_MAP(htable)->nbObj--;
 	ZRHTABLE_LVNBOBJ(htable)--;
 	return true;
