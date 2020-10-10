@@ -7,6 +7,7 @@
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 #include <zrlib/base/MemoryPool/MPoolDynamicStrategy.h>
 #include <zrlib/base/Map/HashTable.h>
+#include <zrlib/base/Identifier/IDGenerator/IDGenerator.h>
 
 #include <stdio.h>
 
@@ -30,7 +31,8 @@ typedef struct
 
 	ZRAllocator *allocator;
 
-	ZRID nextID;
+	ZRIDGenerator *generator;
+
 	unsigned int staticStrategy :1;
 } MapIdentifier;
 
@@ -40,6 +42,7 @@ typedef struct
 typedef enum
 {
 	MapIdentifierInfos_base = 0,
+	MapIdentifierInfos_generator,
 	MapIdentifierInfos_strategy,
 	MapIdentifierInfos_struct,
 	MAPIDENTIFIERINFOS_NB,
@@ -63,7 +66,7 @@ static inline MapBucket* getPool_p(MapIdentifier *mapIdentifier, void *obj)
 	void *objInPool = ZRMPOOL_RESERVE(mapIdentifier->pool);
 	void *ref_p;
 	MapBucket *ref;
-	MapBucket cpy = { mapIdentifier->nextID, objInPool };
+	MapBucket cpy = { ZRIDGenerator_nextID(mapIdentifier->generator), objInPool };
 	memcpy(objInPool, obj, mapIdentifier->pool->blockSize);
 
 	if (ZRMAP_PUTIFABSENTTHENGET(mapIdentifier->map, &objInPool, &cpy, &ref_p))
@@ -73,7 +76,7 @@ static inline MapBucket* getPool_p(MapIdentifier *mapIdentifier, void *obj)
 
 		ZRMAP_PUT(mapIdentifier->map_ID, &cpy.id, &cpy);
 
-		mapIdentifier->nextID++;
+		ZRIDGenerator_generate(mapIdentifier->generator);
 		MAPID_ID(mapIdentifier)->nbObj++;
 	}
 	else
@@ -130,6 +133,7 @@ bool frelease(ZRIdentifier *identifier, void *obj)
 
 	bool const del = ZRMAP_DELETE(mapIdentifier->map_ID, &cpy.id);
 	assert(del == true);
+	ZRIDGenerator_release(mapIdentifier->generator, cpy.id);
 	MAPID_ID(mapIdentifier)->nbObj--;
 	return true;
 }
@@ -145,6 +149,7 @@ bool freleaseID(ZRIdentifier *identifier, ZRID id)
 
 	bool const del = ZRMAP_DELETE(mapIdentifier->map, &cpy.objInPool);
 	assert(del == true);
+	ZRIDGenerator_release(mapIdentifier->generator, id);
 	MAPID_ID(mapIdentifier)->nbObj--;
 	return true;
 }
@@ -156,6 +161,7 @@ bool freleaseAll(ZRIdentifier *identifier)
 	ZRMAP_DELETEALL(mapIdentifier->map);
 	ZRMAP_DELETEALL(mapIdentifier->map_ID);
 	MAPID_ID(mapIdentifier)->nbObj = 0;
+	ZRIDGenerator_releaseAll(mapIdentifier->generator);
 	return true;
 }
 
@@ -163,9 +169,11 @@ static
 void fdone(ZRIdentifier *identifier)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
+
 	ZRMAP_DESTROY(mapIdentifier->map);
 	ZRMAP_DESTROY(mapIdentifier->map_ID);
 	ZRMPOOL_DESTROY(mapIdentifier->pool);
+	ZRIDGenerator_destroy(mapIdentifier->generator);
 
 	if (mapIdentifier->staticStrategy == 0)
 		ZRFREE(mapIdentifier->allocator, MAPID_STRATEGY(mapIdentifier));
@@ -181,26 +189,9 @@ void fdestroy(ZRIdentifier *identifier)
 
 // ============================================================================
 
-static void MapIdentifierStrategy_init(MapIdentifierStrategy *strategy)
-{
-	*strategy = (MapIdentifierStrategy ) { //
-		.identifier = (ZRIdentifierStrategy ) { //
-			.fgetID = fgetID,
-			.fintern = fintern,
-			.ffromID = ffromID,
-			.frelease = frelease,
-			.freleaseID = freleaseID,
-			.freleaseAll = freleaseAll,
-			.fdone = fdone,
-			.fdestroy = fdone,
-			} ,
-		};
-}
-
-// ============================================================================
-
 typedef struct
 {
+	alignas(max_align_t) char generatorInfos[1024];
 	ZRObjAlignInfos infos[MAPIDENTIFIERINFOS_NB];
 	ZRObjInfos objInfos;
 	ZRAllocator *allocator;
@@ -209,10 +200,12 @@ typedef struct
 	unsigned int staticStrategy :1;
 } MapIdentifierInitInfos;
 
-static void _MapIdentifierInfos(ZRObjAlignInfos *infos, bool staticStrategy)
+static void _MapIdentifierInfos(ZRObjAlignInfos *infos, MapIdentifierInitInfos *initInfos)
 {
+	ZRObjInfos generatorInfos = ZRIDGenerator_objInfos(initInfos->generatorInfos);
 	infos[MapIdentifierInfos_base] = ZRTYPE_OBJALIGNINFOS(MapIdentifier);
-	infos[MapIdentifierInfos_strategy] = staticStrategy ? ZRTYPE_OBJALIGNINFOS(MapIdentifierStrategy) : ZROBJALIGNINFOS_DEF_AS(0, 0);
+	infos[MapIdentifierInfos_generator] = ZROBJINFOS_CPYOBJALIGNINFOS(generatorInfos);
+	infos[MapIdentifierInfos_strategy] = initInfos->staticStrategy ? ZRTYPE_OBJALIGNINFOS(MapIdentifierStrategy) : ZROBJALIGNINFOS_DEF_AS(0, 0);
 	infos[MapIdentifierInfos_struct] = ZROBJALIGNINFOS_DEF_AS(0, 0);
 	ZRStruct_bestOffsetsPos(MAPIDENTIFIERINFOS_NB - 1, infos, 1);
 }
@@ -231,7 +224,7 @@ ZRObjInfos ZRMapIdentifier_objInfos(void *infos)
 static void ZRMapIdentifierInfos_validate(void *infos)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
-	_MapIdentifierInfos(initInfos->infos, initInfos->staticStrategy);
+	_MapIdentifierInfos(initInfos->infos, initInfos);
 }
 
 void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash, ZRAllocator *allocator)
@@ -247,6 +240,7 @@ void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash
 
 	initInfos->nbfhash = nbfhash;
 	initInfos->fuhash = fuhash;
+	ZRIDGeneratorInfos(initInfos->generatorInfos, allocator);
 	ZRMapIdentifierInfos_validate(initInfos);
 }
 
@@ -254,6 +248,7 @@ void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
+	ZRIDGeneratorInfos_staticStrategy(initInfos->generatorInfos);
 	ZRMapIdentifierInfos_validate(initInfos);
 }
 
@@ -321,11 +316,16 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 
 		pool = ZRMPoolDS_new(infoBuffer);
 	}
-	ZRMapIdentifierStrategy_init(strategy);
+	/* Generator init */
+	ZRIDGenerator *generator = ZRARRAYOP_GET(mapIdentifier, 1, initInfos->infos[MapIdentifierInfos_generator].offset);
+	ZRIDGenerator_init(generator, initInfos->generatorInfos);
+
+	ZRMapIdentifierStrategy_init(strategy, initInfos);
 	*mapIdentifier = (MapIdentifier ) { //
 		.identifier = (ZRIdentifier ) { //
 			.strategy = (ZRIdentifierStrategy*)strategy,
 			},
+		.generator = generator,
 		.allocator = initInfos->allocator,
 		.map = map,
 		.map_ID = map_ID,
