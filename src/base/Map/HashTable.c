@@ -676,7 +676,11 @@ void ZRHashTableInfos_staticStrategy(void *infos_out)
 void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
-	initInfos->fucmp = fucmp;
+
+	if (fucmp == NULL)
+		initInfos->fucmp = default_fucmp;
+	else
+		initInfos->fucmp = fucmp;
 }
 
 static void ZRHashTableStrategy_init(ZRHashTableStrategy *strategy, ZRHashTableInitInfos *infos)
