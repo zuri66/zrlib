@@ -28,6 +28,21 @@ typedef struct ZRObjInfosS
 #define ZROBJINFOS_ALIGNMENT_SIZE(I) (I).alignment, (I).size
 
 #define ZROBJINFOS_DEF(A,S) ((ZRObjInfos) { (A), (S) })
+#define ZROBJINFOS_DEF0() ZROBJINFOS_DEF(0, 0)
+#define ZROBJINFOS_UNKNOWN(A) (ZROBJINFOS_CMP(ZROBJINFOS_DEF0(), A) == 0)
+
+ZRMUSTINLINE
+static inline int ZROBJINFOS_CMP(ZRObjInfos a, ZRObjInfos b)
+{
+	return a.alignment - b.alignment + a.size - b.size;
+}
+
+ZRMUSTINLINE
+static inline int ZROBJINFOS_EQ(ZRObjInfos a, ZRObjInfos b)
+{
+	return 0 == ZROBJINFOS_CMP(a, b);
+}
+
 
 typedef struct ZRObjAlignInfosS
 {
