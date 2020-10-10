@@ -25,8 +25,8 @@ void ZRHashTableInfos( //
 	ZRAllocator *allocator //
 	);
 void ZRHashTableInfos_dereferenceKey(void *infos_out);
-
 void ZRHashTableInfos_staticStrategy(void *infos_out);
+void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp);
 
 void ZRHashTable_init(ZRMap *map, void *initInfos);
 ZRMap* ZRHashTable_new(void *initInfos);
