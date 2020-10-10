@@ -15,6 +15,11 @@
 typedef size_t ZRID;
 #define ZRID_ABSENT SIZE_MAX
 
+typedef struct
+{
+	alignas(max_align_t) char buffer[2048];
+} ZRInitInfos_t[1];
+
 typedef size_t (*zrfhash)(void *a);
 typedef size_t (*zrfuhash)(void *a, void *data);
 
