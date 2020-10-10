@@ -23,6 +23,9 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 
 #define ZRPTYPE_CPY(a,b) memcpy((a), (b), sizeof(*a))
 #define ZRPTYPE_0(a) memset((a), 0, sizeof(*a))
+#define ZRPTYPE_OBJECTP(a) ZROBJECTP_DEF( ZROBJINFOS_DEF(alignof(*a), sizeof(*a)), a)
+
+#define ZRSTRING_OBJECTP(S) ZROBJECTP_DEF( ZROBJINFOS_DEF(alignof(char), strlen(S) + 1), S )
 
 #define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), __alignof(T)
 #define ZRTYPE_ALIGNMENT_SIZE(T) __alignof(T), sizeof(T)
