@@ -11,6 +11,7 @@ add_compile_options(-mbmi -mlzcnt -Winline)
 
 set(SRCS
 	src/base/Algorithm/fcmp.c
+	src/base/Algorithm/hash.c
 	src/base/Algorithm/sort.c
 	src/base/AddressOp.c
 	src/base/Allocator/CAllocator.c
@@ -47,6 +48,7 @@ set(SRCS
     
 set(HEADERS
 	zrlib/base/Algorithm/fcmp.h
+	zrlib/base/Algorithm/hash.h
 	zrlib/base/Algorithm/sort.h
 	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h

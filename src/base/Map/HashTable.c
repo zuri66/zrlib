@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <zrlib/base/Algorithm/hash.h>
+
 typedef struct ZRHashTableBucketS ZRHashTableBucket;
 typedef struct ZRHashTableS ZRHashTable;
 typedef struct ZRHashTableStrategyS ZRHashTableStrategy;
@@ -143,28 +145,12 @@ static void bucketInfos(ZRObjAlignInfos *out, ZRObjInfos key, ZRObjInfos obj)
 	ZRStruct_bestOffsetsPos(ZRHASHTABLEBUCKETINFOS_NB - 1, out, 1);
 }
 
-ZRMUSTINLINE
-static inline size_t jenkins_one_at_a_time_hash(char *key, size_t len)
-{
-	size_t hash, i;
-	for (hash = i = 0; i < len; ++i)
-	{
-		hash += key[i];
-		hash += (hash << 10);
-		hash ^= (hash >> 6);
-	}
-	hash += (hash << 3);
-	hash ^= (hash >> 11);
-	hash += (hash << 15);
-	return hash;
-}
-
 static size_t default_fuhash(void *a, void *map_p)
 {
 	size_t ret = 0;
 	ZRMap *map = (ZRMap*)map_p;
 
-	return jenkins_one_at_a_time_hash(a, map->keyInfos.size);
+	return zrhash_jenkins_one_at_a_time(a, map->keyInfos.size);
 }
 
 static int default_fucmp(void *a, void *b, void *map)
