@@ -289,26 +289,51 @@ static inline void insertInBucket(ZRHashTable *htable, ZRHashTableBucket *bucket
 	ZRVECTOR_ADD(htable->bucketPos, &pos);
 }
 
-#define insert_return(B) ZRBLOCK( \
+#define insert_end(CODE_END) ZRBLOCK( \
 	if (out) \
 		*out = bucket_obj(htable, bucket); \
-	return B; \
+	CODE_END \
 )
 
+#define insert_return(B) insert_end(ZRCODE(return B;))
+
+#define insert_emptyBucket() ZRBLOCK( \
+	if (mode == REPLACE) \
+		insert_return(false); \
+	\
+	insertInBucket(htable, bucket, key, obj, pos); \
+	insert_return(true); \
+	)
+
+#define insert_myBucket() ZRBLOCK( \
+	if (mode == PUTIFABSENT) \
+		insert_return(false); \
+	\
+	memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size); \
+	insert_return(true); \
+	)
+
+#define insert_bucket() ZRBLOCK( \
+	/* Empty bucket found */ \
+	if (bucket_nextUnused(htable, bucket) == 0) \
+		insert_emptyBucket(); \
+	/* Used bucket found */ \
+	else if (htable->fcmp(htable, htable->fucmp, key, bucket_key(htable, bucket)) == 0) \
+		insert_myBucket(); \
+	)
+
+/**
+ * Return true if empty place found.
+ */
 ZRMUSTINLINE
-static inline bool insert_resolveCollision(ZRHashTable *htable, void *key, void *obj, void **out, size_t pos, size_t nb)
+static inline bool insert_resolveCollision(ZRHashTable *htable, void *key, void *obj, void **out, size_t pos, size_t nb, enum InsertModeE mode)
 {
 	size_t const bucketSize = htable->bucketInfos[ZRHashTableBucketInfos_struct].size;
 
 	for (; pos < nb; pos++)
 	{
 		ZRHashTableBucket *bucket = ZRARRAYOP_GET(ZRHTABLE_LVPARRAY(htable), bucketSize, pos);
-
-		if (bucket_nextUnused(htable, bucket) != 0)
-			continue;
-
-		insertInBucket(htable, bucket, key, obj, pos);
-		insert_return(true);
+		insert_bucket();
 	}
 	return false;
 }
@@ -328,28 +353,9 @@ static inline bool insert(ZRHashTable *htable, void *key, void *obj, enum Insert
 	{
 		pos = htable->fhashPos(htable, *fuhash, key);
 		bucket = ZRARRAYOP_GET(ZRHTABLE_LVPARRAY(htable), bucketSize, pos);
-
-		/* Empty bucket found */
-		if (bucket_nextUnused(htable, bucket) == 0)
-		{
-			if (mode == REPLACE)
-				insert_return(false);
-
-			insertInBucket(htable, bucket, key, obj, pos);
-			insert_return(true);
-		}
-		/* Used bucket found */
-		else if (htable->fcmp(htable, htable->fucmp, key, bucket_key(htable, bucket)) == 0)
-		{
-			if (mode == PUTIFABSENT)
-				insert_return(false);
-
-			memcpy(bucket_obj(htable, bucket), obj, ZRHASHTABLE_MAP(htable)->objInfos.size);
-			insert_return(true);
-		}
+		insert_bucket();
 		fuhash++;
 	}
-
 	if (bucket == NULL)
 		pos = 0;
 	else
@@ -357,11 +363,26 @@ static inline bool insert(ZRHashTable *htable, void *key, void *obj, enum Insert
 
 	/* Collision resolution */
 	size_t const c = ZRHTABLE_LVSIZE(htable);
+	bool ret;
+	void *outp = NULL;
 
-	if (insert_resolveCollision(htable, key, obj, out, pos, c))
-		return true;
+	ret = insert_resolveCollision(htable, key, obj, &outp, pos, c, mode);
 
-	return insert_resolveCollision(htable, key, obj, out, 0, pos);
+	if (outp)
+	{
+		if (out)
+			*out = outp;
+		return ret;
+	}
+	ret = insert_resolveCollision(htable, key, obj, &outp, 0, pos, mode);
+
+	if (outp)
+	{
+		if (out)
+			*out = outp;
+		return ret;
+	}
+	return false;
 }
 
 static void fputGrow(ZRMap *map, void *key, void *obj, void **out)
