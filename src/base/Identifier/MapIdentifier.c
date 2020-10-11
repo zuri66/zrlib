@@ -61,7 +61,8 @@ typedef struct
 // ============================================================================
 
 ZRMUSTINLINE
-static inline MapBucket* getPool_p(MapIdentifier *mapIdentifier, void *obj)
+static inline MapBucket* getBucket(MapIdentifier *mapIdentifier, void *obj,
+	void (*fmakeMemory)(MapIdentifier *mapIdentifier, void *objInPool_p))
 {
 	void *objInPool = ZRMPOOL_RESERVE(mapIdentifier->pool);
 	void *ref_p;
@@ -73,6 +74,9 @@ static inline MapBucket* getPool_p(MapIdentifier *mapIdentifier, void *obj)
 	{
 		ref = (MapBucket*)ref_p;
 		ref->objInPool = objInPool;
+
+		if (fmakeMemory)
+			fmakeMemory(mapIdentifier, objInPool);
 
 		ZRMAP_PUT(mapIdentifier->map_ID, &cpy.id, &cpy);
 
@@ -86,12 +90,189 @@ static inline MapBucket* getPool_p(MapIdentifier *mapIdentifier, void *obj)
 	return (MapBucket*)ref_p;
 }
 
+ZRMUSTINLINE
+static inline bool release(ZRIdentifier *identifier, void *obj, void (*ffree)(MapIdentifier*, MapBucket))
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket cpy;
+
+	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map, &obj, &cpy))
+		return false;
+
+	bool const del = ZRMAP_DELETE(mapIdentifier->map_ID, &cpy.id);
+	assert(del == true);
+	ZRIDGenerator_release(mapIdentifier->generator, cpy.id);
+	MAPID_ID(mapIdentifier)->nbObj--;
+
+	if (ffree)
+		ffree(mapIdentifier, cpy);
+
+	return true;
+}
+
+ZRMUSTINLINE
+static inline bool releaseID(ZRIdentifier *identifier, ZRID id, void (*ffree)(MapIdentifier*, MapBucket))
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket cpy;
+
+	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map_ID, &id, &cpy))
+		return false;
+
+	bool const del = ZRMAP_DELETE(mapIdentifier->map, &cpy.objInPool);
+	assert(del == true);
+	ZRIDGenerator_release(mapIdentifier->generator, id);
+	MAPID_ID(mapIdentifier)->nbObj--;
+
+	if (ffree)
+		ffree(mapIdentifier, cpy);
+
+	return true;
+}
+
+ZRMUSTINLINE
+static inline bool releaseAll(ZRIdentifier *identifier, void (*ffree)(MapIdentifier*))
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+
+	if (ffree)
+		ffree(mapIdentifier);
+
+	ZRMAP_DELETEALL(mapIdentifier->map);
+	ZRMAP_DELETEALL(mapIdentifier->map_ID);
+	MAPID_ID(mapIdentifier)->nbObj = 0;
+	ZRIDGenerator_releaseAll(mapIdentifier->generator);
+
+	return true;
+}
+
+ZRMUSTINLINE
+static inline void done(ZRIdentifier *identifier, void (*ffree)(MapIdentifier*))
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+
+	if (ffree)
+		ffree(mapIdentifier);
+
+	ZRMAP_DESTROY(mapIdentifier->map);
+	ZRMAP_DESTROY(mapIdentifier->map_ID);
+	ZRMPOOL_DESTROY(mapIdentifier->pool);
+	ZRIDGenerator_destroy(mapIdentifier->generator);
+
+	if (mapIdentifier->staticStrategy == 0)
+		ZRFREE(mapIdentifier->allocator, MAPID_STRATEGY(mapIdentifier));
+}
+
+ZRMUSTINLINE
+static inline void destroy(ZRIdentifier *identifier, void (*fdone)(ZRIdentifier*))
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	fdone(identifier);
+	ZRFREE(mapIdentifier->allocator, mapIdentifier);
+}
+
 // ============================================================================
+
+static void allocObject(MapIdentifier *mapIdentifier, void *objInPool_p)
+{
+	ZRObjectP *objInPool = objInPool_p;
+	void *newObject = ZRAALLOC(mapIdentifier->allocator, ZROBJINFOS_ALIGNMENT_SIZE(objInPool->infos));
+	memcpy(newObject, objInPool->object, objInPool->infos.size);
+
+	if (mapIdentifier->map->nbObj > 10000)
+		printf("%d\t", *(long*)objInPool->object);
+
+	objInPool->object = newObject;
+}
+
+static void freeObject(MapIdentifier *mapIdentifier, MapBucket bucket)
+{
+	ZRFREE(mapIdentifier->allocator, ZROBJECTP(bucket.objInPool)->object);
+}
+
+static void freeObjects(MapIdentifier *mapIdentifier)
+{
+	ZRMapKeyVal kv[256];
+	size_t const kv_nb = ZRCARRAY_NBOBJ(kv);
+
+	for (size_t offset = 0;;)
+	{
+		size_t nb = ZRMAP_CPYKEYVALPTR(mapIdentifier->map, kv, offset, kv_nb);
+
+		for (size_t i = 0; i < nb; i++)
+		{
+			MapBucket *bucket = kv[i].val;
+			ZRFREE(mapIdentifier->allocator, ZROBJECTP(bucket->objInPool)->object);
+		}
+		if (nb < kv_nb)
+			break;
+
+		offset += nb;
+	}
+}
+
+MapBucket* getBucket_unknown(MapIdentifier *mapIdentifier, void *obj)
+{
+	return getBucket(mapIdentifier, obj, allocObject);
+}
+
+static ZRID fgetID_unknown(ZRIdentifier *identifier, void *obj)
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket *found = getBucket_unknown(mapIdentifier, obj);
+	return found->id;
+}
+
+static
+void* fintern_unknown(ZRIdentifier *identifier, void *obj)
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket *found = getBucket_unknown(mapIdentifier, obj);
+	return found->objInPool;
+}
+
+static
+bool frelease_unknown(ZRIdentifier *identifier, void *obj)
+{
+	return release(identifier, obj, freeObject);
+}
+
+static
+bool freleaseID_unknown(ZRIdentifier *identifier, ZRID id)
+{
+	return releaseID(identifier, id, freeObject);
+}
+
+static
+bool freleaseAll_unknown(ZRIdentifier *identifier)
+{
+	return releaseAll(identifier, freeObjects);
+}
+
+static
+void fdone_unknown(ZRIdentifier *identifier)
+{
+	done(identifier, freeObjects);
+}
+
+static
+void fdestroy_unknown(ZRIdentifier *identifier)
+{
+	destroy(identifier, fdone_unknown);
+}
+
+// ============================================================================
+
+ZRMUSTINLINE
+static inline MapBucket* _getBucket(MapIdentifier *mapIdentifier, void *obj)
+{
+	return getBucket(mapIdentifier, obj, NULL);
+}
 
 static ZRID fgetID(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	MapBucket *found = getPool_p(mapIdentifier, obj);
+	MapBucket *found = _getBucket(mapIdentifier, obj);
 	return found->id;
 }
 
@@ -99,7 +280,7 @@ static
 void* fintern(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	MapBucket *found = getPool_p(mapIdentifier, obj);
+	MapBucket *found = _getBucket(mapIdentifier, obj);
 	return found->objInPool;
 }
 
@@ -125,66 +306,31 @@ bool fcontains(ZRIdentifier *identifier, void *obj)
 static
 bool frelease(ZRIdentifier *identifier, void *obj)
 {
-	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	MapBucket cpy;
-
-	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map, &obj, &cpy))
-		return false;
-
-	bool const del = ZRMAP_DELETE(mapIdentifier->map_ID, &cpy.id);
-	assert(del == true);
-	ZRIDGenerator_release(mapIdentifier->generator, cpy.id);
-	MAPID_ID(mapIdentifier)->nbObj--;
-	return true;
+	return release(identifier, obj, NULL);
 }
 
 static
 bool freleaseID(ZRIdentifier *identifier, ZRID id)
 {
-	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	MapBucket cpy;
-
-	if (!ZRMAP_CPYTHENDELETE(mapIdentifier->map_ID, &id, &cpy))
-		return false;
-
-	bool const del = ZRMAP_DELETE(mapIdentifier->map, &cpy.objInPool);
-	assert(del == true);
-	ZRIDGenerator_release(mapIdentifier->generator, id);
-	MAPID_ID(mapIdentifier)->nbObj--;
-	return true;
+	return releaseID(identifier, id, NULL);
 }
 
 static
 bool freleaseAll(ZRIdentifier *identifier)
 {
-	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	ZRMAP_DELETEALL(mapIdentifier->map);
-	ZRMAP_DELETEALL(mapIdentifier->map_ID);
-	MAPID_ID(mapIdentifier)->nbObj = 0;
-	ZRIDGenerator_releaseAll(mapIdentifier->generator);
-	return true;
+	return releaseAll(identifier, NULL);
 }
 
 static
 void fdone(ZRIdentifier *identifier)
 {
-	MapIdentifier *const mapIdentifier = MAPID(identifier);
-
-	ZRMAP_DESTROY(mapIdentifier->map);
-	ZRMAP_DESTROY(mapIdentifier->map_ID);
-	ZRMPOOL_DESTROY(mapIdentifier->pool);
-	ZRIDGenerator_destroy(mapIdentifier->generator);
-
-	if (mapIdentifier->staticStrategy == 0)
-		ZRFREE(mapIdentifier->allocator, MAPID_STRATEGY(mapIdentifier));
+	done(identifier, NULL);
 }
 
 static
 void fdestroy(ZRIdentifier *identifier)
 {
-	MapIdentifier *const mapIdentifier = MAPID(identifier);
-	fdone(identifier);
-	ZRFREE(mapIdentifier->allocator, mapIdentifier);
+	destroy(identifier, fdone);
 }
 
 // ============================================================================
@@ -198,6 +344,7 @@ typedef struct
 	zrfuhash *fuhash;
 	zrfucmp fucmp;
 	size_t nbfhash;
+	void (*fdestroy)(ZRIdentifier*);
 	unsigned int staticStrategy :1;
 } MapIdentifierInitInfos;
 
@@ -226,6 +373,8 @@ static void ZRMapIdentifierInfos_validate(void *infos)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
 	_MapIdentifierInfos(initInfos->infos, initInfos);
+	initInfos->fdestroy = ZROBJINFOS_UNKNOWN(initInfos->objInfos)
+									? fdestroy_unknown : fdestroy;
 }
 
 void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash, ZRAllocator *allocator)
@@ -251,7 +400,6 @@ void ZRMapIdentifierInfos_fucmp(void *infos_out, zrfucmp fucmp)
 	initInfos->fucmp = fucmp;
 }
 
-
 void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
@@ -260,35 +408,58 @@ void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 	ZRMapIdentifierInfos_validate(initInfos);
 }
 
-void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy)
+void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifierInitInfos *infos)
 {
-	*strategy = (MapIdentifierStrategy )
-		{ //
-		.identifier = (ZRIdentifierStrategy )
+	if (ZROBJINFOS_UNKNOWN(infos->objInfos))
+		*strategy = (MapIdentifierStrategy )
 			{ //
-			.fgetID = fgetID,
-			.fintern = fintern,
-			.ffromID = ffromID,
+			.identifier = (ZRIdentifierStrategy )
+				{ //
+				.fgetID = fgetID_unknown,
+				.fintern = fintern_unknown,
+				.ffromID = ffromID,
 
-			.fcontains = fcontains,
-			.frelease = frelease,
-			.freleaseID = freleaseID,
-			.freleaseAll = freleaseAll,
+				.fcontains = fcontains,
+				.frelease = frelease_unknown,
+				.freleaseID = freleaseID_unknown,
+				.freleaseAll = freleaseAll_unknown,
 
-			.fdone = fdone,
-			.fdestroy = fdone,
-			} ,
-		};
+				.fdone = fdone_unknown,
+				.fdestroy = fdone_unknown,
+				} ,
+			};
+	else
+		*strategy = (MapIdentifierStrategy )
+			{ //
+			.identifier = (ZRIdentifierStrategy )
+				{ //
+				.fgetID = fgetID,
+				.fintern = fintern,
+				.ffromID = ffromID,
+
+				.fcontains = fcontains,
+				.frelease = frelease,
+				.freleaseID = freleaseID,
+				.freleaseAll = freleaseAll,
+
+				.fdone = fdone,
+				.fdestroy = fdone,
+				} ,
+			};
 }
 
 void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 {
-	alignas(max_align_t) char infoBuffer[2048];
+	ZRInitInfos_t infoBuffer;
 	MapIdentifier *mapIdentifier = MAPID(identifier);
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
+
+	bool objInfosUnknown = ZROBJINFOS_UNKNOWN(initInfos->objInfos);
 	MapIdentifierStrategy *strategy;
 	ZRMap *map, *map_ID;
 	ZRMemoryPool *pool;
+
+	ZRObjInfos objInfos = objInfosUnknown ? ZRTYPE_OBJINFOS(ZRObjectP) : initInfos->objInfos;
 
 	if (initInfos->staticStrategy)
 		strategy = ZRARRAYOP_GET(identifier, 1, initInfos->infos[MapIdentifierInfos_strategy].offset);
@@ -298,9 +469,8 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	/* Map init */
 	{
 		ZRObjInfos init_objInfos = ZRHashTableInfos_objInfos();
-		assert(init_objInfos.size <= ZRCARRAY_NBOBJ(infoBuffer));
 
-		ZRHashTableInfos(infoBuffer, initInfos->objInfos, ZRTYPE_OBJINFOS(MapBucket), initInfos->fuhash, initInfos->nbfhash, NULL, initInfos->allocator);
+		ZRHashTableInfos(infoBuffer, objInfos, ZRTYPE_OBJINFOS(MapBucket), initInfos->fuhash, initInfos->nbfhash, NULL, initInfos->allocator);
 		ZRHashTableInfos_fucmp(infoBuffer, initInfos->fucmp);
 		ZRHashTableInfos_dereferenceKey(infoBuffer);
 
@@ -318,7 +488,7 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	}
 	/* Pool init */
 	{
-		ZRMPoolDSInfos(infoBuffer, initInfos->objInfos, initInfos->allocator);
+		ZRMPoolDSInfos(infoBuffer, objInfos, initInfos->allocator);
 
 		if (initInfos->staticStrategy)
 			ZRMPoolDSInfos_staticStrategy(infoBuffer);
@@ -349,8 +519,6 @@ ZRIdentifier* ZRMapIdentifier_new(void *infos)
 	MapIdentifier *ret = ZRALLOC(initInfos->allocator, initInfos->infos[MapIdentifierInfos_struct].size);
 
 	ZRMapIdentifier_init(MAPID_ID(ret), infos);
-	MAPIDSTRATEGY_ID(MAPID_STRATEGY(ret))->fdestroy = fdestroy;
+	MAPIDSTRATEGY_ID(MAPID_STRATEGY(ret))->fdestroy = initInfos->fdestroy;
 	return MAPID_ID(ret);
 }
-
-// ============================================================================
