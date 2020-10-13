@@ -68,7 +68,7 @@ static inline MapBucket* getBucket(MapIdentifier *mapIdentifier, void *obj,
 	void *ref_p;
 	MapBucket *ref;
 	MapBucket cpy = { ZRIDGenerator_nextID(mapIdentifier->generator), objInPool };
-	memcpy(objInPool, obj, mapIdentifier->pool->blockSize);
+	memcpy(objInPool, obj, ZRMPOOL_BLOCKSIZE(mapIdentifier->pool));
 
 	if (ZRMAP_PUTIFABSENTTHENGET(mapIdentifier->map, &objInPool, &cpy, &ref_p))
 	{

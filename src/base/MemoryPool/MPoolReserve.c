@@ -156,7 +156,7 @@ static inline void* freserve(ZRMemoryPool *pool, ZRMPoolCommonInfos *infos, size
 	pool->nbBlocks += nb;
 	infos->nbAvailables -= nb;
 
-	void *firstBlock = ZRARRAYOP_GET(infos->reserve, pool->blockSize, offset + infos->nbBlocksForAreaHead);
+	void *firstBlock = ZRARRAYOP_GET(infos->reserve, ZRMPOOL_BLOCKSIZE(pool), offset + infos->nbBlocksForAreaHead);
 	ZRAreaHead areaHead = { .nbBlocks = nb };
 	ZRAreaHead_set(firstBlock, infos, &areaHead);
 	return firstBlock;
@@ -183,8 +183,8 @@ static inline void* frelease(ZRMemoryPool *pool, ZRMPoolCommonInfos *infos, void
 		assert(nb <= areaHead.nbBlocks);;
 	}
 
-	char *area = firstBlock - (infos->nbBlocksForAreaHead * pool->blockSize);
-	*areaPos = (size_t)(area - infos->reserve) / pool->blockSize;
+	char *area = firstBlock - (infos->nbBlocksForAreaHead * ZRMPOOL_BLOCKSIZE(pool));
+	*areaPos = (size_t)(area - infos->reserve) / ZRMPOOL_BLOCKSIZE(pool);
 
 // Delete the guard value
 	memset((char*)firstBlock - sizeof(void*), 0, sizeof(void*));
@@ -199,7 +199,7 @@ static inline void* frelease(ZRMemoryPool *pool, ZRMPoolCommonInfos *infos, void
 	else
 	{
 		nb -= infos->nbBlocksForAreaHead;
-		newFirstBlock = ZRARRAYOP_GET(firstBlock, pool->blockSize, nb);
+		newFirstBlock = ZRARRAYOP_GET(firstBlock, ZRMPOOL_BLOCKSIZE(pool), nb);
 		areaHead.nbBlocks -= nb;
 		ZRAreaHead_set(newFirstBlock, infos, &areaHead);
 		ZRAreaHead_cpyUserMetaData(newFirstBlock, firstBlock, infos);
@@ -276,7 +276,7 @@ static inline void ZRMPoolRChunkInfos_make(ZRObjAlignInfos *out, size_t blockSiz
 static void finitPool_chunk(ZRMemoryPool *pool)
 {
 	ZRMPoolRChunk *rcpool = ZRMPOOLRCHUNK(pool);
-	memset(rcpool->infos.reserve, __ (int)0, rcpool->infos.nbBlocksTotal * pool->blockSize);
+	memset(rcpool->infos.reserve, __ (int)0, rcpool->infos.nbBlocksTotal * ZRMPOOL_BLOCKSIZE(pool));
 	ZRRESERVEOPCHUNK_INITARRAY(rcpool->chunks, rcpool->nbChunks);
 	rcpool->firstChunk = rcpool->chunks;
 	rcpool->firstChunk->nbFree = rcpool->infos.nbBlocksTotal;
@@ -393,7 +393,7 @@ static inline void ZRMPoolRListInfos_make(ZRObjAlignInfos *out, size_t blockSize
 static void finitPool_list(ZRMemoryPool *pool)
 {
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
-	memset(rlpool->infos.reserve, __ (int)0, rlpool->infos.nbBlocksTotal * pool->blockSize);
+	memset(rlpool->infos.reserve, __ (int)0, rlpool->infos.nbBlocksTotal * ZRMPOOL_BLOCKSIZE(pool));
 	ZRRESERVEOPLIST_INITARRAY(rlpool->nextUnused, rlpool->infos.nbBlocksTotal);
 }
 
@@ -451,7 +451,7 @@ static void* freservePos_list(ZRMemoryPool *pool, size_t pos, size_t nb)
 	ZRMPoolRList *rlpool = ZRMPOOLRLIST(pool);
 	ZRRESERVEOPLIST_RESERVENB(rlpool->nextUnused, sizeof(ZRReserveNextUnused), rlpool->infos.nbBlocksTotal, 0, pos, nb);
 	pool->nbBlocks += nb;
-	return &rlpool->infos.reserve[pos * pool->blockSize];
+	return &rlpool->infos.reserve[pos * ZRMPOOL_BLOCKSIZE(pool)];
 }
 
 static void fdone_list(ZRMemoryPool *pool)
@@ -619,7 +619,7 @@ static void ZRMPoolReserveStrategy_init(ZRMPoolReserveStrategy *strategy, MPoolR
 				.fdestroy = infos->changefdestroy ? fdestroy_bits : fdone_bits,
 				.fclean = fclean_bits, //
 				.fareaNbBlocks = fareaNbBlocks_bits, //
-				.fuserAreaMetaData = fuserAreaMetaData_bits, //
+				.fareaMetaData = fuserAreaMetaData_bits, //
 				.freserve = freserve_bits, //
 				.frelease = frelease_bits, //
 				} , //
@@ -633,7 +633,7 @@ static void ZRMPoolReserveStrategy_init(ZRMPoolReserveStrategy *strategy, MPoolR
 				.fdestroy = infos->changefdestroy ? fdestroy_list : fdone_list,
 				.fclean = fclean_list, //
 				.fareaNbBlocks = fareaNbBlocks_list, //
-				.fuserAreaMetaData = fuserAreaMetaData_list, //
+				.fareaMetaData = fuserAreaMetaData_list, //
 				.freserve = freserve_list, //
 				.frelease = frelease_list, //
 				} , //
@@ -647,7 +647,7 @@ static void ZRMPoolReserveStrategy_init(ZRMPoolReserveStrategy *strategy, MPoolR
 				.fdestroy = infos->changefdestroy ? fdestroy_chunk : fdone_chunk,
 				.fclean = fclean_chunk, //
 				.fareaNbBlocks = fareaNbBlocks_chunk, //
-				.fuserAreaMetaData = fuserAreaMetaData_chunk, //
+				.fareaMetaData = fuserAreaMetaData_chunk, //
 				.freserve = freserve_chunk, //
 				.frelease = frelease_chunk, //
 				} , //
@@ -807,7 +807,7 @@ void ZRMPoolReserve_init(ZRMemoryPool *pool, void *infos_p)
 	else
 		strategy = zrlib_internPType(&ref);
 
-	ZRMPOOL_INIT(pool, ZROBJINFOS_SIZE_ALIGNMENT(initInfos->blockInfos), &strategy->strategy);
+	ZRMPOOL_INIT(pool, initInfos->blockInfos, &strategy->strategy);
 }
 
 ZRMemoryPool* ZRMPoolReserve_new(void *infos_p)

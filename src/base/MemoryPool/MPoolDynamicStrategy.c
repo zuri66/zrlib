@@ -119,7 +119,7 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	ZRObjAlignInfos areaMetaDataInfos = ZRTYPE_OBJALIGNINFOS(ZRAreaMetaData);
 	alignas(max_align_t) char bufferInfos[ZRMPoolReserveInfos_objInfos().size];
 
-	ZRMPoolReserveInfos(bufferInfos, ZROBJINFOS_DEF(alignof(max_align_t), pool->blockSize), nbBlocksToAlloc, dspool->allocator);
+	ZRMPoolReserveInfos(bufferInfos, ZROBJINFOS_DEF(alignof(max_align_t), ZRMPOOL_BLOCKSIZE(pool)), nbBlocksToAlloc, dspool->allocator);
 	ZRMPoolReserveInfos_areaMetaData(bufferInfos, &areaMetaDataInfos);
 
 	if(dspool->staticStrategy)
@@ -175,7 +175,7 @@ static size_t fareaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
 	ZRMPoolDS_bucket *bucket = ZRVECTOR_GET(dspool->buckets, 0);
 
 	ZRAreaMetaData areaMetaData;
-	memcpy(&areaMetaData, ZRMPOOL_USERAREAMETADATA(bucket->pool, firstBlock), sizeof(ZRAreaMetaData));
+	memcpy(&areaMetaData, ZRMPOOL_AREAMETADATA(bucket->pool, firstBlock), sizeof(ZRAreaMetaData));
 
 	ZRMemoryPool *blockPool = areaMetaData.pool;
 	return ZRMPOOL_AREANBBLOCKS(blockPool, firstBlock);
@@ -185,7 +185,7 @@ static void* fuserAreaMetaData(ZRMemoryPool *pool, void *firstBlock)
 {
 	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
 	ZRMPoolDS_bucket *bucket = ZRVECTOR_GET(dspool->buckets, 0);
-	return ZRMPOOL_USERAREAMETADATA(bucket->pool, firstBlock);
+	return ZRMPOOL_AREAMETADATA(bucket->pool, firstBlock);
 }
 
 static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bucket *bucket)
@@ -203,7 +203,7 @@ static inline void* freserveInBucket(ZRMemoryPool *pool, size_t nb, ZRMPoolDS_bu
 		dspool->nbFreeBuckets--;
 
 	ZRAreaMetaData areaHead = { .pool = bucket->pool };
-	memcpy(ZRMPOOL_USERAREAMETADATA(bucket->pool, ret), &areaHead, sizeof(ZRAreaMetaData));
+	memcpy(ZRMPOOL_AREAMETADATA(bucket->pool, ret), &areaHead, sizeof(ZRAreaMetaData));
 	return ret;
 }
 
@@ -254,7 +254,7 @@ void* frelease(ZRMemoryPool *pool, void *firstBlock, size_t nb)
 	bucket = ZRVECTOR_GET(dspool->buckets, 0);
 
 	ZRAreaMetaData areaMetaData;
-	memcpy(&areaMetaData, ZRMPOOL_USERAREAMETADATA(bucket->pool, firstBlock), sizeof(ZRAreaMetaData));
+	memcpy(&areaMetaData, ZRMPOOL_AREAMETADATA(bucket->pool, firstBlock), sizeof(ZRAreaMetaData));
 
 	ZRMemoryPool *const blockPool = areaMetaData.pool;
 	size_t i, c;
@@ -318,7 +318,7 @@ void ZRMPoolDSStrategy_init(ZRMemoryPoolStrategy *strategy)
 			.fdone = fdone, //
 			.fclean = fclean, //
 			.fareaNbBlocks = fareaNbBlocks, //
-			.fuserAreaMetaData = fuserAreaMetaData, //
+			.fareaMetaData = fuserAreaMetaData, //
 			.freserve = freserve, //
 			.frelease = frelease, //
 			},//
@@ -418,7 +418,7 @@ void ZRMPoolDS_init(ZRMemoryPool *pool, void *initInfos_p)
 		};
 	ZRMPoolDSStrategy_init(strategy);
 
-	ZRMPool_init(pool, initInfos->objInfos.size, initInfos->objInfos.alignment, strategy);
+	ZRMPool_init(pool, initInfos->objInfos, strategy);
 }
 
 ZRMemoryPool* ZRMPoolDS_new(void *initInfos_p)

@@ -5,9 +5,9 @@
 
 #include <zrlib/base/MemoryPool/MemoryPool.h>
 
-void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy)
+void ZRMPool_init(ZRMemoryPool *pool, ZRObjInfos blockInfos, ZRMemoryPoolStrategy *strategy)
 {
-	ZRMPOOL_INIT(pool, blockSize, blockAlignment, strategy);
+	ZRMPOOL_INIT(pool, blockInfos, strategy);
 }
 
 void ZRMPool_done(ZRMemoryPool *pool)
@@ -25,14 +25,24 @@ size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock)
 	return ZRMPOOL_AREANBBLOCKS(pool, firstBlock);
 }
 
-void* ZRMPool_userAreaMetaData(ZRMemoryPool *pool, void *firstBlock)
+void* ZRMPool_areaMetaData(ZRMemoryPool *pool, void *firstBlock)
 {
-	return ZRMPOOL_USERAREAMETADATA(pool, firstBlock);
+	return ZRMPOOL_AREAMETADATA(pool, firstBlock);
 }
 
-size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool)
+size_t ZRMPool_nbBlocks(ZRMemoryPool *pool)
 {
 	return ZRMPOOL_NBBLOCKS(pool);
+}
+
+ZRObjInfos ZRMPool_blockInfos(ZRMemoryPool *pool)
+{
+	return ZRMPOOL_BLOCKINFOS(pool);
+}
+
+size_t ZRMPool_blockAlignment(ZRMemoryPool *pool)
+{
+	return ZRMPOOL_BLOCKALIGNMENT(pool);
 }
 
 size_t ZRMPool_blockSize(ZRMemoryPool *pool)
