@@ -61,12 +61,13 @@ struct ZRVectorS
 	ZRArray array;
 };
 
-#define ZRVECTOR_LVPARRAY(V) (V)->array.array
-#define ZRVECTOR_LVNBOBJ(V) (V)->array.nbObj
-#define ZRVECTOR_LVSIZE(V) (V)->array.size
-#define ZRVECTOR_LVOBJINFOS(V) (V)->array.objInfos
-#define ZRVECTOR_LVOBJSIZE(V) (V)->array.objInfos.size
-#define ZRVECTOR_LVOBJALIGNMENT(V) (V)->array.objInfos.alignment
+#define ZRVECTOR_ARRAY(V) (V)->array
+#define ZRVECTOR_ARRAYP(V) (V)->array.array
+#define ZRVECTOR_NBOBJ(V) (V)->array.nbObj
+#define ZRVECTOR_SIZE(V) (V)->array.size
+#define ZRVECTOR_OBJINFOS(V) (V)->array.objInfos
+#define ZRVECTOR_OBJSIZE(V) (V)->array.objInfos.size
+#define ZRVECTOR_OBJALIGNMENT(V) (V)->array.objInfos.alignment
 
 #define ZRVECTOR_CAPACITY ZRVECTOR_SIZE
 #define ZRVector_capacity ZRVector_size
@@ -135,39 +136,9 @@ static inline void ZRVECTOR_DESTROY(ZRVector *vec)
 }
 
 ZRMUSTINLINE
-static inline void* ZRVECTOR_PARRAY(ZRVector *vec)
-{
-	return ZRVECTOR_LVPARRAY(vec);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRVECTOR_NBOBJ(ZRVector *vec)
-{
-	return ZRVECTOR_LVNBOBJ(vec);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRVECTOR_OBJSIZE(ZRVector *vec)
-{
-	return ZRVECTOR_LVOBJSIZE(vec);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRVECTOR_SIZE(ZRVector *vec)
-{
-	return ZRVECTOR_LVSIZE(vec);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRVECTOR_OBJALIGNMENT(ZRVector *vec)
-{
-	return ZRVECTOR_LVOBJALIGNMENT(vec);
-}
-
-ZRMUSTINLINE
 static inline void* ZRVECTOR_GET(ZRVector *vec, size_t pos)
 {
-	return ZRARRAYOP_GET(vec->array.array, ZRVECTOR_OBJSIZE(vec), pos);
+	return ZRARRAYOP_GET(ZRVECTOR_ARRAYP(vec), ZRVECTOR_OBJSIZE(vec), pos);
 }
 
 ZRMUSTINLINE
@@ -179,7 +150,7 @@ static inline void ZRVECTOR_GET_NB(ZRVector *vec, size_t pos, size_t nb, void *d
 ZRMUSTINLINE
 static inline void ZRVECTOR_SET(ZRVector *vec, size_t pos, void *obj)
 {
-	ZRARRAYOP_SET(vec->array.array, ZRVECTOR_OBJSIZE(vec), pos, obj);
+	ZRARRAYOP_SET(ZRVECTOR_ARRAYP(vec), ZRVECTOR_OBJSIZE(vec), pos, obj);
 }
 
 ZRMUSTINLINE
@@ -362,7 +333,9 @@ void ZRVector_destroy(ZRVector *vec);
 void ZRVector_changeObjSize(ZRVector *vec, size_t objSize, size_t objAlignment);
 void ZRVector_memoryTrim(ZRVector *vec);
 
-void *ZRVector_parray(ZRVector *vec);
+void *ZRVector_arrayp(ZRVector *vec);
+ZRArray ZRVector_array(ZRVector *vec);
+ZRObjInfos ZRVector_objInfos(ZRVector *vec);
 size_t ZRVector_nbObj(_ ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 size_t ZRVector_objAlignment(ZRVector *vec);

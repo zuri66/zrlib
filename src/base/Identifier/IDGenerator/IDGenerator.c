@@ -46,7 +46,7 @@ bool ZRIDGenerator_present(ZRIDGenerator *generator_p, ZRID id)
 {
 	IDGenerator *generator = IDGENERATOR(generator_p);
 	ZRVector *unusedIDs = generator->unusedIDs;
-	return id < generator->nextID && SIZE_MAX == ZRARRAYOP_BSEARCH_POS(ZRVECTOR_PARRAY(unusedIDs), ZRVECTOR_OBJSIZE(unusedIDs), ZRVECTOR_NBOBJ(unusedIDs), &id, cmpID, NULL);
+	return id < generator->nextID && SIZE_MAX == ZRARRAYOP_BSEARCH_POS(ZRVECTOR_ARRAYP(unusedIDs), ZRVECTOR_OBJSIZE(unusedIDs), ZRVECTOR_NBOBJ(unusedIDs), &id, cmpID, NULL);
 }
 
 ZRID ZRIDGenerator_generate(ZRIDGenerator *generator_p)
@@ -98,7 +98,7 @@ void ZRIDGenerator_release(ZRIDGenerator *generator_p, ZRID id)
 	}
 	else
 	{
-		size_t pos = ZRARRAYOP_BINSERT_POS_FIRST(ZRVECTOR_PARRAY(unusedIDs), ZRVECTOR_OBJSIZE(generator->unusedIDs), ZRVECTOR_NBOBJ(generator->unusedIDs), &id, cmpID, NULL);
+		size_t pos = ZRARRAYOP_BINSERT_POS_FIRST(ZRVECTOR_ARRAYP(unusedIDs), ZRVECTOR_OBJSIZE(generator->unusedIDs), ZRVECTOR_NBOBJ(generator->unusedIDs), &id, cmpID, NULL);
 		ZRVECTOR_INSERT(unusedIDs, pos, &id);
 	}
 	IDGENERATOR_ZR(generator)->nbGenerated--;

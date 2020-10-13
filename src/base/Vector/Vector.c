@@ -35,8 +35,17 @@ void ZRVector_memoryTrim(ZRVector *vec)
 	ZRVECTOR_MEMORYTRIM(vec);
 }
 
-void *ZRVector_parray(ZRVector *vec){
-	return ZRVECTOR_PARRAY(vec);
+void *ZRVector_arrayp(ZRVector *vec){
+	return ZRVECTOR_ARRAYP(vec);
+}
+
+ZRArray ZRVector_array(ZRVector *vec){
+	return ZRVECTOR_ARRAY(vec);
+}
+
+ZRObjInfos ZRVector_objInfos(ZRVector *vec)
+{
+	return ZRVECTOR_OBJINFOS(vec);
 }
 
 size_t ZRVector_nbObj(ZRVector *vec)
