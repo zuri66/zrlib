@@ -404,7 +404,7 @@ static void ZRMapIdentifierInfos_validate(void *infos)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
 	_MapIdentifierInfos(initInfos->infos, initInfos);
-	initInfos->fdestroy = ZROBJINFOS_UNKNOWN(initInfos->objInfos)
+	initInfos->fdestroy = ZROBJINFOS_ISUNKNOWN(initInfos->objInfos)
 									? fdestroy_unknown : fdestroy;
 }
 
@@ -441,7 +441,7 @@ void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 
 void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifierInitInfos *infos)
 {
-	if (ZROBJINFOS_UNKNOWN(infos->objInfos))
+	if (ZROBJINFOS_ISUNKNOWN(infos->objInfos))
 		*strategy = (MapIdentifierStrategy )
 			{ //
 			.identifier = (ZRIdentifierStrategy )
@@ -487,7 +487,7 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	MapIdentifier *mapIdentifier = MAPID(identifier);
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
 
-	bool objInfosUnknown = ZROBJINFOS_UNKNOWN(initInfos->objInfos);
+	bool objInfosUnknown = ZROBJINFOS_ISUNKNOWN(initInfos->objInfos);
 	MapIdentifierStrategy *strategy;
 	ZRMap *map, *map_ID;
 	ZRMemoryPool *pool;

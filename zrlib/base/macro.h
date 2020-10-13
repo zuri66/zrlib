@@ -39,7 +39,7 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRTYPE_OBJALIGNINFOS(T) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T))
 #define ZRTYPENB_OBJALIGNINFOS(T,NB) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T) * (NB))
 
-#define ZRSIZE_UNKNOW SIZE_MAX
+#define ZRSIZE_UNKNOWN SIZE_MAX
 #define ZRTOSTRING(V) #V
 
 #define ZRCONCAT(A,B) ZRCONCAT_(A,B)
