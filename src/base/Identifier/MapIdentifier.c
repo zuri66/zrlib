@@ -228,7 +228,19 @@ void* fintern_unknown(ZRIdentifier *identifier, void *obj)
 {
 	MapIdentifier *const mapIdentifier = MAPID(identifier);
 	MapBucket *found = getBucket_unknown(mapIdentifier, obj);
-	return found->objInPool;
+	return ZROBJECTP(found->objInPool)->object;
+}
+
+static
+void* ffromID_unknown(ZRIdentifier *identifier, ZRID id)
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket *found = (MapBucket*)ZRMAP_GET(mapIdentifier->map_ID, &id);
+
+	if (found == NULL)
+		return NULL ;
+
+	return ZROBJECTP(found->objInPool)->object;
 }
 
 static
@@ -417,7 +429,7 @@ void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifier
 				{ //
 				.fgetID = fgetID_unknown,
 				.fintern = fintern_unknown,
-				.ffromID = ffromID,
+				.ffromID = ffromID_unknown,
 
 				.fcontains = fcontains,
 				.frelease = frelease_unknown,
