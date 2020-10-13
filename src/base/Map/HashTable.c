@@ -93,7 +93,7 @@ struct ZRHashTableS
 
 #define ZRHTABLE_LVPARRAY(HT) (HT)->table.array
 #define ZRHTABLE_LVNBOBJ(HT) (HT)->table.nbObj
-#define ZRHTABLE_LVSIZE(HT) (HT)->table.size
+#define ZRHTABLE_LVSIZE(HT) (HT)->table.capacity
 #define ZRHTABLE_LVOBJINFOS(HT) (HT)->table.objInfos
 #define ZRHTABLE_LVOBJSIZE(HT) (HT)->table.objInfos.size
 #define ZRHTABLE_LVOBJALIGNMENT(HT) (HT)->table.objInfos.alignment
@@ -170,13 +170,13 @@ static inline bool insert(ZRHashTable *htable, void *key, void *obj, enum Insert
 ZRMUSTINLINE
 static inline bool mustGrow(ZRHashTable *htable)
 {
-	return ZRRESIZE_MUSTGROW(ZRARRAY_SN(htable->table), &htable->resizeData);
+	return ZRRESIZE_MUSTGROW(ZRARRAY_CN(htable->table), &htable->resizeData);
 }
 
 ZRMUSTINLINE
 static inline bool mustShrink(ZRHashTable *htable)
 {
-	return ZRRESIZE_MUSTSHRINK(ZRARRAY_SN(htable->table), &htable->resizeData);
+	return ZRRESIZE_MUSTSHRINK(ZRARRAY_CN(htable->table), &htable->resizeData);
 }
 
 ZRMUSTINLINE
@@ -196,7 +196,6 @@ static inline void reinsertBuckets(ZRHashTable *htable, ZRHashTableBucket *lastT
 		insert(htable, bucket_key(htable, bucket), bucket_obj(htable, bucket), PUT, NULL);
 	}
 	assert(ZRVECTOR_NBOBJ(htable->bucketPos) == lastTableNbBuckets);
-
 	ZRFREE(htable->allocator, lastTable);
 }
 
@@ -206,7 +205,7 @@ static inline void moreSize(ZRHashTable *htable)
 	void *lastTable = ZRHTABLE_LVPARRAY(htable);
 	size_t lastNbBuckets = ZRHTABLE_LVNBOBJ(htable);
 	size_t lastCapacity = ZRHTABLE_LVSIZE(htable);
-	ZRArrayAndNb new = ZRRESIZE_MAKEMORESIZE(
+	ZRArrayAndNbObj new = ZRRESIZE_MAKEMORESIZE(
 		ZRHTABLE_LVSIZE(htable), ZRHTABLE_LVNBOBJ(htable) + 1, ZRHTABLE_LVOBJSIZE(htable), ZRHTABLE_LVOBJALIGNMENT(htable),
 		false, htable->allocator, &htable->resizeData, htable
 		);
@@ -228,7 +227,7 @@ static inline void lessSize(ZRHashTable *htable)
 	void *lastTable = ZRHTABLE_LVPARRAY(htable);
 	size_t lastNbBuckets = ZRHTABLE_LVNBOBJ(htable);
 	size_t lastCapacity = ZRHTABLE_LVSIZE(htable);
-	ZRArrayAndNb new = ZRRESIZE_MAKELESSSIZE(
+	ZRArrayAndNbObj new = ZRRESIZE_MAKELESSSIZE(
 		ZRHTABLE_LVSIZE(htable), ZRHTABLE_LVNBOBJ(htable) - 1, ZRHTABLE_LVOBJSIZE(htable), ZRHTABLE_LVOBJALIGNMENT(htable),
 		NULL, 0, htable->allocator, &htable->resizeData, htable
 		);
