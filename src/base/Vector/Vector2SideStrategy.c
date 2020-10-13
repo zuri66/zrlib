@@ -173,10 +173,12 @@ static void finitVec(ZRVector *vec)
 	}
 }
 
-static void fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment)
+static void fchangeObjSize(ZRVector *vector, ZRObjInfos objInfos)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vector);
 	size_t const lastAlignment = ZRVECTOR_OBJALIGNMENT(vector);
+	size_t const objAlignment = objInfos.alignment;
+	size_t const objSize = objInfos.size;
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
 	{
@@ -184,8 +186,7 @@ static void fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment
 		svector->allocatedMemory = NULL;
 	}
 	ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector)) = 0;
-	ZRVECTOR_OBJALIGNMENT(ZR2SS_VECTOR(svector)) = objAlignment;
-	ZRVECTOR_OBJSIZE(ZR2SS_VECTOR(svector)) = objSize;
+	ZRVECTOR_OBJINFOS(ZR2SS_VECTOR(svector)) = objInfos;
 
 	//Realign initial
 	if (svector->initialArraySize > 0)
@@ -671,7 +672,7 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 	else
 		strategy = zrlib_internPType(&ref);
 
-	ZRVECTOR_INIT(vector, initInfos->objInfos.size, initInfos->objInfos.alignment, ZR2SSSTRATEGY_VECTOR(strategy));
+	ZRVECTOR_INIT(vector, initInfos->objInfos, ZR2SSSTRATEGY_VECTOR(strategy));
 }
 
 ZRVector* ZRVector2SideStrategy_new(void *infos_p)

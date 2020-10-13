@@ -36,7 +36,7 @@ struct ZRVectorStrategyS
 	void (*fdelete)(ZRVector *vec, size_t pos, size_t nb);
 
 
-	void (*fchangeObjSize)(ZRVector *vec, size_t objSize, size_t objAlignment);
+	void (*fchangeObjSize)(ZRVector *vec, ZRObjInfos objInfos);
 	void (*fmemoryTrim)(ZRVector *vec);
 
 	/**
@@ -64,13 +64,10 @@ struct ZRVectorS
 #define ZRVECTOR_ARRAY(V) (V)->array
 #define ZRVECTOR_ARRAYP(V) (V)->array.array
 #define ZRVECTOR_NBOBJ(V) (V)->array.nbObj
-#define ZRVECTOR_SIZE(V) (V)->array.size
+#define ZRVECTOR_CAPACITY(V) (V)->array.capacity
 #define ZRVECTOR_OBJINFOS(V) (V)->array.objInfos
 #define ZRVECTOR_OBJSIZE(V) (V)->array.objInfos.size
 #define ZRVECTOR_OBJALIGNMENT(V) (V)->array.objInfos.alignment
-
-#define ZRVECTOR_CAPACITY ZRVECTOR_SIZE
-#define ZRVector_capacity ZRVector_size
 
 // ============================================================================
 
@@ -93,12 +90,12 @@ static inline void ZRVECTOR_FDELETE(ZRVector *vec, size_t pos, size_t nb)
 // ============================================================================
 
 ZRMUSTINLINE
-static inline void ZRVECTOR_INIT(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorStrategy *strategy)
+static inline void ZRVECTOR_INIT(ZRVector *vec, ZRObjInfos objInfos, ZRVectorStrategy *strategy)
 {
 	*vec = ((ZRVector)
 		{ //
 			.array = (ZRArray) {
-				.objInfos = ZROBJINFOS_DEF(objAlignment, objSize),
+				.objInfos = objInfos,
 			},
 			.strategy = strategy,//
 		})
@@ -174,9 +171,9 @@ static inline void ZRVECTOR_INSERT_NB(ZRVector *vec, size_t pos, size_t nb, void
 }
 
 ZRMUSTINLINE
-static inline void ZRVECTOR_CHANGEOBJSIZE(ZRVector *vec, size_t objSize, size_t objAlignment)
+static inline void ZRVECTOR_CHANGEOBJSIZE(ZRVector *vec, ZRObjInfos objInfos)
 {
-	vec->strategy->fchangeObjSize(vec, objSize, objAlignment);
+	vec->strategy->fchangeObjSize(vec, objInfos);
 }
 
 ZRMUSTINLINE
@@ -326,20 +323,20 @@ static inline void ZRVECTOR_ADDFIRSTPTR_NB(ZRVector *vec, size_t nb, void *src, 
 
 // ============================================================================
 
-void ZRVector_init(ZRVector *vec, size_t objSize, size_t objAlignment, ZRVectorStrategy *strategy);
+void ZRVector_init(ZRVector *vec, ZRObjInfos objInfos, ZRVectorStrategy *strategy);
 void ZRVector_copy(ZRVector *restrict dest, ZRVector *restrict src);
 void ZRVector_done(ZRVector *vec);
 void ZRVector_destroy(ZRVector *vec);
-void ZRVector_changeObjSize(ZRVector *vec, size_t objSize, size_t objAlignment);
+void ZRVector_changeObjSize(ZRVector *vec, ZRObjInfos objInfos);
 void ZRVector_memoryTrim(ZRVector *vec);
 
 void *ZRVector_arrayp(ZRVector *vec);
 ZRArray ZRVector_array(ZRVector *vec);
 ZRObjInfos ZRVector_objInfos(ZRVector *vec);
-size_t ZRVector_nbObj(_ ZRVector *vec);
+size_t ZRVector_nbObj(ZRVector *vec);
+size_t ZRVector_capacity(ZRVector *vec);
 size_t ZRVector_objSize(ZRVector *vec);
 size_t ZRVector_objAlignment(ZRVector *vec);
-size_t ZRVector_size(ZRVector *vec);
 
 void* ZRVector_get(__ ZRVector *vec, size_t pos);
 void _ ZRVector_get_nb(ZRVector *vec, size_t pos, size_t nb, void *restrict dest);

@@ -480,7 +480,7 @@ void ZRVectorMap_init(ZRMap *map, void *infos_p)
 	else
 	{
 		vector = infos->vector;
-		ZRVECTOR_CHANGEOBJSIZE(vector, bucketInfos[BucketInfos_struct].size, bucketInfos[BucketInfos_struct].alignment);
+		ZRVECTOR_CHANGEOBJSIZE(vector, ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]));
 	}
 
 	*vmap = (ZRVectorMap ) { //
