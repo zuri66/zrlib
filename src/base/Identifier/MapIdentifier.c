@@ -178,10 +178,6 @@ static void allocObject(MapIdentifier *mapIdentifier, void *objInPool_p)
 	ZRObjectP *objInPool = objInPool_p;
 	void *newObject = ZRAALLOC(mapIdentifier->allocator, ZROBJINFOS_ALIGNMENT_SIZE(objInPool->infos));
 	memcpy(newObject, objInPool->object, objInPool->infos.size);
-
-	if (mapIdentifier->map->nbObj > 10000)
-		printf("%d\t", *(long*)objInPool->object);
-
 	objInPool->object = newObject;
 }
 
@@ -241,6 +237,18 @@ void* ffromID_unknown(ZRIdentifier *identifier, ZRID id)
 		return NULL ;
 
 	return ZROBJECTP(found->objInPool)->object;
+}
+
+static ZRObjectP fobjectP_unknown(ZRIdentifier *identifier, ZRID id)
+{
+
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket *found = (MapBucket*)ZRMAP_GET(mapIdentifier->map_ID, &id);
+
+	if (found == NULL)
+		return ZROBJECTP_DEF0();
+
+	return *ZROBJECTP(found->objInPool);
 }
 
 static
@@ -306,6 +314,17 @@ void* ffromID(ZRIdentifier *identifier, ZRID id)
 		return NULL ;
 
 	return found->objInPool;
+}
+
+static ZRObjectP fobjectP(ZRIdentifier *identifier, ZRID id)
+{
+	MapIdentifier *const mapIdentifier = MAPID(identifier);
+	MapBucket *found = (MapBucket*)ZRMAP_GET(mapIdentifier->map_ID, &id);
+
+	if (found == NULL)
+		return ZROBJECTP_DEF0();
+
+	return ZROBJECTP_DEF(ZRMPOOL_BLOCKINFOS(mapIdentifier->pool), found->objInPool);
 }
 
 static
@@ -430,6 +449,7 @@ void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifier
 				.fgetID = fgetID_unknown,
 				.fintern = fintern_unknown,
 				.ffromID = ffromID_unknown,
+				.fobjectP = fobjectP_unknown,
 
 				.fcontains = fcontains,
 				.frelease = frelease_unknown,
@@ -448,6 +468,7 @@ void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifier
 				.fgetID = fgetID,
 				.fintern = fintern,
 				.ffromID = ffromID,
+				.fobjectP = fobjectP,
 
 				.fcontains = fcontains,
 				.frelease = frelease,

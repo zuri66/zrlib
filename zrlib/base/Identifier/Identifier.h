@@ -7,6 +7,8 @@
 #define ZRIDENTIFIER_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/struct.h>
+
 #include <stdbool.h>
 
 // ============================================================================
@@ -21,6 +23,8 @@ struct ZRIdentifierStrategyS
 	ZRID (*fgetID)(ZRIdentifier *identifier, void *obj);
 	void* (*fintern)(ZRIdentifier *identifier, void *obj);
 	void* (*ffromID)(ZRIdentifier *identifier, ZRID id);
+
+	ZRObjectP (*fobjectP)(ZRIdentifier *identifier, ZRID id);
 
 	bool (*fcontains)(ZRIdentifier *identifier, void *obj);
 	bool (*frelease)(ZRIdentifier *identifier, void *obj);
@@ -44,7 +48,6 @@ ZRMUSTINLINE
 static inline void ZRIDENTIFIER_DONE(ZRIdentifier *identifier)
 {
 	identifier->strategy->fdone(identifier);
-
 }
 
 ZRMUSTINLINE
@@ -86,6 +89,12 @@ static inline void* ZRIDENTIFIER_FROMID(ZRIdentifier *identifier, ZRID id)
 }
 
 ZRMUSTINLINE
+static inline ZRObjectP ZRIDENTIFIER_OBJECTP(ZRIdentifier *identifier, ZRID id)
+{
+	return identifier->strategy->fobjectP(identifier, id);
+}
+
+ZRMUSTINLINE
 static inline bool ZRIDENTIFIER_CONTAINS(ZRIdentifier *identifier, void *obj)
 {
 	return identifier->strategy->fcontains(identifier, obj);
@@ -111,7 +120,6 @@ static inline bool ZRIDENTIFIER_RELEASEALL(ZRIdentifier *identifier)
 
 // ============================================================================
 
-
 void ZRIdentifier_done(__ ZRIdentifier *identifier);
 void ZRIdentifier_destroy(ZRIdentifier *identifier);
 
@@ -120,10 +128,12 @@ size_t ZRIdentifier_nbObj(ZRIdentifier *identifier);
 ZRID __ ZRIdentifier_getID(______ ZRIdentifier *identifier, void *obj);
 void* _ ZRIdentifier_intern(_____ ZRIdentifier *identifier, void *obj);
 void* _ ZRIdentifier_fromID(_____ ZRIdentifier *identifier, ZRID id);
+
+ZRObjectP ZRIdentifier_objectP(ZRIdentifier *identifier, ZRID id);
+
 bool __ ZRIdentifier_contains(___ ZRIdentifier *identifier, void *obj);
 bool __ ZRIdentifier_release(____ ZRIdentifier *identifier, void *obj);
 bool __ ZRIdentifier_releaseID(__ ZRIdentifier *identifier, ZRID id);
 bool __ ZRIdentifier_releaseAll(_ ZRIdentifier *identifier);
-
 
 #endif
