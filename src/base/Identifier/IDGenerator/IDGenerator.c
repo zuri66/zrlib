@@ -136,12 +136,18 @@ ZRObjInfos ZRIDGeneratorInfos_objInfos(void)
 	return ZRTYPE_OBJINFOS(IDGeneratorInitInfos);
 }
 
-void ZRIDGeneratorInfos(void *infos_p, ZRAllocator *allocator)
+void ZRIDGeneratorInfos(void *infos_p)
 {
 	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
 	*infos = (IDGeneratorInitInfos ) { /**/
-		.allocator = allocator,
+		.allocator = NULL,
 		};
+}
+
+void ZRIDGeneratorInfos_allocator(void *infos_p, ZRAllocator *allocator)
+{
+	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
+	infos->allocator = allocator;
 }
 
 void ZRIDGeneratorInfos_staticStrategy(void *infos_p)
@@ -167,9 +173,16 @@ void ZRIDGenerator_init(ZRIDGenerator *generator_p, void *infos_p)
 	if (infos->staticStrategy)
 		ZRVector2SideStrategyInfos_staticStrategy(vectorInfos);
 
+	ZRAllocator *allocator;
+
+	if(infos->allocator== NULL)
+		allocator = zrlib_getServiceFromID(ZRSERVICE_ID(ZRService_allocator)).object;
+	else
+		allocator = infos->allocator;
+
 	*generator = (IDGenerator ) { /**/
 		.unusedIDs = ZRVector2SideStrategy_new(vectorInfos),
-		.allocator = infos->allocator,
+		.allocator = allocator,
 		.fdestroy = (infos->changefdestroy ? fdestroy : fdone),
 		};
 }

@@ -544,7 +544,8 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 
 	/* Generator init */
 	ZRIDGenerator *generator = ZRARRAYOP_GET(mapIdentifier, 1, initInfos->infos[MapIdentifierInfos_generator].offset);
-	ZRIDGeneratorInfos(initInfos->generatorInfos, allocator);
+	ZRIDGeneratorInfos(initInfos->generatorInfos);
+	ZRIDGeneratorInfos_allocator(initInfos->generatorInfos, allocator);
 
 	if (initInfos->staticStrategy)
 		ZRIDGeneratorInfos_staticStrategy(initInfos->generatorInfos);

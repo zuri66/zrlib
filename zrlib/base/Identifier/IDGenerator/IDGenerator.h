@@ -36,8 +36,9 @@ void ZRIDGenerator_destroy(ZRIDGenerator *generator);
 
 
 ZRObjInfos ZRIDGeneratorInfos_objInfos(void);
-void ZRIDGeneratorInfos(void *infos, ZRAllocator *allocator);
+void ZRIDGeneratorInfos(void *infos);
 void ZRIDGeneratorInfos_staticStrategy(void *infos);
+void ZRIDGeneratorInfos_allocator(void *infos, ZRAllocator *allocator);
 
 ZRObjInfos ZRIDGenerator_objInfos(void *infos);
 void ZRIDGenerator_init(ZRIDGenerator *generator, void *infos);
