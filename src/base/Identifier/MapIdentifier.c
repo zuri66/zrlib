@@ -408,20 +408,19 @@ static void ZRMapIdentifierInfos_validate(void *infos)
 									? fdestroy_unknown : fdestroy;
 }
 
-void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash, ZRAllocator *allocator)
+void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 
 	*initInfos = (MapIdentifierInitInfos ) { //
 		.objInfos = objInfos,
-		.allocator = allocator,
+		.allocator = NULL,
 		.fuhash = fuhash,
 		.nbfhash = nbfhash,
 		};
 
 	initInfos->nbfhash = nbfhash;
 	initInfos->fuhash = fuhash;
-	ZRIDGeneratorInfos(initInfos->generatorInfos, allocator);
 	ZRMapIdentifierInfos_validate(initInfos);
 }
 
@@ -435,8 +434,13 @@ void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
-	ZRIDGeneratorInfos_staticStrategy(initInfos->generatorInfos);
 	ZRMapIdentifierInfos_validate(initInfos);
+}
+
+void ZRMapIdentifierInfos_allocator(void *infos_out, ZRAllocator *allocator)
+{
+	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
+	initInfos->allocator = allocator;
 }
 
 void ZRMapIdentifierStrategy_init(MapIdentifierStrategy *strategy, MapIdentifierInitInfos *infos)
@@ -531,9 +535,22 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 
 		pool = ZRMPoolDS_new(infoBuffer);
 	}
+	ZRAllocator *allocator;
+
+	if (initInfos->allocator == NULL)
+		allocator = zrlib_getServiceFromID(ZRSERVICE_ID(ZRService_allocator)).object;
+	else
+		allocator = initInfos->allocator;
+
 	/* Generator init */
 	ZRIDGenerator *generator = ZRARRAYOP_GET(mapIdentifier, 1, initInfos->infos[MapIdentifierInfos_generator].offset);
+	ZRIDGeneratorInfos(initInfos->generatorInfos, allocator);
+
+	if (initInfos->staticStrategy)
+		ZRIDGeneratorInfos_staticStrategy(initInfos->generatorInfos);
+
 	ZRIDGenerator_init(generator, initInfos->generatorInfos);
+
 
 	ZRMapIdentifierStrategy_init(strategy, initInfos);
 	*mapIdentifier = (MapIdentifier ) { //
@@ -541,7 +558,7 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 			.strategy = (ZRIdentifierStrategy*)strategy,
 			},
 		.generator = generator,
-		.allocator = initInfos->allocator,
+		.allocator = allocator,
 		.map = map,
 		.map_ID = map_ID,
 		.pool = pool,

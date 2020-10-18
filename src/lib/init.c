@@ -70,7 +70,8 @@ void zrlib_initCurrentThread(void)
 	T_DATA.services = ZRVector2SideStrategy_new(bufferInfos);
 
 	zrfuhash hash_a[] = { hash_obj };
-	ZRMapIdentifierInfos(bufferInfos, ZROBJINFOS_DEF_UNKNOWN(), hash_a, 1, &T_DATA.allocator);
+	ZRMapIdentifierInfos(bufferInfos, ZROBJINFOS_DEF_UNKNOWN(), hash_a, 1);
+	ZRMapIdentifierInfos_allocator(bufferInfos, &T_DATA.allocator);
 	ZRMapIdentifierInfos_fucmp(bufferInfos, cmp_obj);
 	T_DATA.serviceIdentifier = ZRMapIdentifier_new(bufferInfos);
 
@@ -113,7 +114,8 @@ ZRIdentifier* zrlib_getObjIdentifier(ZRObjInfos objInfos)
 	{
 		ZRObjInfos infos_infos = ZRMapIdentifierInfos_objInfos();
 		alignas(max_align_t) char bufferInfos[infos_infos.size];
-		ZRMapIdentifierInfos(bufferInfos, objInfos, NULL, 0, &T_DATA.allocator);
+		ZRMapIdentifierInfos(bufferInfos, objInfos, NULL, 0);
+		ZRMapIdentifierInfos_allocator(bufferInfos, &T_DATA.allocator);
 		ZRMapIdentifierInfos_staticStrategy(bufferInfos);
 		ZRIdentifier *identifier = ZRMapIdentifier_new(bufferInfos);
 		*(ZRIdentifier**)ref_p = identifier;

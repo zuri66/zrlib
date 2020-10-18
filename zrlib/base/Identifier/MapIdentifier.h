@@ -15,8 +15,9 @@
 ZRObjInfos ZRMapIdentifierInfos_objInfos(void);
 ZRObjInfos ZRMapIdentifier_objInfos(void *infos);
 
-void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash, ZRAllocator *allocator);
+void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash);
 void ZRMapIdentifierInfos_staticStrategy(void *infos_out);
+void ZRMapIdentifierInfos_allocator(void *infos_out, ZRAllocator *allocator);
 void ZRMapIdentifierInfos_fucmp(void *infos_out, zrfucmp fucmp);
 
 void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos);
