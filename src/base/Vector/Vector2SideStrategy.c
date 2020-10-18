@@ -383,7 +383,10 @@ static inline void lessSize(ZRVector *vec)
 	ZRFREE(svector->allocator, svector->allocatedMemory);
 
 	if (new.array == svector->initialArray)
+	{
 		svector->allocatedMemory = NULL;
+		svector->resizeData.downLimit = 0;
+	}
 	else
 		svector->allocatedMemory = new.array;
 
