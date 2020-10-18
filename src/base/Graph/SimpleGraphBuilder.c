@@ -470,7 +470,7 @@ static ZRGraph* fbuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNod
 	{
 		// Key : size_t Value : *void
 		ZRMap *bnodesRef = ZRVectorMap_create(
-			ZRTYPE_SIZE_ALIGNMENT(size_t), ZRTYPE_SIZE_ALIGNMENT(void*),
+			ZRTYPE_OBJINFOS(size_t), ZRTYPE_OBJINFOS(void*),
 			zrfcmp_size_t, NULL, sbuilder->allocator,
 			ZRVectorMap_modeOrder
 			);
