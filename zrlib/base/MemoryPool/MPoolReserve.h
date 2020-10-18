@@ -31,7 +31,8 @@ enum ZRMPoolReserveModeE
 
 ZRObjInfos ZRMPoolReserveInfos_objInfos(void);
 
-void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks, ZRAllocator *allocator);
+void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks);
+void ZRMPoolReserveInfos_allocator(void *infos, ZRAllocator *allocator);
 void ZRMPoolReserveInfos_mode(void *infos, enum ZRMPoolReserveModeE mode);
 void ZRMPoolReserveInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData);
 void ZRMPoolReserveInfos_staticStrategy(void *infos);
@@ -40,13 +41,14 @@ ZRObjInfos ZRMPoolReserve_objInfos(void *infos);
 void ZRMPoolReserve_init(ZRMemoryPool *pool, void *infos);
 ZRMemoryPool* ZRMPoolReserve_new(void *infos);
 
+
 ZRMemoryPool* ZRMPoolReserve_createSimple(
-	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRObjInfos objInfos, size_t nbBlocks,
 	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
 	);
 
 ZRMemoryPool* ZRMPoolReserve_create(
-	size_t blockSize, size_t alignment, size_t nbBlocks,
+	ZRObjInfos objInfos, size_t nbBlocks,
 	ZRObjAlignInfos *areaMetaData,
 	ZRAllocator *allocator, enum ZRMPoolReserveModeE mode
 	);

@@ -158,12 +158,12 @@ void ZRGraphBuilder_cpyGraph(ZRGraphBuilder *to, ZRGraph *from, ZRGraphNode **re
 	// TODO: node with int identifier for ordered map
 	// Key : size_t Value : *void
 	ZRMap *map_refNodes = ZRVectorMap_create(
-		ZRTYPE_SIZE_ALIGNMENT(size_t), ZRTYPE_SIZE_ALIGNMENT(ZRGraphNode**),
+		ZRTYPE_OBJINFOS(size_t), ZRTYPE_OBJINFOS(ZRGraphNode**),
 		zrfcmp_size_t, NULL, allocator,
 		ZRVectorMap_modeOrder
 		);
 	ZRMap *map_bnodes = ZRVectorMap_create(
-		ZRTYPE_SIZE_ALIGNMENT(size_t), ZRTYPE_SIZE_ALIGNMENT(ZRGraphNode*),
+		ZRTYPE_OBJINFOS(size_t), ZRTYPE_OBJINFOS(ZRGraphNode*),
 		zrfcmp_size_t, NULL, allocator,
 		ZRVectorMap_modeOrder
 		);

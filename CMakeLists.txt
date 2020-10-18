@@ -11,6 +11,7 @@ add_compile_options(-mbmi -mlzcnt -Winline)
 
 set(SRCS
 	src/base/Algorithm/fcmp.c
+	src/base/Algorithm/hash.c
 	src/base/Algorithm/sort.c
 	src/base/AddressOp.c
 	src/base/Allocator/CAllocator.c
@@ -33,6 +34,7 @@ set(SRCS
 	src/base/Graph/Tree/Tree.c
 	src/base/Identifier/Identifier.c
 	src/base/Identifier/MapIdentifier.c
+	src/base/Identifier/IDGenerator/IDGenerator.c
 	src/base/Vector/Vector.c
 	src/base/Vector/Vector2SideStrategy.c
 	src/base/Map/HashTable.c
@@ -46,6 +48,7 @@ set(SRCS
     
 set(HEADERS
 	zrlib/base/Algorithm/fcmp.h
+	zrlib/base/Algorithm/hash.h
 	zrlib/base/Algorithm/sort.h
 	zrlib/base/AddressOp.h
 	zrlib/base/Allocator/Allocator.h
@@ -69,6 +72,7 @@ set(HEADERS
 	zrlib/base/Graph/Tree/Tree.h
 	zrlib/base/Identifier/Identifier.h
 	zrlib/base/Identifier/MapIdentifier.h
+	zrlib/base/Identifier/IDGenerator/IDGenerator.h
 	zrlib/base/Vector/Vector.h
 	zrlib/base/Vector/Vector2SideStrategy.h
 	zrlib/base/Map/HashTable.h

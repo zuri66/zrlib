@@ -168,24 +168,25 @@ static void finitVec(ZRVector *vec)
 	}
 	else
 	{
-		ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = svector->initialArraySize / ZRVECTOR_OBJSIZE(vec);
-		setFUEOSpaces(svector, svector->initialArray, ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)), NULL, 0);
+		ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)) = svector->initialArraySize / ZRVECTOR_OBJSIZE(vec);
+		setFUEOSpaces(svector, svector->initialArray, ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)), NULL, 0);
 	}
 }
 
-static void fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment)
+static void fchangeObjSize(ZRVector *vector, ZRObjInfos objInfos)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vector);
-	size_t const lastAlignment = ZRVECTOR_LVOBJALIGNMENT(vector);
+	size_t const lastAlignment = ZRVECTOR_OBJALIGNMENT(vector);
+	size_t const objAlignment = objInfos.alignment;
+	size_t const objSize = objInfos.size;
 
 	if (ZRVector2SideStrategy_memoryIsAllocated(svector))
 	{
 		ZRFREE(svector->allocator, svector->allocatedMemory);
 		svector->allocatedMemory = NULL;
 	}
-	ZRVECTOR_LVNBOBJ(ZR2SS_VECTOR(svector)) = 0;
-	ZRVECTOR_LVOBJALIGNMENT(ZR2SS_VECTOR(svector)) = objAlignment;
-	ZRVECTOR_LVOBJSIZE(ZR2SS_VECTOR(svector)) = objSize;
+	ZRVECTOR_NBOBJ(ZR2SS_VECTOR(svector)) = 0;
+	ZRVECTOR_OBJINFOS(ZR2SS_VECTOR(svector)) = objInfos;
 
 	//Realign initial
 	if (svector->initialArraySize > 0)
@@ -199,7 +200,7 @@ static void fchangeObjSize(ZRVector *vector, size_t objSize, size_t objAlignment
 				size_t const offsetDiff = offset - svector->initialArrayOffset;
 				svector->initialArray = (char*)svector + offset;
 				size_t const size = (svector->initialArraySize - offsetDiff) / objSize;
-				ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = size;
+				ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)) = size;
 				setFUEOSpaces(svector, svector->initialArray, size, NULL, 0);
 			}
 			else
@@ -264,7 +265,7 @@ static void fmemoryTrim(ZRVector *vec)
 		return;
 
 	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
-	size_t const nbObj = checkInitialNbObj(ZRVECTOR_LVNBOBJ(vec));
+	size_t const nbObj = checkInitialNbObj(ZRVECTOR_NBOBJ(vec));
 	size_t const objAlignment = ZRVECTOR_OBJALIGNMENT(vec);
 	void *lastSpace = svector->allocatedMemory;
 
@@ -277,7 +278,7 @@ static void fmemoryTrim(ZRVector *vec)
 	ZR2SS_USPACE(svector) = svector->allocatedMemory;
 	ZR2SS_OSPACE(svector) =
 	ZR2SS_ESPACE(svector) = (char*)svector->allocatedMemory + nbObj * objSize;
-	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nbObj;
+	ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)) = nbObj;
 }
 
 // ============================================================================
@@ -341,11 +342,11 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
-	size_t const nbObj = ZRVECTOR_LVNBOBJ(vec);
-	size_t const capacity = ZRVECTOR_LVSIZE(vec);
+	size_t const nbObj = ZRVECTOR_NBOBJ(vec);
+	size_t const capacity = ZRVECTOR_CAPACITY(vec);
 	bool const isAllocated = ZRVector2SideStrategy_memoryIsAllocated(svector);
 
-	ZRArrayAndNb new = ZRRESIZE_MAKEMORESIZE(
+	ZRArrayAndNbObj new = ZRRESIZE_MAKEMORESIZE(
 		capacity, nbObj + nbObjMore, objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->allocatedMemory, svector->allocator,
 		&svector->resizeData, svector
@@ -358,7 +359,7 @@ static inline void moreSize(ZRVector *vec, size_t nbObjMore)
 		ZRFREE(svector->allocator, svector->allocatedMemory);
 
 	svector->allocatedMemory = new.array;
-	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
+	ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
@@ -367,10 +368,10 @@ static inline void lessSize(ZRVector *vec)
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
 	assert(ZRVector2SideStrategy_memoryIsAllocated(svector));
 	size_t const objSize = ZRVECTOR_OBJSIZE(vec);
-	size_t const nbObj = ZRVECTOR_LVNBOBJ(vec);
-	size_t const capacity = ZRVECTOR_LVSIZE(vec);
+	size_t const nbObj = ZRVECTOR_NBOBJ(vec);
+	size_t const capacity = ZRVECTOR_CAPACITY(vec);
 
-	ZRArrayAndNb new = ZRRESIZE_MAKELESSSIZE(
+	ZRArrayAndNbObj new = ZRRESIZE_MAKELESSSIZE(
 		capacity, nbObj, objSize, ZRVECTOR_OBJALIGNMENT(vec),
 		svector->initialArray, svector->initialArraySize / objSize, svector->allocator,
 		&svector->resizeData, svector
@@ -382,25 +383,28 @@ static inline void lessSize(ZRVector *vec)
 	ZRFREE(svector->allocator, svector->allocatedMemory);
 
 	if (new.array == svector->initialArray)
+	{
 		svector->allocatedMemory = NULL;
+		svector->resizeData.downLimit = 0;
+	}
 	else
 		svector->allocatedMemory = new.array;
 
-	ZRVECTOR_LVSIZE(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
+	ZRVECTOR_CAPACITY(ZR2SS_VECTOR(svector)) = nextTotalNbObj;
 }
 
 ZRMUSTINLINE
 static inline bool mustGrow(ZRVector *vec, size_t nbObjMore)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	return ZRRESIZE_MUSTGROW(ZRVECTOR_LVSIZE(vec), ZRVECTOR_LVNBOBJ(vec) + nbObjMore, &svector->resizeData);
+	return ZRRESIZE_MUSTGROW(ZRVECTOR_CAPACITY(vec), ZRVECTOR_NBOBJ(vec) + nbObjMore, &svector->resizeData);
 }
 
 ZRMUSTINLINE
 static inline bool mustShrink(ZRVector *vec)
 {
 	ZR2SSVector *const svector = ZRVECTOR_2SS(vec);
-	return ZRRESIZE_MUSTSHRINK(ZRVECTOR_LVSIZE(vec), ZRVECTOR_LVNBOBJ(vec), &svector->resizeData);
+	return ZRRESIZE_MUSTSHRINK(ZRVECTOR_CAPACITY(vec), ZRVECTOR_NBOBJ(vec), &svector->resizeData);
 }
 
 static bool enoughSpaceForInsert(ZR2SSVector *svector, size_t pos, size_t nbMore)
@@ -503,7 +507,7 @@ static inline void operationDel_shift(ZRVector *vec, size_t pos, size_t nbLess)
 static void finsert(ZRVector *vec, size_t pos, size_t nb)
 {
 	operationAdd_shift(vec, pos, nb);
-	ZRVECTOR_LVNBOBJ(vec) += nb;
+	ZRVECTOR_NBOBJ(vec) += nb;
 }
 
 static void finsertGrow(ZRVector *vec, size_t pos, size_t nb)
@@ -514,25 +518,25 @@ static void finsertGrow(ZRVector *vec, size_t pos, size_t nb)
 		moreSize(vec, nb);
 
 	operationAdd_shift(vec, pos, nb);
-	ZRVECTOR_LVNBOBJ(vec) += nb;
+	ZRVECTOR_NBOBJ(vec) += nb;
 }
 
 static void fdelete(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
-	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
+	assert(nb <= ZRVECTOR_NBOBJ(vec));
 
 	operationDel_shift(vec, pos, nb);
-	ZRVECTOR_LVNBOBJ(vec) -= nb;
+	ZRVECTOR_NBOBJ(vec) -= nb;
 }
 
 static void fdeleteShrink(ZRVector *vec, size_t pos, size_t nb)
 {
 	assert(ZR2SS_FSPACE(ZRVECTOR_2SS(vec)) != NULL);
-	assert(nb <= ZRVECTOR_LVNBOBJ(vec));
+	assert(nb <= ZRVECTOR_NBOBJ(vec));
 
 	operationDel_shift(vec, pos, nb);
-	ZRVECTOR_LVNBOBJ(vec) -= nb;
+	ZRVECTOR_NBOBJ(vec) -= nb;
 
 	if (mustShrink(vec))
 		lessSize(vec);
@@ -582,18 +586,39 @@ static inline void ZRVector2SideStrategyInfos_validate(ZR2SSInitInfos *initInfos
 	getVectorInfos((void*)initInfos, initInfos->initialArrayNbObj, ZROBJINFOS_SIZE_ALIGNMENT(initInfos->objInfos), (bool)initInfos->staticStrategy);
 }
 
-void ZRVector2SideStrategyInfos(void *infos_out, size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator, bool fixed)
+void ZRVector2SideStrategyInfos_allocator(void *infos_out, ZRAllocator *allocator)
 {
-	initialMemoryNbObj = checkInitialNbObj(initialMemoryNbObj);
-	initialArrayNbObj = checkInitialNbObj(initialArrayNbObj);
+	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
+	initInfos->allocator = allocator;
+}
 
+void ZRVector2SideStrategyInfos_initialArraySize(void *infos_out, size_t size)
+{
+	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
+	initInfos->initialArrayNbObj = checkInitialNbObj(size);
+}
+
+void ZRVector2SideStrategyInfos_initialMemorySize(void *infos_out, size_t size)
+{
+	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
+	initInfos->initialMemoryNbObj = checkInitialNbObj(size);
+}
+
+void ZRVector2SideStrategyInfos_fixedArray(void *infos_out)
+{
+	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
+	initInfos->fixed = 1;
+}
+
+void ZRVector2SideStrategyInfos(void *infos_out, ZRObjInfos objInfos)
+{
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	*initInfos = (ZR2SSInitInfos ) { //
-		.objInfos = { objAlignment, objSize },
-		.initialArrayNbObj = initialArrayNbObj,
-		.initialMemoryNbObj = initialMemoryNbObj,
-		.allocator = allocator,
-		.fixed = (int)fixed,
+		.objInfos = objInfos,
+		.initialArrayNbObj = INITIAL_SIZE,
+		.initialMemoryNbObj = INITIAL_SIZE,
+		.allocator = NULL,
+		.fixed = 0,
 		};
 	ZRVector2SideStrategyInfos_validate(initInfos);
 }
@@ -603,16 +628,6 @@ void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out)
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
 	ZRVector2SideStrategyInfos_validate(initInfos);
-}
-
-void ZRVector2SideStrategyInfos_fixed(void *infos_out, size_t initialArraySize, size_t initialMemorySpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
-{
-	ZRVector2SideStrategyInfos(infos_out, initialArraySize, initialMemorySpace, objSize, objAlignment, allocator, true);
-}
-
-void ZRVector2SideStrategyInfos_dynamic(void *infos_out, size_t initialArraySpace, size_t initialMemorySpace, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
-{
-	ZRVector2SideStrategyInfos(infos_out, initialArraySpace, initialMemorySpace, objSize, objAlignment, allocator, false);
 }
 
 ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos)
@@ -641,10 +656,16 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_p;
 	ZRObjAlignInfos *infos = initInfos->vectorInfos;
 	ZR2SSVector *ssvector = ZRVECTOR_2SS(vector);
+	ZRAllocator *allocator;
+
+	if (initInfos->allocator == NULL)
+		allocator = zrlib_getServiceFromID(ZRSERVICE_ID(ZRService_allocator)).object;
+	else
+		allocator = initInfos->allocator;
 
 	*ssvector = (ZR2SSVector )
 		{ //
-		.allocator = initInfos->allocator,
+		.allocator = allocator,
 		.initialArrayOffset = infos[ZRVectorInfos_objs].offset,
 		.initialArray = (char*)vector + infos[ZRVectorInfos_objs].offset,
 		.initialArraySize = infos[ZRVectorInfos_objs].size,
@@ -671,7 +692,7 @@ void ZRVector2SideStrategy_init(ZRVector *vector, void *infos_p)
 	else
 		strategy = zrlib_internPType(&ref);
 
-	ZRVECTOR_INIT(vector, initInfos->objInfos.size, initInfos->objInfos.alignment, ZR2SSSTRATEGY_VECTOR(strategy));
+	ZRVECTOR_INIT(vector, initInfos->objInfos, ZR2SSSTRATEGY_VECTOR(strategy));
 }
 
 ZRVector* ZRVector2SideStrategy_new(void *infos_p)
@@ -686,30 +707,31 @@ ZRVector* ZRVector2SideStrategy_new(void *infos_p)
 	return ZR2SS_VECTOR(ret);
 }
 
-ZRVector* ZRVector2SideStrategy_createFixed(size_t initialNbObjs, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
+void ZRVector2SideStrategyInfos_fixed(void *initInfos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator)
+{
+	ZRVector2SideStrategyInfos(initInfos, objInfos);
+	ZRVector2SideStrategyInfos_fixedArray(initInfos);
+	ZRVector2SideStrategyInfos_allocator(initInfos, allocator);
+	ZRVector2SideStrategyInfos_initialArraySize(initInfos, initialNbObj);
+}
+
+void ZRVector2SideStrategyInfos_dynamic(void *initInfos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator)
+{
+	ZRVector2SideStrategyInfos(initInfos, objInfos);
+	ZRVector2SideStrategyInfos_allocator(initInfos, allocator);
+	ZRVector2SideStrategyInfos_initialArraySize(initInfos, initialNbObj);
+}
+
+ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos_fixed(&initInfos, initialNbObjs, 0, objSize, objAlignment, allocator);
+	ZRVector2SideStrategyInfos_fixed(&initInfos, initialNbObj, objInfos, allocator);
 	return ZRVector2SideStrategy_new(&initInfos);
 }
 
-ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObjs, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
+ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos_dynamic(&initInfos, initialNbObjs, initialNbObjs, objSize, objAlignment, allocator);
-	return ZRVector2SideStrategy_new(&initInfos);
-}
-
-ZRVector* ZRVector2SideStrategy_createFixedM(size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
-{
-	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos_fixed(&initInfos, initialArrayNbObj, initialMemoryNbObj, objSize, objAlignment, allocator);
-	return ZRVector2SideStrategy_new(&initInfos);
-}
-
-ZRVector* ZRVector2SideStrategy_createDynamicM(size_t initialArrayNbObj, size_t initialMemoryNbObj, size_t objSize, size_t objAlignment, ZRAllocator *allocator)
-{
-	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos_dynamic(&initInfos, initialArrayNbObj, initialMemoryNbObj, objSize, objAlignment, allocator);
+	ZRVector2SideStrategyInfos_dynamic(&initInfos, initialNbObj, objInfos, allocator);
 	return ZRVector2SideStrategy_new(&initInfos);
 }

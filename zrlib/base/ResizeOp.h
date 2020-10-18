@@ -88,7 +88,7 @@ static inline bool ZRRESIZE_MUSTSHRINK(size_t totalSpace, size_t usedSpace, ZRRe
 	return usedSpace < rdata->downLimit;
 }
 
-static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
+static inline ZRArrayAndNbObj ZRRESIZE_MAKEMORESIZE(
 	size_t totalNb, size_t usedNb, size_t objSize, size_t alignment,
 	bool isAllocated, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData
@@ -119,7 +119,7 @@ static inline ZRArrayAndNb ZRRESIZE_MAKEMORESIZE(
 }
 
 ZRMUSTINLINE
-static inline ZRArrayAndNb ZRRESIZE_MAKELESSSIZE(
+static inline ZRArrayAndNbObj ZRRESIZE_MAKELESSSIZE(
 	size_t totalNb, size_t usedNb, size_t objSize, size_t alignment,
 	void *staticArray, size_t staticArrayNb, ZRAllocator *allocator,
 	ZRResizeData *rdata, void *userData

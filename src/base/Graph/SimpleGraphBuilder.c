@@ -271,9 +271,9 @@ static inline void sbnode_cpyData(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphB
 ZRMUSTINLINE
 static inline void sbnode_add(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode, void *nodeData)
 {
-	ZRVector *const childs = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphBuilderNode*), sbuilder->allocator);
-	ZRVector *const parents = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_SIZE_ALIGNMENT(VectorParents_item), sbuilder->allocator);
-	ZRVector *const echilds = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZROBJALIGNINFOS_SIZE_ALIGNMENT(sbuilder->edgeObjInfos), sbuilder->allocator);
+	ZRVector *const childs = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), sbuilder->allocator);
+	ZRVector *const parents = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(VectorParents_item), sbuilder->allocator);
+	ZRVector *const echilds = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(sbuilder->edgeObjInfos), sbuilder->allocator);
 	ZRVECTOR_ADD(sbuilder->pnodes, &sbnode);
 
 	*sbnode = (ZRSimpleGraphBuilderNode ) { //
@@ -470,7 +470,7 @@ static ZRGraph* fbuilder_new(ZRGraphBuilder *builder, void **nodes, size_t nbNod
 	{
 		// Key : size_t Value : *void
 		ZRMap *bnodesRef = ZRVectorMap_create(
-			ZRTYPE_SIZE_ALIGNMENT(size_t), ZRTYPE_SIZE_ALIGNMENT(void*),
+			ZRTYPE_OBJINFOS(size_t), ZRTYPE_OBJINFOS(void*),
 			zrfcmp_size_t, NULL, sbuilder->allocator,
 			ZRVectorMap_modeOrder
 			);
@@ -525,12 +525,12 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 	ZRAllocator *allocator
 	)
 {
-	ZRVector *const pnodes = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphBuilderNode*), allocator);
-	ZRVector *const pedges = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphEdge*), allocator);
+	ZRVector *const pnodes = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), allocator);
+	ZRVector *const pedges = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphEdge*), allocator);
 
-	ZRMemoryPool *const nodes = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphBuilderNode), allocator);
-	ZRMemoryPool *const nodeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_SIZE_ALIGNMENT(*nodeObjInfos), allocator);
-	ZRMemoryPool *const edgeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_SIZE_ALIGNMENT(*edgeObjInfos), allocator);
+	ZRMemoryPool *const nodes = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode), allocator);
+	ZRMemoryPool *const nodeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_CPYOBJINFOS(*nodeObjInfos), allocator);
+	ZRMemoryPool *const edgeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_CPYOBJINFOS(*edgeObjInfos), allocator);
 
 	*sbuilder = (ZRSimpleGraphBuilder ) { //
 		.graphBuilder = (ZRGraphBuilder ) { //

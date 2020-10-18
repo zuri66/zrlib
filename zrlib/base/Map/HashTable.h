@@ -21,12 +21,12 @@ void ZRHashTableInfos( //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fhash[], //
 	size_t nbfhash, //
-	ZRVector *table, //
-	ZRAllocator *allocator //
+	ZRVector *table
 	);
+void ZRHashTableInfos_allocator(void *infos_out, ZRAllocator *allocator);
 void ZRHashTableInfos_dereferenceKey(void *infos_out);
-
 void ZRHashTableInfos_staticStrategy(void *infos_out);
+void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp);
 
 void ZRHashTable_init(ZRMap *map, void *initInfos);
 ZRMap* ZRHashTable_new(void *initInfos);

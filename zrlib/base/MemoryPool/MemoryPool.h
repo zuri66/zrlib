@@ -7,6 +7,7 @@
 #define ZRMEMORYPOOL_H
 
 #include <zrlib/config.h>
+#include <zrlib/base/struct.h>
 
 #include <stdalign.h>
 #include <stddef.h>
@@ -22,8 +23,7 @@ typedef struct ZRMemoryPoolStrategyS ZRMemoryPoolStrategy;
 
 struct ZRMemoryPoolS
 {
-	size_t blockAlignment;
-	size_t blockSize;
+	ZRObjInfos blockInfos;
 	size_t nbBlocks;
 
 	/**
@@ -31,6 +31,11 @@ struct ZRMemoryPoolS
 	 */
 	ZRMemoryPoolStrategy *strategy;
 };
+
+#define ZRMPOOL_BLOCKINFOS(P) (P)->blockInfos
+#define ZRMPOOL_BLOCKSIZE(P) (P)->blockInfos.size
+#define ZRMPOOL_BLOCKALIGNMENT(P) (P)->blockInfos.alignment
+#define ZRMPOOL_NBBLOCKS(P) (P)->nbBlocks
 
 struct ZRMemoryPoolStrategyS
 {
@@ -48,18 +53,17 @@ struct ZRMemoryPoolStrategyS
 	 * Get a pointer to the begin of user MetaData.
 	 * The pointer may not be aligned to the alignof(T), T the type attempted by the user.
 	 */
-	void* (*fuserAreaMetaData)(ZRMemoryPool *pool, void *firstBlock);
+	void* (*fareaMetaData)(ZRMemoryPool *pool, void *firstBlock);
 };
 
 // ============================================================================
 
 ZRMUSTINLINE
-static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy)
+static inline void ZRMPOOL_INIT(ZRMemoryPool *pool, ZRObjInfos blockInfos, ZRMemoryPoolStrategy *strategy)
 {
 	*pool = (struct ZRMemoryPoolS)
 	{
-		.blockAlignment = blockAlignment,
-		.blockSize = blockSize,
+		.blockInfos = blockInfos,
 		.strategy = strategy,
 	};
 	strategy->finit(pool);
@@ -90,21 +94,9 @@ static inline size_t ZRMPOOL_AREANBBLOCKS(ZRMemoryPool *pool, void *firstBlock)
 }
 
 ZRMUSTINLINE
-static inline void* ZRMPOOL_USERAREAMETADATA(ZRMemoryPool *pool, void *firstBlock)
+static inline void* ZRMPOOL_AREAMETADATA(ZRMemoryPool *pool, void *firstBlock)
 {
-	return pool->strategy->fuserAreaMetaData(pool, firstBlock);
-}
-
-ZRMUSTINLINE
-static inline size_t ZRMPOOL_NBBLOCKS(ZRMemoryPool *pool)
-{
-	return pool->nbBlocks;
-}
-
-ZRMUSTINLINE
-static inline size_t ZRMPOOL_BLOCKSIZE(ZRMemoryPool *pool)
-{
-	return pool->blockSize;
+	return pool->strategy->fareaMetaData(pool, firstBlock);
 }
 
 ZRMUSTINLINE
@@ -133,21 +125,23 @@ static inline void* ZRMPOOL_RELEASE_NB(ZRMemoryPool *pool, void *firstBlock, siz
 
 // ============================================================================
 
-void ZRMPool_init(ZRMemoryPool *pool, size_t blockSize, size_t blockAlignment, ZRMemoryPoolStrategy *strategy);
+void ZRMPool_init(ZRMemoryPool *pool, ZRObjInfos blockInfos, ZRMemoryPoolStrategy *strategy);
 void ZRMPool_done(ZRMemoryPool *pool);
 void ZRMPool_destroy(ZRMemoryPool *pool);
 void ZRMPool_clean(ZRMemoryPool *pool);
 
-size_t ZRMPool_nbBlocks(_ ZRMemoryPool *pool);
+size_t ZRMPool_nbBlocks(ZRMemoryPool *pool);
 size_t ZRMPool_areaNbBlocks(ZRMemoryPool *pool, void *firstBlock);
-size_t ZRMPool_blockSize(ZRMemoryPool *pool);
+void* ZRMPool_areaMetaData(ZRMemoryPool *pool, void *firstBlock);
 
-void* ZRMPool_userMetaData(ZRMemoryPool *pool, void *firstBlock);
+ZRObjInfos ZRMPool_blockInfos(ZRMemoryPool *pool);
+size_t ZRMPool_blockSize(ZRMemoryPool *pool);
+size_t ZRMPool_blockAlignment(ZRMemoryPool *pool);
 
 void* ZRMPool_reserve(__ ZRMemoryPool *pool);
 void* ZRMPool_reserve_nb(ZRMemoryPool *pool, size_t nb);
 
-void ZRMPool_releaseArea(ZRMemoryPool *pool, void *firstBlock);
+void ZRMPool_release(ZRMemoryPool *pool, void *firstBlock);
 void* ZRMPool_release_nb(ZRMemoryPool *pool, void *firstBlock, size_t nb);
 
 #endif

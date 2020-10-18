@@ -15,6 +15,11 @@
 typedef size_t ZRID;
 #define ZRID_ABSENT SIZE_MAX
 
+typedef struct
+{
+	alignas(max_align_t) char buffer[2048];
+} ZRInitInfos_t[1];
+
 typedef size_t (*zrfhash)(void *a);
 typedef size_t (*zrfuhash)(void *a, void *data);
 
@@ -23,6 +28,9 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 
 #define ZRPTYPE_CPY(a,b) memcpy((a), (b), sizeof(*a))
 #define ZRPTYPE_0(a) memset((a), 0, sizeof(*a))
+#define ZRPTYPE_OBJECTP(a) ZROBJECTP_DEF( ZROBJINFOS_DEF(alignof(*a), sizeof(*a)), a)
+
+#define ZRSTRING_OBJECTP(S) ZROBJECTP_DEF( ZROBJINFOS_DEF(alignof(char), strlen(S) + 1), S )
 
 #define ZRTYPE_SIZE_ALIGNMENT(T) sizeof(T), __alignof(T)
 #define ZRTYPE_ALIGNMENT_SIZE(T) __alignof(T), sizeof(T)
@@ -31,7 +39,7 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRTYPE_OBJALIGNINFOS(T) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T))
 #define ZRTYPENB_OBJALIGNINFOS(T,NB) ZROBJALIGNINFOS_DEF(0, __alignof(T), sizeof(T) * (NB))
 
-#define ZRSIZE_UNKNOW SIZE_MAX
+#define ZRSIZE_UNKNOWN SIZE_MAX
 #define ZRTOSTRING(V) #V
 
 #define ZRCONCAT(A,B) ZRCONCAT_(A,B)
