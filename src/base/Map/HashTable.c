@@ -646,8 +646,7 @@ void ZRHashTableInfos( //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
 	size_t nbfhash, //
-	ZRVector *table, //
-	ZRAllocator *allocator //
+	ZRVector *table
 	)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
@@ -662,11 +661,17 @@ void ZRHashTableInfos( //
 		.fuhash = fuhash,
 		.nbfhash = nbfhash,
 		.table = table,
-		.allocator = allocator,
+		.allocator = NULL,
 		.fucmp = default_fucmp,
 		.default_fuhash = default_fuhash,
 		};
 	bucketInfos(initInfos->bucketInfos, key, obj);
+}
+
+void ZRHashTableInfos_allocator(void *infos_out, ZRAllocator *allocator)
+{
+	ZRHashTableInitInfos *initInfos = infos_out;
+	initInfos->allocator = allocator;
 }
 
 void ZRHashTableInfos_dereferenceKey(void *infos_out)
@@ -753,12 +758,19 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 	if (initInfos->staticStrategy)
 		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
 
+	ZRAllocator *allocator;
+
+	if (initInfos->allocator == NULL)
+		allocator = zrlib_getServiceFromID(ZRSERVICE_ID(ZRService_allocator)).object;
+	else
+		allocator = initInfos->allocator;
+
 	*htable = (ZRHashTable ) { //
 		.fhashPos = initInfos->dereferenceKey ? ptr_hashPos : hashPos,
 		.fcmp = initInfos->dereferenceKey ? ptr_cmp : cmp,
 		.fuhash = (zrfuhash*)((char*)htable + initInfos->infos[ZRHashTableStructInfos_fhash].offset),
 		.nbfhash = initInfos->nbfhash,
-		.allocator = initInfos->allocator,
+		.allocator = allocator,
 		.staticStrategy = initInfos->staticStrategy,
 		.fucmp = initInfos->fucmp,
 		.table = (ZRArray ) { //
@@ -807,6 +819,7 @@ ZRMap* ZRHashTable_create(
 	)
 {
 	ZRHashTableInitInfos initInfos;
-	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash, table, allocator);
+	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash, table);
+	ZRHashTableInfos_allocator(&initInfos, allocator);
 	return ZRHashTable_new(&initInfos);
 }
