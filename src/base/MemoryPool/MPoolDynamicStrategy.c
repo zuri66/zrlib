@@ -122,7 +122,7 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 	ZRMPoolReserveInfos(bufferInfos, ZROBJINFOS_DEF(alignof(max_align_t), ZRMPOOL_BLOCKSIZE(pool)), nbBlocksToAlloc, dspool->allocator);
 	ZRMPoolReserveInfos_areaMetaData(bufferInfos, &areaMetaDataInfos);
 
-	if(dspool->staticStrategy)
+	if (dspool->staticStrategy)
 		ZRMPoolReserveInfos_staticStrategy(bufferInfos);
 
 	bucket.pool = ZRMPoolReserve_new(bufferInfos);
@@ -292,11 +292,11 @@ void fdone(ZRMemoryPool *pool)
 static ZRVector* fcreateBuckets(ZRMemoryPool *pool)
 {
 	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
-	alignas(max_align_t) char buffer[2048];
-	ZRVector2SideStrategyInfos(buffer,
-	INITIAL_BUCKETS_SPACE, INITIAL_BUCKETS_SPACE,
-		ZRTYPE_SIZE_ALIGNMENT(ZRMPoolDS_bucket), dspool->allocator, false
-		);
+	alignas(max_align_t) char buffer[ZRVector2SideStrategyInfos_objInfos().size];
+
+	ZRVector2SideStrategyInfos(buffer, ZRTYPE_OBJINFOS(ZRMPoolDS_bucket));
+	ZRVector2SideStrategyInfos_initialArraySize(buffer, INITIAL_BUCKETS_SPACE);
+	ZRVector2SideStrategyInfos_allocator(buffer, dspool->allocator);
 
 	if (dspool->staticStrategy)
 		ZRVector2SideStrategyInfos_staticStrategy(buffer);

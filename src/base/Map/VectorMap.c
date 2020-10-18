@@ -476,7 +476,7 @@ void ZRVectorMap_init(ZRMap *map, void *infos_p)
 		strategy = zrlib_internPType(&ref);
 
 	if (infos->vector == NULL)
-		vector = ZRVector2SideStrategy_createDynamic(1024, bucketInfos[BucketInfos_struct].size, bucketInfos[BucketInfos_struct].alignment, infos->allocator);
+		vector = ZRVector2SideStrategy_createDynamic(1024, ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]), infos->allocator);
 	else
 	{
 		vector = infos->vector;

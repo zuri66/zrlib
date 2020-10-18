@@ -51,7 +51,7 @@ void sbnode_add(ZRSimpleTreeBuilder *sbuilder, ZRSimpleTreeBuilderNode *sbnode, 
 			.obj = sbnode->obj,
 			},
 		.parent = parent,
-		.childs = ZRVector2SideStrategy_createDynamic(128, ZRSTREEBUILDER_NODESIZE(sbuilder), alignof(ZRSimpleTreeBuilderNode), sbuilder->allocator),
+		.childs = ZRVector2SideStrategy_createDynamic(128, ZROBJINFOS_DEF(alignof(ZRSimpleTreeBuilderNode), ZRSTREEBUILDER_NODESIZE(sbuilder)), sbuilder->allocator),
 		.edgeObj = ZRARRAYOP_GET(sbnode->obj, sbuilder->nodeObjSize, 1),
 		};
 	sbnode_cpyData(sbuilder, sbnode, nodeData, edgeData);

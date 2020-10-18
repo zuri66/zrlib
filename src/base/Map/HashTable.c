@@ -612,7 +612,8 @@ typedef struct
 
 static void tableInitInfos(void *tableInfos_out, ZRHashTableInitInfos *initInfos)
 {
-	ZRVector2SideStrategyInfos_dynamic(tableInfos_out, 1024, 1024, ZROBJALIGNINFOS_SIZE_ALIGNMENT(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]), initInfos->allocator);
+	ZRVector2SideStrategyInfos(tableInfos_out, ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]));
+	ZRVector2SideStrategyInfos_allocator(tableInfos_out, initInfos->allocator);
 }
 
 static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfos *tableInfos, bool staticStrategy)
@@ -743,7 +744,11 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 	hashTableStructInfos_validate(initInfos);
 
 	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyInfos_objInfos().size];
-	ZRVector2SideStrategyInfos(vector_initInfos, DEFAULT_CAPACITY, DEFAULT_CAPACITY * 2, ZRTYPE_SIZE_ALIGNMENT(size_t), initInfos->allocator, false);
+	size_t const vectorCapacity = DEFAULT_CAPACITY;
+	ZRVector2SideStrategyInfos(vector_initInfos, ZRTYPE_OBJINFOS(size_t));
+	ZRVector2SideStrategyInfos_initialArraySize(vector_initInfos, vectorCapacity);
+	ZRVector2SideStrategyInfos_initialMemorySize(vector_initInfos, vectorCapacity * 3);
+	ZRVector2SideStrategyInfos_allocator(vector_initInfos, initInfos->allocator);
 
 	if (initInfos->staticStrategy)
 		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
