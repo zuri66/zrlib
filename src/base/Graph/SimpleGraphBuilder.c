@@ -528,9 +528,9 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 	ZRVector *const pnodes = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), allocator);
 	ZRVector *const pedges = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphEdge*), allocator);
 
-	ZRMemoryPool *const nodes = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZRTYPE_SIZE_ALIGNMENT(ZRSimpleGraphBuilderNode), allocator);
-	ZRMemoryPool *const nodeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_SIZE_ALIGNMENT(*nodeObjInfos), allocator);
-	ZRMemoryPool *const edgeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_SIZE_ALIGNMENT(*edgeObjInfos), allocator);
+	ZRMemoryPool *const nodes = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode), allocator);
+	ZRMemoryPool *const nodeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_CPYOBJINFOS(*nodeObjInfos), allocator);
+	ZRMemoryPool *const edgeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_CPYOBJINFOS(*edgeObjInfos), allocator);
 
 	*sbuilder = (ZRSimpleGraphBuilder ) { //
 		.graphBuilder = (ZRGraphBuilder ) { //

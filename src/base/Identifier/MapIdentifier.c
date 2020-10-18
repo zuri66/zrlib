@@ -521,7 +521,8 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	}
 	/* Pool init */
 	{
-		ZRMPoolDSInfos(infoBuffer, objInfos, initInfos->allocator);
+		ZRMPoolDSInfos(infoBuffer, objInfos);
+		ZRMPoolDSInfos_allocator(infoBuffer, initInfos->allocator);
 
 		if (initInfos->staticStrategy)
 			ZRMPoolDSInfos_staticStrategy(infoBuffer);
