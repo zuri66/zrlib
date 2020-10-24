@@ -134,9 +134,6 @@ static void fdelete(ZRVector *vec, size_t pos, size_t nb);
 static void finsertGrow(ZRVector *vec, size_t pos, size_t nb);
 static void fdeleteShrink(ZRVector *vec, size_t pos, size_t nb);
 
-static void ZRVector2SideStrategy_growOnAdd(ZRVectorStrategy *strategy, bool v);
-static void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v);
-
 static inline void moreSize(ZRVector *vec, size_t nbObjMore);
 static inline void setFUEOSpaces(ZR2SSVector *svector, void *fspace, size_t fspaceNbObj, void *source, size_t sourceNbObj);
 
@@ -407,34 +404,6 @@ static void finitVec(ZRVector *vec)
 static void fchangeObjSize(ZRVector *vector, ZRObjInfos objInfos)
 {
 	_fchangeObjSize(vector, objInfos, setFUEOSpaces, moreSize);
-}
-
-static
-void ZRVector2SideStrategy_fixedMemory(ZRVectorStrategy *strategy)
-{
-	ZRVector2SideStrategy_growOnAdd(strategy, false);
-	ZRVector2SideStrategy_shrinkOnDelete(strategy, false);
-}
-
-static
-void ZRVector2SideStrategy_dynamicMemory(ZRVectorStrategy *strategy)
-{
-	ZRVector2SideStrategy_growOnAdd(strategy, true);
-	ZRVector2SideStrategy_shrinkOnDelete(strategy, true);
-}
-
-static
-void ZRVector2SideStrategy_growOnAdd(ZRVectorStrategy *strategy, bool v)
-{
-	ZRVector2SideStrategy *twoSideStrategy = (ZRVector2SideStrategy*)strategy;
-	twoSideStrategy->strategy.finsert = v ? finsertGrow : finsert;
-}
-
-static
-void ZRVector2SideStrategy_shrinkOnDelete(ZRVectorStrategy *strategy, bool v)
-{
-	ZRVector2SideStrategy *twoSideStrategy = (ZRVector2SideStrategy*)strategy;
-	twoSideStrategy->strategy.fdelete = v ? fdeleteShrink : fdelete;
 }
 
 void ZRVector2SideStrategy_growStrategy(ZRVector *vec, zrflimit fupLimit, zrfincrease fincrease)
