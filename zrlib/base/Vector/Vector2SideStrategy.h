@@ -32,6 +32,7 @@ void ZRVector2SideStrategyInfos_allocator(void *infos_out, ZRAllocator *allocato
 void ZRVector2SideStrategyInfos_initialArraySize(void *infos_out, size_t size);
 void ZRVector2SideStrategyInfos_initialMemorySize(void *infos_out, size_t size);
 void ZRVector2SideStrategyInfos_fixedArray(void *infos_out);
+void ZRVector2SideStrategyInfos_oneSide(void *infos_out);
 
 /**
  * The strategy object is store inside the vector object
