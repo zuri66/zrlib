@@ -70,6 +70,7 @@ static void VectorMapInfos_make(ZRObjAlignInfos *infos, bool staticStrategy)
 	infos[VectorMapInfos_base] = ZRTYPE_OBJALIGNINFOS(ZRVectorMap);
 	infos[VectorMapInfos_strategy] = staticStrategy ? ZRTYPE_OBJALIGNINFOS(ZRVectorMapStrategy) : ZROBJALIGNINFOS_DEF0();
 	infos[VectorMapInfos_struct] = ZROBJALIGNINFOS_DEF0();
+	ZRStruct_bestOffsetsPos(VECTORMAPINFOS_NB - 1, infos, 1);
 }
 
 static void bucketInfos_make(ZRObjAlignInfos *out, ZRObjInfos objInfos, ZRObjInfos keyInfos)
@@ -428,6 +429,7 @@ void ZRVectorMapInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
 		.fucmp = default_cmp,
 		.mode = ZRVectorMap_modeOrder,
 		};
+	ZRVectorMapInfos_validate(infos);
 }
 
 void ZRVectorMapInfos_fucmp(void *infos_out, zrfucmp fucmp, enum ZRVectorMap_modeE mode)
@@ -507,7 +509,7 @@ ZRMap* ZRVectorMap_new(void *infos_p)
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->changefdestroy = 1;
 
-	ZRVectorMap *vmap = ZRALLOC(infos->allocator, sizeof(ZRVectorMap));
+	ZRVectorMap *vmap = ZRALLOC(infos->allocator, infos->infos[VectorMapInfos_struct].size);
 	ZRVectorMap_init(ZRVMAP_MAP(vmap), infos);
 
 	infos->changefdestroy = 0;
