@@ -13,14 +13,13 @@
 
 #include <stdbool.h>
 
-// ============================================================================
-// STRATEGY
+/* ========================================================================= */
+/* STRATEGY */
 
 void ZRVector2SideStrategy_growStrategy(_ ZRVector *vec, zrflimit fupLimit, _ zrfincrease fincrease);
 void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrflimit fdownLimit, zrfdecrease fdecrease);
 
-// ============================================================================
-// HELPERS
+/* ========================================================================= */
 
 /**
  * The ObjInfos of the information object for initialization of the vector.
@@ -47,10 +46,19 @@ ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos);
 void ZRVector2SideStrategy_init(ZRVector *vector, void *infos);
 ZRVector* ZRVector2SideStrategy_new(void *infos);
 
-void ZRVector2SideStrategyInfos_fixed(_ void *infos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
-void ZRVector2SideStrategyInfos_dynamic(void *infos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
 
-ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
-ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
+/* HELPERS */
+
+#define ZRVector2SideStrategy_(prefix, ...) ZRCONCAT(ZRVector2SideStrategy_ ## prefix ## _, ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
+#define ZRVector2SideStrategy_createFixed(...)   ZRVector2SideStrategy_(createFixed, __VA_ARGS__)
+#define ZRVector2SideStrategy_createDynamic(...) ZRVector2SideStrategy_(createDynamic, __VA_ARGS__)
+
+ZRVector* ZRVector2SideStrategy_createFixed_1(ZRObjInfos objInfos);
+ZRVector* ZRVector2SideStrategy_createFixed_2(ZRObjInfos objInfos, size_t capacity);
+ZRVector* ZRVector2SideStrategy_createFixed_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator);
+
+ZRVector* ZRVector2SideStrategy_createDynamic_1(ZRObjInfos objInfos);
+ZRVector* ZRVector2SideStrategy_createDynamic_2(ZRObjInfos objInfos, size_t capacity);
+ZRVector* ZRVector2SideStrategy_createDynamic_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator);
 
 #endif

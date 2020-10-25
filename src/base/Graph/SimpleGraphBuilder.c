@@ -271,9 +271,9 @@ static inline void sbnode_cpyData(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphB
 ZRMUSTINLINE
 static inline void sbnode_add(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGraphBuilderNode *sbnode, void *nodeData)
 {
-	ZRVector *const childs = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), sbuilder->allocator);
-	ZRVector *const parents = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(VectorParents_item), sbuilder->allocator);
-	ZRVector *const echilds = ZRVector2SideStrategy_createDynamic(INITIAL_VECTOR_SIZE, ZRTYPE_OBJINFOS(sbuilder->edgeObjInfos), sbuilder->allocator);
+	ZRVector *const childs = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), INITIAL_VECTOR_SIZE, sbuilder->allocator);
+	ZRVector *const parents = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(VectorParents_item), INITIAL_VECTOR_SIZE, sbuilder->allocator);
+	ZRVector *const echilds = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(sbuilder->edgeObjInfos), INITIAL_VECTOR_SIZE, sbuilder->allocator);
 	ZRVECTOR_ADD(sbuilder->pnodes, &sbnode);
 
 	*sbnode = (ZRSimpleGraphBuilderNode ) { //
@@ -525,8 +525,8 @@ static void ZRSimpleGraphBuilder_init(ZRSimpleGraphBuilder *sbuilder, ZRSimpleGr
 	ZRAllocator *allocator
 	)
 {
-	ZRVector *const pnodes = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), allocator);
-	ZRVector *const pedges = ZRVector2SideStrategy_createDynamic(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphEdge*), allocator);
+	ZRVector *const pnodes = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode*), INITIAL_NB_NODES, allocator);
+	ZRVector *const pedges = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(ZRSimpleGraphEdge*), INITIAL_NB_NODES, allocator);
 
 	ZRMemoryPool *const nodes = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZRTYPE_OBJINFOS(ZRSimpleGraphBuilderNode), allocator);
 	ZRMemoryPool *const nodeObjs = ZRMPoolDS_createBS(INITIAL_NB_NODES, ZROBJALIGNINFOS_CPYOBJINFOS(*nodeObjInfos), allocator);

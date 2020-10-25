@@ -480,7 +480,7 @@ void ZRVectorMap_init(ZRMap *map, void *infos_p)
 		strategy = zrlib_internPType(&ref);
 
 	if (infos->vector == NULL)
-		vector = ZRVector2SideStrategy_createDynamic(1024, ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]), infos->allocator);
+		vector = ZRVector2SideStrategy_createDynamic(ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]), 1024, infos->allocator);
 	else
 	{
 		vector = infos->vector;
