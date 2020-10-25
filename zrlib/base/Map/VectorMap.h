@@ -23,6 +23,9 @@ void ZRVectorMapInfos_allocator(void *infos, ZRAllocator *allocator);
 void ZRVectorMapInfos_fucmp(void *infos, zrfucmp fucmp, enum ZRVectorMap_modeE mode);
 
 ZRObjInfos ZRVectorMap_objInfos(void *infos);
+/* Infos of the item store in the vector */
+ZRObjInfos ZRVectorMap_itemObjInfos(void *infos);
+
 void ZRVectorMap_init(ZRMap *map, void *infos);
 ZRMap* ZRVectorMap_new(void *infos);
 

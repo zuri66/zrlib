@@ -418,6 +418,14 @@ ZRObjInfos ZRVectorMapInfos_objInfos(void)
 	return ZRTYPE_OBJINFOS(VectorMapInitInfos);
 }
 
+ZRObjInfos ZRVectorMap_itemObjInfos(void *infos_p)
+{
+	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	ZRObjAlignInfos bucketInfos[BUCKETINFOS_NB];
+	bucketInfos_make(bucketInfos, infos->keyInfos, infos->objInfos);
+	return ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]);
+}
+
 void ZRVectorMapInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_out;
