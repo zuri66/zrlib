@@ -753,6 +753,13 @@ void ZRVector2SideStrategyInfos(void *infos_out, ZRObjInfos objInfos)
 	ZRVector2SideStrategyInfos_validate(initInfos);
 }
 
+void ZRVector2SideStrategyInfos_setObjInfos(void *infos_out, ZRObjInfos objInfos)
+{
+	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
+	initInfos->objInfos = objInfos;
+	ZRVector2SideStrategyInfos_validate(initInfos);
+}
+
 void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
