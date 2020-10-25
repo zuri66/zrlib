@@ -461,6 +461,20 @@ void ZRVectorMapInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
 	ZRVectorMapInfos_validate(infos);
 }
 
+void ZRVectorMapInfos_keyInfos(void *infos_p, ZRObjInfos keyInfos)
+{
+	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	infos->keyInfos = keyInfos;
+	ZRVectorMapInfos_validate(infos);
+}
+
+void ZRVectorMapInfos_setObjInfos(void *infos_p, ZRObjInfos objInfos)
+{
+	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	infos->objInfos = objInfos;
+	ZRVectorMapInfos_validate(infos);
+}
+
 void ZRVectorMapInfos_fucmp(void *infos_out, zrfucmp fucmp, enum ZRVectorMap_modeE mode)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_out;

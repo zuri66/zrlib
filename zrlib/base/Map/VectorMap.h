@@ -18,6 +18,8 @@ enum ZRVectorMap_modeE
 ZRObjInfos ZRVectorMapInfos_objInfos(void);
 
 void ZRVectorMapInfos(void *infos, ZRObjInfos keyInfos, ZRObjInfos objInfos);
+void ZRVectorMapInfos_keyInfos(void *infos, ZRObjInfos keyInfos);
+void ZRVectorMapInfos_setObjInfos(void *infos, ZRObjInfos objInfos);
 void ZRVectorMapInfos_staticStrategy(void *infos);
 void ZRVectorMapInfos_allocator(void *infos, ZRAllocator *allocator);
 void ZRVectorMapInfos_fucmp(void *infos, zrfucmp fucmp, enum ZRVectorMap_modeE mode);
