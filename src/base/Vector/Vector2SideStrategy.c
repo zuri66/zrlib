@@ -102,6 +102,9 @@ static void getVectorInfos(ZRObjAlignInfos *out, size_t initialArrayNbObj, size_
 {
 	initialArrayNbObj = checkInitialNbObj(initialArrayNbObj);
 
+	if(objSize < objAlignment)
+		objSize = objAlignment;
+
 	out[ZRVectorInfos_base] = (ZRObjAlignInfos ) { 0, ZRTYPE_ALIGNMENT_SIZE(ZR2SSVector) };
 	out[ZRVectorInfos_objs] = (ZRObjAlignInfos ) { 0, objAlignment, objSize * initialArrayNbObj };
 	out[ZRVectorInfos_strategy] = staticStrategy ? (ZRObjAlignInfos ) { 0, ZRTYPE_ALIGNMENT_SIZE(ZRVector2SideStrategy) } : (ZRObjAlignInfos ) { };

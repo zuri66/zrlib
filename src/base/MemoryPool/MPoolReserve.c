@@ -264,9 +264,13 @@ ZRMUSTINLINE
 static inline void ZRMPoolRChunkInfos_make(ZRObjAlignInfos *out, size_t blockSize, size_t blockAlignment, size_t nbObj, size_t *nbChunks_out)
 {
 	size_t const nbChunks = nbObj / 2 + 1;
+
+	if (blockSize < blockAlignment)
+		blockSize = blockAlignment;
+
 	out[ZRMPoolRChunkInfos_base] = ZRTYPE_OBJALIGNINFOS(ZRMPoolRChunk);
 	out[ZRMPoolRChunkInfos_chunk] = ZRTYPENB_OBJALIGNINFOS(ZRReserveMemoryChunk, nbChunks);
-	out[ZRMPoolRChunkInfos_reserve] = (ZRObjAlignInfos ) { 0, blockAlignment, blockSize * nbObj };
+	out[ZRMPoolRChunkInfos_reserve] = ZROBJALIGNINFOS_DEF_AS(blockAlignment, blockSize * nbObj);
 	out[ZRMPoolRChunkInfos_strategy] = ZRTYPE_OBJALIGNINFOS(ZRMPoolReserveStrategy);
 	out[ZRMPoolRChunkInfos_struct] = ZROBJALIGNINFOS_DEF0();
 	ZRStruct_bestOffsetsPos(ZRMPOOLRCHUNKINFOS_NB - 1, out, 1);
@@ -382,6 +386,9 @@ struct ZRMPoolRListS
 ZRMUSTINLINE
 static inline void ZRMPoolRListInfos_make(ZRObjAlignInfos *out, size_t blockSize, size_t blockAlignment, size_t nbObj)
 {
+	if (blockSize < blockAlignment)
+		blockSize = blockAlignment;
+
 	out[ZRMPoolRListInfos_base] = ZRTYPE_OBJALIGNINFOS(ZRMPoolRList);
 	out[ZRMPoolRListInfos_nextUnused] = ZRTYPENB_OBJALIGNINFOS(ZRReserveNextUnused, nbObj);
 	out[ZRMPoolRListInfos_reserve] = ZROBJALIGNINFOS_DEF_AS(blockAlignment, blockSize * nbObj);
@@ -496,6 +503,10 @@ ZRMUSTINLINE
 static inline void ZRMPoolRBitsInfos_make(ZRObjAlignInfos *out, size_t blockSize, size_t blockAlignment, size_t nbObj, size_t *nbZRBits_out)
 {
 	size_t const nbZRBits = nbObj / ZRBITS_NBOF + ((nbObj % ZRBITS_NBOF) ? 1 : 0);
+
+	if (blockSize < blockAlignment)
+		blockSize = blockAlignment;
+
 	out[ZRMPoolRBitsInfos_base] = ZRTYPE_OBJALIGNINFOS(ZRMPoolRBits);
 	out[ZRMPoolRBitsInfos_bits] = ZRTYPENB_OBJALIGNINFOS(ZRBits, nbZRBits);
 	out[ZRMPoolRBitsInfos_reserve] = ZROBJALIGNINFOS_DEF_AS(blockAlignment, blockSize * nbObj);
