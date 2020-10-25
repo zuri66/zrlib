@@ -10,7 +10,6 @@
 #include <zrlib/base/Map/HashTable.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
-#include <zrlib/base/ResizeOp.h>
 
 #include <stdalign.h>
 #include <stdint.h>
@@ -244,6 +243,18 @@ static inline void lessSize(ZRHashTable *htable)
 }
 
 // ============================================================================
+
+void ZRHashTable_growStrategy(ZRMap *map, zrflimit fupLimit, zrfincrease fincrease)
+{
+	ZRHashTable *htable = ZRHASHTABLE(map);
+	htable->resizeData.growStrategy = (ZRResizeGrowStrategy ) { fupLimit, fincrease };
+}
+
+void ZRHashTable_shrinkStrategy(ZRMap *map, zrflimit fdownLimit, zrfdecrease fdecrease)
+{
+	ZRHashTable *htable = ZRHASHTABLE(map);
+	htable->resizeData.shrinkStrategy = (ZRResizeShrinkStrategy ) { fdownLimit, fdecrease };
+}
 
 static void finitMap(ZRMap *map)
 {

@@ -7,11 +7,15 @@
 #define ZRHASHTABLE_H
 
 #include <zrlib/base/Allocator/Allocator.h>
+#include <zrlib/base/ResizeOp.h>
 #include <zrlib/base/Map/Map.h>
 #include <zrlib/base/Vector/Vector.h>
 #include <zrlib/base/struct.h>
 
 // ============================================================================
+
+void ZRHashTable_growStrategy(ZRMap *map, zrflimit fupLimit, zrfincrease fincrease);
+void ZRHashTable_shrinkStrategy(ZRMap *map, zrflimit fdownLimit, zrfdecrease fdecrease);
 
 ZRObjInfos ZRHashTableInfos_objInfos(void);
 ZRObjInfos ZRHashTable_objInfos(void *infos);
