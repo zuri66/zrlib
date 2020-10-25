@@ -43,12 +43,14 @@ struct ZRVectorMapS
 
 	zrfucmp fucmp;
 	unsigned staticStrategy :1;
+	unsigned destroyVector :1;
 };
 
 typedef enum
 {
 	VectorMapInfos_base = 0,
 	VectorMapInfos_strategy,
+	VectorMapInfos_vector,
 	VectorMapInfos_struct,
 	VECTORMAPINFOS_NB,
 } VectorMapInfos;
@@ -65,10 +67,11 @@ enum InsertModeE
 #define bucket_obj(VMAP,BUCKET) bucket_get(VMAP,BUCKET,BucketInfos_obj)
 #define bucket_nextUnused(VMAP,BUCKET) (*(ZRReserveNextUnused*)bucket_get(VMAP,BUCKET,ZRVectorMapInfos_nextUnused))
 
-static void VectorMapInfos_make(ZRObjAlignInfos *infos, bool staticStrategy)
+static void VectorMapInfos_make(ZRObjAlignInfos *infos, bool staticStrategy, ZRObjInfos vectorInfos_infos)
 {
 	infos[VectorMapInfos_base] = ZRTYPE_OBJALIGNINFOS(ZRVectorMap);
 	infos[VectorMapInfos_strategy] = staticStrategy ? ZRTYPE_OBJALIGNINFOS(ZRVectorMapStrategy) : ZROBJALIGNINFOS_DEF0();
+	infos[VectorMapInfos_vector] = ZROBJINFOS_CPYOBJALIGNINFOS(vectorInfos_infos);
 	infos[VectorMapInfos_struct] = ZROBJALIGNINFOS_DEF0();
 	ZRStruct_bestOffsetsPos(VECTORMAPINFOS_NB - 1, infos, 1);
 }
@@ -90,7 +93,9 @@ static void finitMap(ZRMap *map)
 static void fdone(ZRMap *map)
 {
 	ZRVectorMap *const vmap = ZRVMAP(map);
-	ZRVector_destroy(vmap->vector);
+
+	if (vmap->destroyVector)
+		ZRVector_destroy(vmap->vector);
 }
 
 static int bucketCmp(void *a, void *b, void *vmap_p)
@@ -354,8 +359,17 @@ typedef struct
 {
 	ZRObjAlignInfos infos[VECTORMAPINFOS_NB];
 	ZRAllocator *allocator;
-	ZRVector *vector;
 
+	union
+	{
+		ZRVector *vector;
+		struct
+		{
+			void *vectorInfos;
+			ZRObjInfos vector_infos;
+			void (*fvectorInit)(ZRVector*, void*);
+		};
+	};
 	ZRObjInfos keyInfos;
 	ZRObjInfos objInfos;
 
@@ -364,6 +378,8 @@ typedef struct
 
 	unsigned staticStrategy :1;
 	unsigned changefdestroy :1;
+	unsigned staticVector :1;
+	unsigned destroyVector :1;
 } VectorMapInitInfos;
 
 static void ZRVectorMapStrategy_init(ZRVectorMapStrategy *strategy, VectorMapInitInfos *infos)
@@ -408,9 +424,14 @@ static void ZRVectorMapStrategy_init(ZRVectorMapStrategy *strategy, VectorMapIni
 
 }
 
+static ZRObjInfos vectorInfos(VectorMapInitInfos *infos)
+{
+	return infos->staticVector ? infos->vector_infos : ZROBJINFOS_DEF0();
+}
+
 static void ZRVectorMapInfos_validate(VectorMapInitInfos *infos)
 {
-	VectorMapInfos_make(infos->infos, infos->staticStrategy);
+	VectorMapInfos_make(infos->infos, infos->staticStrategy, vectorInfos(infos));
 }
 
 ZRObjInfos ZRVectorMapInfos_objInfos(void)
@@ -470,8 +491,29 @@ ZRObjInfos ZRVectorMap_objInfos(void *infos_p)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(infos->infos[VectorMapInfos_struct]);
 }
 
+void ZRVectorMapInfos_vector(void *infos_p, ZRVector *vector, bool destroyVector)
+{
+	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	infos->vector = vector;
+	infos->destroyVector = vector == NULL ? false : destroyVector;
+	infos->staticVector = false;
+	ZRVectorMapInfos_validate(infos);
+}
+
+void ZRVectorMapInfos_staticVector(void *infos_p, void *vectorInfos, ZRObjInfos vector_infos, void (*finit)(ZRVector*, void*))
+{
+	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	infos->staticVector = true;
+	infos->destroyVector = true;
+	infos->vectorInfos = vectorInfos;
+	infos->vector_infos = vector_infos;
+	infos->fvectorInit = finit;
+	ZRVectorMapInfos_validate(infos);
+}
+
 void ZRVectorMap_init(ZRMap *map, void *infos_p)
 {
+	bool destroyVector;
 	ZRVectorMap *vmap = ZRVMAP(map);
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	ZRVector *vector;
@@ -489,12 +531,22 @@ void ZRVectorMap_init(ZRMap *map, void *infos_p)
 	else
 		strategy = zrlib_internPType(&ref);
 
-	if (infos->vector == NULL)
+	if (infos->staticVector)
+	{
+		vector = ZRARRAYOP_GET(vmap, 1, infos->infos[VectorMapInfos_vector].offset);
+		infos->fvectorInit(vector, infos->vectorInfos);
+		destroyVector = true;
+	}
+	else if (infos->vector == NULL)
+	{
+		destroyVector = true;
 		vector = ZRVector2SideStrategy_createDynamic(ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]), 1024, infos->allocator);
+	}
 	else
 	{
 		vector = infos->vector;
 		ZRVECTOR_CHANGEOBJSIZE(vector, ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]));
+		destroyVector = infos->destroyVector;
 	}
 	ZRAllocator *allocator;
 
@@ -507,6 +559,7 @@ void ZRVectorMap_init(ZRMap *map, void *infos_p)
 		.vector = vector,
 		.allocator = allocator,
 		.fucmp = infos->fucmp,
+		.destroyVector = destroyVector,
 		};
 	ZRCARRAY_CPY(vmap->bucketInfos, bucketInfos);
 	ZRMAP_INIT(ZRVMAP_MAP(vmap), infos->keyInfos, infos->objInfos, (ZRMapStrategy*)strategy);
