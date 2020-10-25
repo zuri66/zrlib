@@ -60,7 +60,7 @@ void zrlib_initCurrentThread(void)
 
 	ZRInitInfos_t bufferInfos;
 
-	ZRHashTableInfos(bufferInfos, ZRTYPE_OBJINFOS(ZRObjInfos), ZRTYPE_OBJINFOS(ZRIdentifier*), NULL, 0, NULL);
+	ZRHashTableInfos(bufferInfos, ZRTYPE_OBJINFOS(ZRObjInfos), ZRTYPE_OBJINFOS(ZRIdentifier*), NULL, 0);
 	ZRHashTableInfos_allocator(bufferInfos, &T_DATA.allocator);
 	ZRHashTableInfos_staticStrategy(bufferInfos);
 	T_DATA.identifiers = ZRHashTable_new(bufferInfos);

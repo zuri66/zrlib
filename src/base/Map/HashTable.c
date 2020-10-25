@@ -613,7 +613,6 @@ typedef struct
 	size_t nbfhash;
 
 	void *tableInitInfos;
-	ZRVector *table;
 	ZRAllocator *allocator;
 
 	unsigned staticStrategy :1;
@@ -656,8 +655,7 @@ void ZRHashTableInfos( //
 	void *infos_out, //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
-	size_t nbfhash, //
-	ZRVector *table
+	size_t nbfhash
 	)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
@@ -671,7 +669,6 @@ void ZRHashTableInfos( //
 		{ //
 		.fuhash = fuhash,
 		.nbfhash = nbfhash,
-		.table = table,
 		.allocator = NULL,
 		.fucmp = default_fucmp,
 		.default_fuhash = default_fuhash,
@@ -825,12 +822,11 @@ ZRMap* ZRHashTable_create(
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
 	size_t nbfhash, //
-	ZRVector *table, //
 	ZRAllocator *allocator //
 	)
 {
 	ZRHashTableInitInfos initInfos;
-	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash, table);
+	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash);
 	ZRHashTableInfos_allocator(&initInfos, allocator);
 	return ZRHashTable_new(&initInfos);
 }

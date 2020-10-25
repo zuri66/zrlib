@@ -24,8 +24,7 @@ void ZRHashTableInfos( //
 	void *infos_out, //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fhash[], //
-	size_t nbfhash, //
-	ZRVector *table
+	size_t nbfhash
 	);
 void ZRHashTableInfos_allocator(void *infos_out, ZRAllocator *allocator);
 void ZRHashTableInfos_dereferenceKey(void *infos_out);
@@ -39,7 +38,6 @@ ZRMap* ZRHashTable_create(
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fhash[], //
 	size_t nbfhash, //
-	ZRVector *table, //
 	ZRAllocator *allocator //
 	);
 
