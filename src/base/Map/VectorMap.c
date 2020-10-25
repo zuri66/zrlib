@@ -500,13 +500,18 @@ void ZRVectorMapInfos_vector(void *infos_p, ZRVector *vector, bool destroyVector
 	ZRVectorMapInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_staticVector(void *infos_p, void *vectorInfos, ZRObjInfos vector_infos, void (*finit)(ZRVector*, void*))
+void ZRVectorMapInfos_staticVector(void *infos_p, void *vectorInfos,
+	void (*fsetObjSize)(void*, ZRObjInfos),
+	ZRObjInfos (*finfos_objSize)(void*),
+	void (*finit)(ZRVector*, void*)
+	)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
+	fsetObjSize(vectorInfos, ZRVectorMap_itemObjInfos(infos));
 	infos->staticVector = true;
 	infos->destroyVector = true;
 	infos->vectorInfos = vectorInfos;
-	infos->vector_infos = vector_infos;
+	infos->vector_infos = finfos_objSize(vectorInfos);
 	infos->fvectorInit = finit;
 	ZRVectorMapInfos_validate(infos);
 }

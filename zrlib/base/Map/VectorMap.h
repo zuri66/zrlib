@@ -22,7 +22,11 @@ void ZRVectorMapInfos_staticStrategy(void *infos);
 void ZRVectorMapInfos_allocator(void *infos, ZRAllocator *allocator);
 void ZRVectorMapInfos_fucmp(void *infos, zrfucmp fucmp, enum ZRVectorMap_modeE mode);
 void ZRVectorMapInfos_vector(void *infos, ZRVector *vector, bool destroyVector);
-void ZRVectorMapInfos_staticVector(void *infos, void *vectorInfos, ZRObjInfos vector_infos, void (*finit)(ZRVector*, void*));
+void ZRVectorMapInfos_staticVector(void *infos, void *vectorInfos,
+	void (*fsetObjSize)(void*, ZRObjInfos),
+	ZRObjInfos (*finfos_objSize)(void*),
+	void (*finit)(ZRVector*, void*)
+	);
 
 ZRObjInfos ZRVectorMap_objInfos(void *infos);
 /* Infos of the item store in the vector */
