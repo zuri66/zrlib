@@ -26,6 +26,11 @@ typedef size_t (*zrfuhash)(void *a, void *data);
 typedef int (*zrfcmp)(void *a, void *b);
 typedef int (*zrfucmp)(void *a, void *b, void *data);
 
+#define ZRSWAP(type,a,b) ZRBLOCK( \
+	type _c; \
+	_c = a, a = b, b = _c; \
+)
+
 #define ZRPTYPE_CPY(a,b) memcpy((a), (b), sizeof(*a))
 #define ZRPTYPE_0(a) memset((a), 0, sizeof(*a))
 #define ZRPTYPE_OBJECTP(a) ZROBJECTP_DEF( ZROBJINFOS_DEF(alignof(*a), sizeof(*a)), a)
