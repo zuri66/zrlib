@@ -169,7 +169,42 @@ static inline ZRObjInfos ZROBJINFOS_UNION2(ZRObjInfos a, ZRObjInfos b)
 	return ZROBJINFOS_DEF(ZRALIGNMENT_UNION2_FLAGS(a.alignment, b.alignment, ZRSTRUCT_DEFAULT_FLAGS), ZRMAX(a.size, b.size));
 }
 
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION_FLAGS(ZRObjInfos *infos, size_t nb, unsigned flags)
+{
+	if (nb == 0)
+		return ZROBJINFOS_DEF_UNKNOWN();
+
+	ZRObjInfos ret = ZROBJINFOS_DEF(1, 0);
+
+	while (nb--)
+	{
+		ret = ZROBJINFOS_UNION2_FLAGS(*infos, ret, flags);
+		infos++;
+	}
+	return ret;
+}
+
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION(ZRObjInfos *infos, size_t nb)
+{
+	return ZROBJINFOS_UNION_FLAGS(infos, nb, ZRSTRUCT_DEFAULT_FLAGS);
+}
+
+#ifdef __GNUC__
+#define ZRObjInfos_union_flags_l(flags, ...) ({ \
+	ZRObjInfos ret; \
+	if(ZRMACRO_NARGS(__VA_ARGS__) > 10) { \
+		ZRObjInfos infos[] = { __VA_ARGS__ }; \
+		ret = ZROBJINFOS_UNION_FLAGS(infos, ZRMACRO_NARGS(__VA_ARGS__), flags); \
+	} \
+	else \
+		ret = ZRCONCAT(ZRObjInfos_union_flags, ZRMACRO_NARGS(__VA_ARGS__))(flags, __VA_ARGS__); \
+	ret; })
+#else
 #define ZRObjInfos_union_flags_l(flags, ...) ZRCONCAT(ZRObjInfos_union_flags, ZRMACRO_NARGS(__VA_ARGS__))(flags, __VA_ARGS__)
+#endif
+
 #define ZRObjInfos_union_l(...) ZRObjInfos_union_flags_l(ZRSTRUCT_DEFAULT_FLAGS, __VA_ARGS__)
 
 #define ZRObjInfos_union_flags2(flags,_1,_2)          ZROBJINFOS_UNION2_FLAGS((_1),(_2), (flags))
