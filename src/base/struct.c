@@ -4,7 +4,6 @@
  */
 
 #include <zrlib/base/struct.h>
-#include <zrlib/base/math.h>
 
 #include <stddef.h>
 #include <stdlib.h>

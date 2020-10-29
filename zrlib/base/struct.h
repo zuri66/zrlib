@@ -8,6 +8,7 @@
 
 #include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
+#include <zrlib/base/math.h>
 
 #include <assert.h>
 
@@ -28,6 +29,14 @@ typedef struct ZRObjInfosS
 #define ZROBJINFOS_DEF0() ZROBJINFOS_DEF(0, 0)
 #define ZROBJINFOS_DEF_UNKNOWN() ZROBJINFOS_DEF(ZRSIZE_UNKNOWN, ZRSIZE_UNKNOWN)
 #define ZROBJINFOS_ISUNKNOWN(A) (ZROBJINFOS_CMP(ZROBJINFOS_DEF_UNKNOWN(), A) == 0)
+
+#define ZRSTRUCT_FLAG_POW2 0
+#define ZRSTRUCT_FLAG_ARITHMETIC 1
+#define ZRSTRUCT_FLAG_RESIZE 2
+
+#ifndef ZRSTRUCT_DEFAULT_FLAGS
+#define ZRSTRUCT_DEFAULT_FLAGS (ZRSTRUCT_FLAG_POW2)
+#endif
 
 ZRMUSTINLINE
 static inline int ZROBJINFOS_CMP(ZRObjInfos a, ZRObjInfos b)
@@ -106,15 +115,75 @@ static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 	return fieldOffset;
 }
 
+ZRMUSTINLINE
+static inline size_t ZRALIGNMENT_UNION2_FLAGS(size_t a, size_t b, unsigned flags)
+{
+	bool const arithm = flags & ZRSTRUCT_FLAG_ARITHMETIC;
+
+	/* Alignments may be any values */
+	if (arithm)
+	{
+		if (a == b)
+			return a;
+		if (a > b)
+		{
+			/* alignments are multiples */
+			if (0 == (a % b))
+				return a;
+		}
+		else
+		{
+			if (0 == (b % a))
+				return b;
+		}
+		/* Must compute the alignment */
+		return (a * b) / ZRMATH_GCD(a, b);
+	}
+	/* We assert that alignments are all power of 2*/
+	else
+	{
+		assert(ZRISPOW2(a));
+		assert(ZRISPOW2(b));
+		return ZRMAX(a, b);
+	}
+}
+
+ZRMUSTINLINE
+static inline size_t ZRALIGNMENT_UNION2(size_t a, size_t b)
+{
+	return ZRALIGNMENT_UNION2_FLAGS(a, b, ZRSTRUCT_DEFAULT_FLAGS);
+}
+
+/**
+ * Construct an ObjInfos able to represent a or b in memory like a c union.
+ */
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION2_FLAGS(ZRObjInfos a, ZRObjInfos b, unsigned flags)
+{
+	return ZROBJINFOS_DEF(ZRALIGNMENT_UNION2_FLAGS(a.alignment, b.alignment, flags), ZRMAX(a.size, b.size));
+}
+
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION2(ZRObjInfos a, ZRObjInfos b)
+{
+	return ZROBJINFOS_DEF(ZRALIGNMENT_UNION2_FLAGS(a.alignment, b.alignment, ZRSTRUCT_DEFAULT_FLAGS), ZRMAX(a.size, b.size));
+}
+
+#define ZRObjInfos_union_flags_l(flags, ...) ZRCONCAT(ZRObjInfos_union_flags, ZRMACRO_NARGS(__VA_ARGS__))(flags, __VA_ARGS__)
+#define ZRObjInfos_union_l(...) ZRObjInfos_union_flags_l(ZRSTRUCT_DEFAULT_FLAGS, __VA_ARGS__)
+
+#define ZRObjInfos_union_flags2(flags,_1,_2)          ZROBJINFOS_UNION2_FLAGS((_1),(_2), (flags))
+#define ZRObjInfos_union_flags3(flags,_1,_2,_3)       ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags2(flags,(_2),(_3)))
+#define ZRObjInfos_union_flags4(flags,_1,_2,_3,_4)    ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags3(flags,(_2),(_3),(_4)))
+#define ZRObjInfos_union_flags5(flags,_1,_2,_3,_4,_5) ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags4(flags,(_2),(_3),(_4),(_5)))
+
+#define ZRObjInfos_union_flags6(flags,_1,_2,_3,_4,_5,_6)               ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6)))
+#define ZRObjInfos_union_flags7(flags,_1,_2,_3,_4,_5,_6,_7)            ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7)))
+#define ZRObjInfos_union_flags8(flags,_1,_2,_3,_4,_5,_6,_7,_8)         ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8)))
+#define ZRObjInfos_union_flags9(flags,_1,_2,_3,_4,_5,_6,_7,_8,_9)      ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8),(_9)))
+#define ZRObjInfos_union_flags10(flags,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10) ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8),(_9),(_10)))
+
 // ============================================================================
-
-#define ZRSTRUCT_FLAG_POW2 0
-#define ZRSTRUCT_FLAG_ARITHMETIC 1
-#define ZRSTRUCT_FLAG_RESIZE 2
-
-#ifndef ZRSTRUCT_DEFAULT_FLAGS
-#define ZRSTRUCT_DEFAULT_FLAGS (ZRSTRUCT_FLAG_POW2)
-#endif
 
 #define ZRSTRUCT_MAKEOFFSETS ZRStruct_makeOffsets
 
