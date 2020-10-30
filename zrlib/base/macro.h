@@ -55,6 +55,34 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRMACRO_NARGS__(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,N,_...) N
 #define ZRMACRO_REVERSE_NARGS() 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
 
+#define ZRARGS_EVEN1(X,_0)    X(_0)
+#define ZRARGS_EVEN2(X,_0,_1) X(_0)
+#define ZRARGS_EVEN3(X,_0,_1,_2)    X(_0), X(_2)
+#define ZRARGS_EVEN4(X,_0,_1,_2,_3) X(_0), X(_2)
+#define ZRARGS_EVEN5(X,_0,_1,_2,_3,_4)     X(_0), X(_2), X(_4)
+#define ZRARGS_EVEN6(X,_0,_1,_2,_3,_4,_5 ) X(_0), X(_2), X(_4)
+#define ZRARGS_EVEN7(X,_0,_1,_2,_3,_4,_5,_6 )   X(_0), X(_2), X(_4), X(_6)
+#define ZRARGS_EVEN8(X,_0,_1,_2,_3,_4,_5,_6,_7) X(_0), X(_2), X(_4), X(_6)
+#define ZRARGS_EVEN9(X,_0,_1,_2,_3,_4,_5,_6,_7,_8)     X(_0), X(_2), X(_4), X(_6), X(_8)
+#define ZRARGS_EVEN10(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9) X(_0), X(_2), X(_4), X(_6), X(_8)
+
+#define ZRARGS_EVEN11(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10)     X(_0), X(_2), X(_4), X(_6), X(_8), X(_10)
+#define ZRARGS_EVEN12(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11) X(_0), X(_2), X(_4), X(_6), X(_8), X(_10)
+#define ZRARGS_EVEN13(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12)     X(_0), X(_2), X(_4), X(_6), X(_8), X(_10), X(_12)
+#define ZRARGS_EVEN14(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13) X(_0), X(_2), X(_4), X(_6), X(_8), X(_10), X(_12)
+#define ZRARGS_EVEN15(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14)     X(_0), X(_2), X(_4), X(_6), X(_8), X(_10), X(_12), X(_14)
+#define ZRARGS_EVEN16(X,_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15) X(_0), X(_2), X(_4), X(_6), X(_8), X(_10), X(_12), X(_14)
+
+#define ZRARGS_XEVEN(X, ...) ZRCONCAT(ZRARGS_EVEN, ZRMACRO_NARGS(__VA_ARGS__))(X, __VA_ARGS__)
+#define ZRARGS_XODD(X,_0,...) ZRARGS_XEVEN(X,__VA_ARGS__)
+
+#define ZRARGS_EVEN(...) ZRARGS_XEVEN(ZRARGS,__VA_ARGS__)
+#define ZRARGS_ODD(...)  ZRARGS_XODD(ZRARGS,__VA_ARGS__)
+
+#define ZRARGS_EVEN_MAX 16
+#define ZRARGS_ODD_MAX ZRMACRO_ARGS_EVEN_MAX - 1
+
+
 #define ZRMAX(...) ZRCONCAT(ZRMAX_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
 #define ZRMIN(...) ZRCONCAT(ZRMIN_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
 
