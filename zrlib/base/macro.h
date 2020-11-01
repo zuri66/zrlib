@@ -190,8 +190,16 @@ do { \
 #define ZRIIF_0(t, ...) __VA_ARGS__
 #define ZRIIF_1(t, ...) t
 
+#define ZRIF_EXPAND(...) __VA_ARGS__
+#define ZRIF_FORGET(...)
+
 #define ZRIF(c) ZRIIF(ZRBOOL(c))
-#define ZRWHEN(c) ZRIF(c)(ZREXPAND, ZRFORGET)
+#define ZRIFTHENELSE(c,t,...) ZRIF(c) (t,__VA_ARGS__)
+#define ZRWHEN(c) ZRIF(c)(ZRIF_EXPAND, ZRIF_FORGET)
+
+#define ZRWHENELSE_WHEN(...) __VA_ARGS__ ZRFORGET
+#define ZRWHENELSE_ELSE(...) ZRFORGET (__VA_ARGS__) ZREXPAND
+#define ZRWHENELSE(c) ZRIF(c)(ZRWHENELSE_WHEN, ZRWHENELSE_ELSE)
 
 #define ZRREPEAT(count, macro, ...) \
     ZRWHEN(count) \
@@ -250,6 +258,20 @@ do { \
 #define _ZRARGS_XCAPPLY_INDIRECT() _ZRARGS_XCAPPLY
 #define ZRARGS_XCAPPLY(X,...) _ZRARGS_XCAPPLY(X,0,__VA_ARGS__)
 #define ZRARGS_XCAPPLY_E(X,...) ZREVAL(ZRARGS_XCAPPLY(X,__VA_ARGS__))
+
+
+#define _ZRARGS_XCAPPLYREC(X, PREF, SUFF, count, A, B, ...) \
+	X(PREF(count) A, \
+	ZRWHENELSE(ZRARGS_NEMPTY(__VA_ARGS__)) \
+	( \
+		ZROBSTRUCT(_ZRARGS_XCAPPLYREC_INDIRECT) () (X, PREF,SUFF, ZRINC(count), B, __VA_ARGS__) \
+	) \
+	(B) \
+	SUFF(count) \
+	)
+#define _ZRARGS_XCAPPLYREC_INDIRECT() _ZRARGS_XCAPPLYREC
+#define ZRARGS_XCAPPLYREC(X,P,S,...) _ZRARGS_XCAPPLYREC(X,P,S,0,__VA_ARGS__)
+#define ZRARGS_XCAPPLYREC_E(X,P,S,...) ZREVAL(ZRARGS_XCAPPLYREC(X,P,S,__VA_ARGS__))
 
 
 #define ZRCARRAY_XCPY(dest,src,nb,X) ZRBLOCK( \
