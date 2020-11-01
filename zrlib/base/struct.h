@@ -191,32 +191,11 @@ static inline ZRObjInfos ZROBJINFOS_UNION(ZRObjInfos *infos, size_t nb)
 	return ZROBJINFOS_UNION_FLAGS(infos, nb, ZRSTRUCT_DEFAULT_FLAGS);
 }
 
-#ifdef __GNUC__
-#define ZRObjInfos_union_flags_l(flags, ...) ({ \
-	ZRObjInfos ret; \
-	if(ZRMACRO_NARGS(__VA_ARGS__) > 10) { \
-		ZRObjInfos infos[] = { __VA_ARGS__ }; \
-		ret = ZROBJINFOS_UNION_FLAGS(infos, ZRMACRO_NARGS(__VA_ARGS__), flags); \
-	} \
-	else \
-		ret = ZRCONCAT(ZRObjInfos_union_flags, ZRMACRO_NARGS(__VA_ARGS__))(flags, __VA_ARGS__); \
-	ret; })
-#else
-#define ZRObjInfos_union_flags_l(flags, ...) ZRCONCAT(ZRObjInfos_union_flags, ZRMACRO_NARGS(__VA_ARGS__))(flags, __VA_ARGS__)
-#endif
+#define ZRObjInfos_union_flags_l_SUFF(count) ,flags
+#define ZRObjInfos_union_flags_l(flags, ...) \
+	ZRARGS_XCAPPLYREC_E(ZROBJINFOS_UNION2_FLAGS,ZRFORGET,ZRObjInfos_union_flags_l_SUFF, __VA_ARGS__)
 
 #define ZRObjInfos_union_l(...) ZRObjInfos_union_flags_l(ZRSTRUCT_DEFAULT_FLAGS, __VA_ARGS__)
-
-#define ZRObjInfos_union_flags2(flags,_1,_2)          ZROBJINFOS_UNION2_FLAGS((_1),(_2), (flags))
-#define ZRObjInfos_union_flags3(flags,_1,_2,_3)       ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags2(flags,(_2),(_3)))
-#define ZRObjInfos_union_flags4(flags,_1,_2,_3,_4)    ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags3(flags,(_2),(_3),(_4)))
-#define ZRObjInfos_union_flags5(flags,_1,_2,_3,_4,_5) ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags4(flags,(_2),(_3),(_4),(_5)))
-
-#define ZRObjInfos_union_flags6(flags,_1,_2,_3,_4,_5,_6)               ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6)))
-#define ZRObjInfos_union_flags7(flags,_1,_2,_3,_4,_5,_6,_7)            ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7)))
-#define ZRObjInfos_union_flags8(flags,_1,_2,_3,_4,_5,_6,_7,_8)         ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8)))
-#define ZRObjInfos_union_flags9(flags,_1,_2,_3,_4,_5,_6,_7,_8,_9)      ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8),(_9)))
-#define ZRObjInfos_union_flags10(flags,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10) ZRObjInfos_union_flags2(flags,(_1),ZRObjInfos_union_flags5(flags,(_2),(_3),(_4),(_5),(_6),(_7),(_8),(_9),(_10)))
 
 // ============================================================================
 
