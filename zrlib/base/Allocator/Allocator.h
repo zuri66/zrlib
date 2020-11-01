@@ -94,10 +94,8 @@ static inline void ZRALLOC_OBJECTS(ZRAllocator *allocator, ZRObjectP *objects, s
 	for (size_t i = 0; i < nb - 1; i++)
 		*(void**)objects[i].object = ZRARRAYOP_GET(mem, 1, infos[i].offset);
 
-#define CPY(O) ZROBJALIGNINFOS_CPYOBJINFOS(O)
-#define SET(D,S) D.infos = S
-	ZRCARRAY_XXCPY(objects, infos, nb, CPY, SET);
-#undef CPY
+#define SET(D,S) D.infos = ZROBJALIGNINFOS_CPYOBJINFOS(S)
+	ZRCARRAY_XXCPY(objects, infos, nb, SET);
 #undef SET
 }
 

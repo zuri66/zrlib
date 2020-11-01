@@ -279,9 +279,9 @@ do { \
 		dest[_i] = X(src[_i]); \
 	)
 
-#define ZRCARRAY_XXCPY(dest,src,nb,X,SET) ZRBLOCK( \
+#define ZRCARRAY_XXCPY(dest,src,nb,SET) ZRBLOCK( \
 	for(size_t _i = 0, _c = (nb) ; _i < _c ; _i++) \
-		SET(dest[_i], X(src[_i])); \
+		SET(dest[_i], src[_i]); \
 	)
 
 #define ZRCARRAY_CHECKFORCPY(offset, nbObj, maxNbCpy, CODE_ERROR, CODE_END) ZRBLOCK( \
