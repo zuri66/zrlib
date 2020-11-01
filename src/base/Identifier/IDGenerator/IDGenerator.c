@@ -166,12 +166,12 @@ void ZRIDGenerator_init(ZRIDGenerator *generator_p, void *infos_p)
 	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
 	IDGenerator *generator = IDGENERATOR(generator_p);
 
-	alignas(max_align_t) char vectorInfos[ZRVector2SideStrategyInfos_objInfos().size];
-	ZRVector2SideStrategyInfos(vectorInfos, ZRTYPE_OBJINFOS(ZRID));
-	ZRVector2SideStrategyInfos_allocator(vectorInfos, infos->allocator);
+	alignas(max_align_t) char vectorInfos[ZRVector2SideStrategyIInfosObjInfos().size];
+	ZRVector2SideStrategyIInfos(vectorInfos, ZRTYPE_OBJINFOS(ZRID));
+	ZRVector2SideStrategyIInfos_allocator(vectorInfos, infos->allocator);
 
 	if (infos->staticStrategy)
-		ZRVector2SideStrategyInfos_staticStrategy(vectorInfos);
+		ZRVector2SideStrategyIInfos_staticStrategy(vectorInfos);
 
 	ZRAllocator *allocator;
 

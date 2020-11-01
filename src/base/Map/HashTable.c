@@ -622,8 +622,8 @@ typedef struct
 
 static void tableInitInfos(void *tableInfos_out, ZRHashTableInitInfos *initInfos)
 {
-	ZRVector2SideStrategyInfos(tableInfos_out, ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]));
-	ZRVector2SideStrategyInfos_allocator(tableInfos_out, initInfos->allocator);
+	ZRVector2SideStrategyIInfos(tableInfos_out, ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]));
+	ZRVector2SideStrategyIInfos_allocator(tableInfos_out, initInfos->allocator);
 }
 
 static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfos *tableInfos, bool staticStrategy)
@@ -638,7 +638,7 @@ static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfo
 
 static void hashTableStructInfos_validate(ZRHashTableInitInfos *initInfos)
 {
-	size_t const tableInfosSize = ZRVector2SideStrategyInfos_objInfos().size;
+	size_t const tableInfosSize = ZRVector2SideStrategyIInfosObjInfos().size;
 
 	if (initInfos->tableInitInfos == NULL)
 		initInfos->tableInitInfos = malloc(tableInfosSize);
@@ -756,15 +756,15 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 
 	hashTableStructInfos_validate(initInfos);
 
-	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyInfos_objInfos().size];
+	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyIInfosObjInfos().size];
 	size_t const vectorCapacity = DEFAULT_CAPACITY;
-	ZRVector2SideStrategyInfos(vector_initInfos, ZRTYPE_OBJINFOS(size_t));
-	ZRVector2SideStrategyInfos_initialArraySize(vector_initInfos, vectorCapacity);
-	ZRVector2SideStrategyInfos_initialMemorySize(vector_initInfos, vectorCapacity * 3);
-	ZRVector2SideStrategyInfos_allocator(vector_initInfos, initInfos->allocator);
+	ZRVector2SideStrategyIInfos(vector_initInfos, ZRTYPE_OBJINFOS(size_t));
+	ZRVector2SideStrategyIInfos_initialArraySize(vector_initInfos, vectorCapacity);
+	ZRVector2SideStrategyIInfos_initialMemorySize(vector_initInfos, vectorCapacity * 3);
+	ZRVector2SideStrategyIInfos_allocator(vector_initInfos, initInfos->allocator);
 
 	if (initInfos->staticStrategy)
-		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
+		ZRVector2SideStrategyIInfos_staticStrategy(vector_initInfos);
 
 	ZRAllocator *allocator;
 

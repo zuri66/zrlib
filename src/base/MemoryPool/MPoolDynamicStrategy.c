@@ -294,14 +294,14 @@ void fdone(ZRMemoryPool *pool)
 static ZRVector* fcreateBuckets(ZRMemoryPool *pool)
 {
 	ZRMPoolDS *const dspool = ZRMPOOLDS(pool);
-	alignas(max_align_t) char buffer[ZRVector2SideStrategyInfos_objInfos().size];
+	alignas(max_align_t) char buffer[ZRVector2SideStrategyIInfosObjInfos().size];
 
-	ZRVector2SideStrategyInfos(buffer, ZRTYPE_OBJINFOS(ZRMPoolDS_bucket));
-	ZRVector2SideStrategyInfos_initialArraySize(buffer, INITIAL_BUCKETS_SPACE);
-	ZRVector2SideStrategyInfos_allocator(buffer, dspool->allocator);
+	ZRVector2SideStrategyIInfos(buffer, ZRTYPE_OBJINFOS(ZRMPoolDS_bucket));
+	ZRVector2SideStrategyIInfos_initialArraySize(buffer, INITIAL_BUCKETS_SPACE);
+	ZRVector2SideStrategyIInfos_allocator(buffer, dspool->allocator);
 
 	if (dspool->staticStrategy)
-		ZRVector2SideStrategyInfos_staticStrategy(buffer);
+		ZRVector2SideStrategyIInfos_staticStrategy(buffer);
 
 	return ZRVector2SideStrategy_new(buffer);
 }

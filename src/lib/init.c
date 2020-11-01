@@ -65,8 +65,8 @@ void zrlib_initCurrentThread(void)
 	ZRHashTableInfos_staticStrategy(bufferInfos);
 	T_DATA.identifiers = ZRHashTable_new(bufferInfos);
 
-	ZRVector2SideStrategyInfos(bufferInfos, ZRTYPE_OBJINFOS(Service));
-	ZRVector2SideStrategyInfos_allocator(bufferInfos, &T_DATA.allocator);
+	ZRVector2SideStrategyIInfos(bufferInfos, ZRTYPE_OBJINFOS(Service));
+	ZRVector2SideStrategyIInfos_allocator(bufferInfos, &T_DATA.allocator);
 	T_DATA.services = ZRVector2SideStrategy_new(bufferInfos);
 
 	zrfuhash hash_a[] = { hash_obj };

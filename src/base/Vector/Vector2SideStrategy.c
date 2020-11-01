@@ -696,51 +696,51 @@ typedef struct
 	unsigned changefdestroy :1;
 } ZR2SSInitInfos;
 
-ZRObjInfos ZRVector2SideStrategyInfos_objInfos(void)
+ZRObjInfos ZRVector2SideStrategyIInfosObjInfos(void)
 {
 	ZRObjInfos ret = { ZRTYPE_ALIGNMENT_SIZE(ZR2SSInitInfos) };
 	return ret;
 }
 
 ZRMUSTINLINE
-static inline void ZRVector2SideStrategyInfos_validate(ZR2SSInitInfos *initInfos)
+static inline void ZRVector2SideStrategyIInfos_validate(ZR2SSInitInfos *initInfos)
 {
 	getVectorInfos((void*)initInfos, initInfos->initialArrayNbObj, ZROBJINFOS_SIZE_ALIGNMENT(initInfos->objInfos), (bool)initInfos->staticStrategy);
 }
 
-void ZRVector2SideStrategyInfos_allocator(void *infos_out, ZRAllocator *allocator)
+void ZRVector2SideStrategyIInfos_allocator(void *infos_out, ZRAllocator *allocator)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->allocator = allocator;
 }
 
-void ZRVector2SideStrategyInfos_initialArraySize(void *infos_out, size_t size)
+void ZRVector2SideStrategyIInfos_initialArraySize(void *infos_out, size_t size)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->initialArrayNbObj = checkInitialNbObj(size);
-	ZRVector2SideStrategyInfos_validate(initInfos);
+	ZRVector2SideStrategyIInfos_validate(initInfos);
 }
 
-void ZRVector2SideStrategyInfos_initialMemorySize(void *infos_out, size_t size)
+void ZRVector2SideStrategyIInfos_initialMemorySize(void *infos_out, size_t size)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->initialMemoryNbObj = checkInitialNbObj(size);
-	ZRVector2SideStrategyInfos_validate(initInfos);
+	ZRVector2SideStrategyIInfos_validate(initInfos);
 }
 
-void ZRVector2SideStrategyInfos_fixedArray(void *infos_out)
+void ZRVector2SideStrategyIInfos_fixedArray(void *infos_out)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->fixed = 1;
 }
 
-void ZRVector2SideStrategyInfos_oneSide(void *infos_out)
+void ZRVector2SideStrategyIInfos_oneSide(void *infos_out)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->oneSide = 1;
 }
 
-void ZRVector2SideStrategyInfos(void *infos_out, ZRObjInfos objInfos)
+void ZRVector2SideStrategyIInfos(void *infos_out, ZRObjInfos objInfos)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	*initInfos = (ZR2SSInitInfos ) { //
@@ -750,21 +750,21 @@ void ZRVector2SideStrategyInfos(void *infos_out, ZRObjInfos objInfos)
 		.allocator = NULL,
 		.fixed = 0,
 		};
-	ZRVector2SideStrategyInfos_validate(initInfos);
+	ZRVector2SideStrategyIInfos_validate(initInfos);
 }
 
-void ZRVector2SideStrategyInfos_setObjInfos(void *infos_out, ZRObjInfos objInfos)
+void ZRVector2SideStrategyIInfos_objInfos(void *infos_out, ZRObjInfos objInfos)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->objInfos = objInfos;
-	ZRVector2SideStrategyInfos_validate(initInfos);
+	ZRVector2SideStrategyIInfos_validate(initInfos);
 }
 
-void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out)
+void ZRVector2SideStrategyIInfos_staticStrategy(void *infos_out)
 {
 	ZR2SSInitInfos *initInfos = (ZR2SSInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
-	ZRVector2SideStrategyInfos_validate(initInfos);
+	ZRVector2SideStrategyIInfos_validate(initInfos);
 }
 
 ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos)
@@ -868,8 +868,8 @@ ZRVector* ZRVector2SideStrategy_new(void *infos_p)
 ZRVector* ZRVector2SideStrategy_createFixed_1(ZRObjInfos objInfos)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
-	ZRVector2SideStrategyInfos_fixedArray(&initInfos);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos_fixedArray(&initInfos);
 	return ZRVector2SideStrategy_new(&initInfos);
 
 }
@@ -877,26 +877,26 @@ ZRVector* ZRVector2SideStrategy_createFixed_1(ZRObjInfos objInfos)
 ZRVector* ZRVector2SideStrategy_createFixed_2(ZRObjInfos objInfos, size_t capacity)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
-	ZRVector2SideStrategyInfos_fixedArray(&initInfos);
-	ZRVector2SideStrategyInfos_initialArraySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos_fixedArray(&initInfos);
+	ZRVector2SideStrategyIInfos_initialArraySize(&initInfos, capacity);
 	return ZRVector2SideStrategy_new(&initInfos);
 }
 
 ZRVector* ZRVector2SideStrategy_createFixed_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
-	ZRVector2SideStrategyInfos_fixedArray(&initInfos);
-	ZRVector2SideStrategyInfos_initialArraySize(&initInfos, capacity);
-	ZRVector2SideStrategyInfos_allocator(&initInfos, allocator);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos_fixedArray(&initInfos);
+	ZRVector2SideStrategyIInfos_initialArraySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos_allocator(&initInfos, allocator);
 	return ZRVector2SideStrategy_new(&initInfos);
 }
 
 ZRVector* ZRVector2SideStrategy_createDynamic_1(ZRObjInfos objInfos)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
 	return ZRVector2SideStrategy_new(&initInfos);
 
 }
@@ -904,18 +904,18 @@ ZRVector* ZRVector2SideStrategy_createDynamic_1(ZRObjInfos objInfos)
 ZRVector* ZRVector2SideStrategy_createDynamic_2(ZRObjInfos objInfos, size_t capacity)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
-	ZRVector2SideStrategyInfos_initialArraySize(&initInfos, capacity);
-	ZRVector2SideStrategyInfos_initialMemorySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos_initialArraySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos_initialMemorySize(&initInfos, capacity);
 	return ZRVector2SideStrategy_new(&initInfos);
 }
 
 ZRVector* ZRVector2SideStrategy_createDynamic_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator)
 {
 	ZR2SSInitInfos initInfos;
-	ZRVector2SideStrategyInfos(&initInfos, objInfos);
-	ZRVector2SideStrategyInfos_initialArraySize(&initInfos, capacity);
-	ZRVector2SideStrategyInfos_initialMemorySize(&initInfos, capacity);
-	ZRVector2SideStrategyInfos_allocator(&initInfos, allocator);
+	ZRVector2SideStrategyIInfos(&initInfos, objInfos);
+	ZRVector2SideStrategyIInfos_initialArraySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos_initialMemorySize(&initInfos, capacity);
+	ZRVector2SideStrategyIInfos_allocator(&initInfos, allocator);
 	return ZRVector2SideStrategy_new(&initInfos);
 }
