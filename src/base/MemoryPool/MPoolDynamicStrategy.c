@@ -349,7 +349,7 @@ typedef struct
 	unsigned staticStrategy :1;
 } ZRMPoolDSInitInfos;
 
-ZRObjInfos ZRMPoolDSInfos_objInfos(void)
+ZRObjInfos ZRMPoolDSIInfosObjInfos(void)
 {
 	ZRObjInfos ret = { ZRTYPE_ALIGNMENT_SIZE(ZRMPoolDSInitInfos) };
 	return ret;
@@ -362,12 +362,12 @@ ZRObjInfos ZRMPoolDS_objInfos(void *infos)
 }
 
 ZRMUSTINLINE
-static inline void ZRMPoolDSInfos_validate(ZRMPoolDSInitInfos *initInfos)
+static inline void ZRMPoolDSIInfos_validate(ZRMPoolDSInitInfos *initInfos)
 {
 	MPoolDSInfos_make(initInfos->infos, (bool)initInfos->staticStrategy);
 }
 
-void ZRMPoolDSInfos(void *infos_out, ZRObjInfos objInfos)
+void ZRMPoolDSIInfos(void *infos_out, ZRObjInfos objInfos)
 {
 	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos_out;
 	*initInfos = (ZRMPoolDSInitInfos ) { //
@@ -376,29 +376,29 @@ void ZRMPoolDSInfos(void *infos_out, ZRObjInfos objInfos)
 		.objInfos = objInfos,
 		.allocator = NULL ,
 		};
-	ZRMPoolDSInfos_validate(initInfos);
+	ZRMPoolDSIInfos_validate(initInfos);
 }
 
-void ZRMPoolDSInfos_initialBucketSize(void *infos, size_t initialBucketSize)
+void ZRMPoolDSIInfos_initialBucketSize(void *infos, size_t initialBucketSize)
 {
 	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos;
 	initInfos->initialBucketSize = initialBucketSize;
 }
 
-void ZRMPoolDSInfos_maxFreeBuckets(void *infos, size_t maxFreeBuckets)
+void ZRMPoolDSIInfos_maxFreeBuckets(void *infos, size_t maxFreeBuckets)
 {
 	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos;
 	initInfos->maxFreeBuckets = maxFreeBuckets;
 }
 
-void ZRMPoolDSInfos_staticStrategy(void *infos_out)
+void ZRMPoolDSIInfos_staticStrategy(void *infos_out)
 {
 	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
-	ZRMPoolDSInfos_validate(initInfos);
+	ZRMPoolDSIInfos_validate(initInfos);
 }
 
-void ZRMPoolDSInfos_allocator(void *infos, ZRAllocator *allocator)
+void ZRMPoolDSIInfos_allocator(void *infos, ZRAllocator *allocator)
 {
 	ZRMPoolDSInitInfos *initInfos = (ZRMPoolDSInitInfos*)infos;
 	initInfos->allocator = allocator;
@@ -448,10 +448,10 @@ ZRMemoryPool* ZRMPoolDS_new(void *initInfos_p)
 ZRMemoryPool* ZRMPoolDS_create(size_t initialBucketSize, size_t maxFreeBuckets, ZRObjInfos objInfos, ZRAllocator *allocator)
 {
 	ZRMPoolDSInitInfos initInfos;
-	ZRMPoolDSInfos(&initInfos, objInfos);
-	ZRMPoolDSInfos_allocator(&initInfos, allocator);
-	ZRMPoolDSInfos_maxFreeBuckets(&initInfos, maxFreeBuckets);
-	ZRMPoolDSInfos_initialBucketSize(&initInfos, initialBucketSize);
+	ZRMPoolDSIInfos(&initInfos, objInfos);
+	ZRMPoolDSIInfos_allocator(&initInfos, allocator);
+	ZRMPoolDSIInfos_maxFreeBuckets(&initInfos, maxFreeBuckets);
+	ZRMPoolDSIInfos_initialBucketSize(&initInfos, initialBucketSize);
 	return ZRMPoolDS_new(&initInfos);
 }
 
