@@ -429,12 +429,12 @@ static ZRObjInfos vectorInfos(VectorMapInitInfos *infos)
 	return infos->staticVector ? infos->vector_infos : ZROBJINFOS_DEF0();
 }
 
-static void ZRVectorMapInfos_validate(VectorMapInitInfos *infos)
+static void ZRVectorMapIInfos_validate(VectorMapInitInfos *infos)
 {
 	VectorMapInfos_make(infos->infos, infos->staticStrategy, vectorInfos(infos));
 }
 
-ZRObjInfos ZRVectorMapInfos_objInfos(void)
+ZRObjInfos ZRVectorMapIInfosObjInfos(void)
 {
 	return ZRTYPE_OBJINFOS(VectorMapInitInfos);
 }
@@ -447,7 +447,7 @@ ZRObjInfos ZRVectorMap_itemObjInfos(void *infos_p)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(bucketInfos[BucketInfos_struct]);
 }
 
-void ZRVectorMapInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
+void ZRVectorMapIInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_out;
 	*infos = (VectorMapInitInfos ) { //
@@ -458,24 +458,24 @@ void ZRVectorMapInfos(void *infos_out, ZRObjInfos keyInfos, ZRObjInfos objInfos)
 		.fucmp = default_cmp,
 		.mode = ZRVectorMap_modeOrder,
 		};
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_keyInfos(void *infos_p, ZRObjInfos keyInfos)
+void ZRVectorMapIInfos_keyInfos(void *infos_p, ZRObjInfos keyInfos)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->keyInfos = keyInfos;
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_setObjInfos(void *infos_p, ZRObjInfos objInfos)
+void ZRVectorMapIInfos_objInfos(void *infos_p, ZRObjInfos objInfos)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->objInfos = objInfos;
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_fucmp(void *infos_out, zrfucmp fucmp, enum ZRVectorMap_modeE mode)
+void ZRVectorMapIInfos_fucmp(void *infos_out, zrfucmp fucmp, enum ZRVectorMap_modeE mode)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_out;
 
@@ -486,14 +486,14 @@ void ZRVectorMapInfos_fucmp(void *infos_out, zrfucmp fucmp, enum ZRVectorMap_mod
 	infos->mode = mode;
 }
 
-void ZRVectorMapInfos_staticStrategy(void *infos_p)
+void ZRVectorMapIInfos_staticStrategy(void *infos_p)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->staticStrategy = 1;
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_allocator(void *infos_p, ZRAllocator *allocator)
+void ZRVectorMapIInfos_allocator(void *infos_p, ZRAllocator *allocator)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->allocator = allocator;
@@ -505,16 +505,16 @@ ZRObjInfos ZRVectorMap_objInfos(void *infos_p)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(infos->infos[VectorMapInfos_struct]);
 }
 
-void ZRVectorMapInfos_vector(void *infos_p, ZRVector *vector, bool destroyVector)
+void ZRVectorMapIInfos_vector(void *infos_p, ZRVector *vector, bool destroyVector)
 {
 	VectorMapInitInfos *infos = (VectorMapInitInfos*)infos_p;
 	infos->vector = vector;
 	infos->destroyVector = vector == NULL ? false : destroyVector;
 	infos->staticVector = false;
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
-void ZRVectorMapInfos_staticVector(void *infos_p, void *vectorInfos,
+void ZRVectorMapIInfos_staticVector(void *infos_p, void *vectorInfos,
 	void (*fsetObjSize)(void*, ZRObjInfos),
 	ZRObjInfos (*finfos_objSize)(void*),
 	void (*finit)(ZRVector*, void*)
@@ -527,7 +527,7 @@ void ZRVectorMapInfos_staticVector(void *infos_p, void *vectorInfos,
 	infos->vectorInfos = vectorInfos;
 	infos->vector_infos = finfos_objSize(vectorInfos);
 	infos->fvectorInit = finit;
-	ZRVectorMapInfos_validate(infos);
+	ZRVectorMapIInfos_validate(infos);
 }
 
 void ZRVectorMap_init(ZRMap *map, void *infos_p)
@@ -605,8 +605,8 @@ ZRMap* ZRVectorMap_create(
 	)
 {
 	VectorMapInitInfos infos;
-	ZRVectorMapInfos(&infos, keyInfos, objInfos);
-	ZRVectorMapInfos_allocator(&infos, allocator);
-	ZRVectorMapInfos_fucmp(&infos, fucmp, mode);
+	ZRVectorMapIInfos(&infos, keyInfos, objInfos);
+	ZRVectorMapIInfos_allocator(&infos, allocator);
+	ZRVectorMapIInfos_fucmp(&infos, fucmp, mode);
 	return ZRVectorMap_new(&infos);
 }

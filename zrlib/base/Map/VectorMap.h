@@ -15,27 +15,27 @@ enum ZRVectorMap_modeE
 	ZRVectorMap_modeEq, ZRVectorMap_modeOrder
 };
 
-ZRObjInfos ZRVectorMapInfos_objInfos(void);
+ZRObjInfos ZRVectorMapIInfosObjInfos(void);
 
-void ZRVectorMapInfos(void *infos, ZRObjInfos keyInfos, ZRObjInfos objInfos);
-void ZRVectorMapInfos_keyInfos(void *infos, ZRObjInfos keyInfos);
-void ZRVectorMapInfos_setObjInfos(void *infos, ZRObjInfos objInfos);
-void ZRVectorMapInfos_staticStrategy(void *infos);
-void ZRVectorMapInfos_allocator(void *infos, ZRAllocator *allocator);
-void ZRVectorMapInfos_fucmp(void *infos, zrfucmp fucmp, enum ZRVectorMap_modeE mode);
-void ZRVectorMapInfos_vector(void *infos, ZRVector *vector, bool destroyVector);
-void ZRVectorMapInfos_staticVector(void *infos, void *vectorInfos,
+void ZRVectorMapIInfos(void *iinfos, ZRObjInfos keyInfos, ZRObjInfos objInfos);
+void ZRVectorMapIInfos_keyInfos(void *iinfos, ZRObjInfos keyInfos);
+void ZRVectorMapIInfos_objInfos(void *iinfos, ZRObjInfos objInfos);
+void ZRVectorMapIInfos_staticStrategy(void *iinfos);
+void ZRVectorMapIInfos_allocator(void *iinfos, ZRAllocator *allocator);
+void ZRVectorMapIInfos_fucmp(void *iinfos, zrfucmp fucmp, enum ZRVectorMap_modeE mode);
+void ZRVectorMapIInfos_vector(void *iinfos, ZRVector *vector, bool destroyVector);
+void ZRVectorMapIInfos_staticVector(void *iinfos, void *vectorInfos,
 	void (*fsetObjSize)(void*, ZRObjInfos),
-	ZRObjInfos (*finfos_objSize)(void*),
+	ZRObjInfos (*fiinfosObjSize)(void*iinfos),
 	void (*finit)(ZRVector*, void*)
 	);
 
-ZRObjInfos ZRVectorMap_objInfos(void *infos);
+ZRObjInfos ZRVectorMap_objInfos(void *iinfos);
 /* Infos of the item store in the vector */
-ZRObjInfos ZRVectorMap_itemObjInfos(void *infos);
+ZRObjInfos ZRVectorMap_itemObjInfos(void *iinfos);
 
-void ZRVectorMap_init(ZRMap *map, void *infos);
-ZRMap* ZRVectorMap_new(void *infos);
+void ZRVectorMap_init(ZRMap *map, void *iinfos);
+ZRMap* ZRVectorMap_new(void *iinfos);
 
 ZRMap* ZRVectorMap_create(
 	ZRObjInfos keyInfos, ZRObjInfos objInfos,
