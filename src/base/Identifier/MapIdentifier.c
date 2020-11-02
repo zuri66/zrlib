@@ -505,23 +505,23 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 
 	/* Map init */
 	{
-		ZRObjInfos init_objInfos = ZRHashTableInfos_objInfos();
+		ZRObjInfos init_objInfos = ZRHashTableIInfosObjInfos();
 
-		ZRHashTableInfos(infoBuffer, objInfos, ZRTYPE_OBJINFOS(MapBucket), initInfos->fuhash, initInfos->nbfhash);
-		ZRHashTableInfos_allocator(infoBuffer, initInfos->allocator);
-		ZRHashTableInfos_fucmp(infoBuffer, initInfos->fucmp);
-		ZRHashTableInfos_dereferenceKey(infoBuffer);
+		ZRHashTableIInfos(infoBuffer, objInfos, ZRTYPE_OBJINFOS(MapBucket), initInfos->fuhash, initInfos->nbfhash);
+		ZRHashTableIInfos_allocator(infoBuffer, initInfos->allocator);
+		ZRHashTableIInfos_fucmp(infoBuffer, initInfos->fucmp);
+		ZRHashTableIInfos_dereferenceKey(infoBuffer);
 
 		if (initInfos->staticStrategy)
-			ZRHashTableInfos_staticStrategy(infoBuffer);
+			ZRHashTableIInfos_staticStrategy(infoBuffer);
 
 		map = ZRHashTable_new(infoBuffer);
 
-		ZRHashTableInfos(infoBuffer, ZRTYPE_OBJINFOS(ZRID), ZRTYPE_OBJINFOS(MapBucket), NULL, 0);
-		ZRHashTableInfos_allocator(infoBuffer, initInfos->allocator);
+		ZRHashTableIInfos(infoBuffer, ZRTYPE_OBJINFOS(ZRID), ZRTYPE_OBJINFOS(MapBucket), NULL, 0);
+		ZRHashTableIInfos_allocator(infoBuffer, initInfos->allocator);
 
 		if (initInfos->staticStrategy)
-			ZRHashTableInfos_staticStrategy(infoBuffer);
+			ZRHashTableIInfos_staticStrategy(infoBuffer);
 
 		map_ID = ZRHashTable_new(infoBuffer);
 	}

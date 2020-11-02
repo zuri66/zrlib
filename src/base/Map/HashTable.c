@@ -636,7 +636,7 @@ static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfo
 	ZRStruct_bestOffsetsPos(ZRHASHTABLESTRUCTINFOS_NB - 1, out, 1);
 }
 
-static void hashTableStructInfos_validate(ZRHashTableInitInfos *initInfos)
+static void hashTableStructIInfos_validate(ZRHashTableInitInfos *initInfos)
 {
 	size_t const tableInfosSize = ZRVector2SideStrategyIInfosObjInfos().size;
 
@@ -651,7 +651,7 @@ static void hashTableStructInfos_validate(ZRHashTableInitInfos *initInfos)
 	hashTableStructInfos(initInfos->infos, initInfos->nbfhash, &tableObjInfos, (bool)initInfos->staticStrategy);
 }
 
-void ZRHashTableInfos( //
+void ZRHashTableIInfos( //
 	void *infos_out, //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
@@ -676,19 +676,19 @@ void ZRHashTableInfos( //
 	bucketInfos(initInfos->bucketInfos, key, obj);
 }
 
-void ZRHashTableInfos_allocator(void *infos_out, ZRAllocator *allocator)
+void ZRHashTableIInfos_allocator(void *infos_out, ZRAllocator *allocator)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->allocator = allocator;
 }
 
-void ZRHashTableInfos_dereferenceKey(void *infos_out)
+void ZRHashTableIInfos_dereferenceKey(void *infos_out)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->dereferenceKey = 1;
 }
 
-ZRObjInfos ZRHashTableInfos_objInfos(void)
+ZRObjInfos ZRHashTableIInfosObjInfos(void)
 {
 	ZRObjInfos ret = { ZRTYPE_ALIGNMENT_SIZE(ZRHashTableInitInfos) };
 	return ret;
@@ -700,14 +700,14 @@ ZRObjInfos ZRHashTable_objInfos(void *infos)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->infos[ZRHashTableStructInfos_struct]);
 }
 
-void ZRHashTableInfos_staticStrategy(void *infos_out)
+void ZRHashTableIInfos_staticStrategy(void *infos_out)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->staticStrategy = 1;
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 }
 
-void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp)
+void ZRHashTableIInfos_fucmp(void *infos_out, zrfucmp fucmp)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 
@@ -740,7 +740,7 @@ ZRMap* ZRHashTable_new(void *initInfos_p)
 	ZRHashTableInitInfos *initInfos = initInfos_p;
 	initInfos->changefdestroy = 1;
 
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 	ZRHashTable *ret = ZRALLOC(initInfos->allocator, initInfos->infos[ZRHashTableStructInfos_struct].size);
 	ZRHashTable_init(ZRHASHTABLE_MAP(ret), initInfos);
 
@@ -754,7 +754,7 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 	ZRHashTableInitInfos *initInfos = initInfos_p;
 	ZRHashTable *htable = (ZRHashTable*)map;
 
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 
 	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyIInfosObjInfos().size];
 	size_t const vectorCapacity = DEFAULT_CAPACITY;
@@ -826,7 +826,7 @@ ZRMap* ZRHashTable_create(
 	)
 {
 	ZRHashTableInitInfos initInfos;
-	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash);
-	ZRHashTableInfos_allocator(&initInfos, allocator);
+	ZRHashTableIInfos(&initInfos, key, obj, fuhash, nbfhash);
+	ZRHashTableIInfos_allocator(&initInfos, allocator);
 	return ZRHashTable_new(&initInfos);
 }
