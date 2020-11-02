@@ -131,12 +131,12 @@ void ZRIDGenerator_destroy(ZRIDGenerator *generator_p)
 
 /* ========================================================================= */
 
-ZRObjInfos ZRIDGeneratorInfos_objInfos(void)
+ZRObjInfos ZRIDGeneratorIInfosObjInfos(void)
 {
 	return ZRTYPE_OBJINFOS(IDGeneratorInitInfos);
 }
 
-void ZRIDGeneratorInfos(void *infos_p)
+void ZRIDGeneratorIInfos(void *infos_p)
 {
 	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
 	*infos = (IDGeneratorInitInfos ) { /**/
@@ -144,13 +144,13 @@ void ZRIDGeneratorInfos(void *infos_p)
 		};
 }
 
-void ZRIDGeneratorInfos_allocator(void *infos_p, ZRAllocator *allocator)
+void ZRIDGeneratorIInfos_allocator(void *infos_p, ZRAllocator *allocator)
 {
 	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
 	infos->allocator = allocator;
 }
 
-void ZRIDGeneratorInfos_staticStrategy(void *infos_p)
+void ZRIDGeneratorIInfos_staticStrategy(void *infos_p)
 {
 	IDGeneratorInitInfos *infos = (IDGeneratorInitInfos*)infos_p;
 	infos->staticStrategy = 1;

@@ -35,13 +35,13 @@ bool ZRIDGenerator_present(ZRIDGenerator *generator, ZRID id);
 void ZRIDGenerator_destroy(ZRIDGenerator *generator);
 
 
-ZRObjInfos ZRIDGeneratorInfos_objInfos(void);
-void ZRIDGeneratorInfos(void *infos);
-void ZRIDGeneratorInfos_staticStrategy(void *infos);
-void ZRIDGeneratorInfos_allocator(void *infos, ZRAllocator *allocator);
+ZRObjInfos ZRIDGeneratorIInfosObjInfos(void);
+void ZRIDGeneratorIInfos(void *iinfos);
+void ZRIDGeneratorIInfos_staticStrategy(void *iinfos);
+void ZRIDGeneratorIInfos_allocator(void *iinfos, ZRAllocator *allocator);
 
-ZRObjInfos ZRIDGenerator_objInfos(void *infos);
-void ZRIDGenerator_init(ZRIDGenerator *generator, void *infos);
-ZRIDGenerator* ZRIDGenerator_new(void *infos);
+ZRObjInfos ZRIDGenerator_objInfos(void *iinfos);
+void ZRIDGenerator_init(ZRIDGenerator *generator, void *iinfos);
+ZRIDGenerator* ZRIDGenerator_new(void *iinfos);
 
 #endif
