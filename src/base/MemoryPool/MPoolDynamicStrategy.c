@@ -118,14 +118,14 @@ inline static ZRMPoolDS_bucket* addBucket(ZRMemoryPool *pool, size_t nbBlocks)
 		nbBlocksToAlloc += initialBucketSize;
 
 	ZRObjAlignInfos areaMetaDataInfos = ZRTYPE_OBJALIGNINFOS(ZRAreaMetaData);
-	alignas(max_align_t) char bufferInfos[ZRMPoolReserveInfos_objInfos().size];
+	alignas(max_align_t) char bufferInfos[ZRMPoolReserveIInfosObjInfos().size];
 
-	ZRMPoolReserveInfos(bufferInfos, ZROBJINFOS_DEF(alignof(max_align_t), ZRMPOOL_BLOCKSIZE(pool)), nbBlocksToAlloc);
-	ZRMPoolReserveInfos_allocator(bufferInfos, dspool->allocator);
-	ZRMPoolReserveInfos_areaMetaData(bufferInfos, &areaMetaDataInfos);
+	ZRMPoolReserveIInfos(bufferInfos, ZROBJINFOS_DEF(alignof(max_align_t), ZRMPOOL_BLOCKSIZE(pool)), nbBlocksToAlloc);
+	ZRMPoolReserveIInfos_allocator(bufferInfos, dspool->allocator);
+	ZRMPoolReserveIInfos_areaMetaData(bufferInfos, &areaMetaDataInfos);
 
 	if (dspool->staticStrategy)
-		ZRMPoolReserveInfos_staticStrategy(bufferInfos);
+		ZRMPoolReserveIInfos_staticStrategy(bufferInfos);
 
 	bucket.pool = ZRMPoolReserve_new(bufferInfos);
 	bucket.areaMetaDataOffset = areaMetaDataInfos.offset;

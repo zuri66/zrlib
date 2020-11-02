@@ -29,17 +29,17 @@ enum ZRMPoolReserveModeE
 	ZRMPoolReserveMode_chunk,
 };
 
-ZRObjInfos ZRMPoolReserveInfos_objInfos(void);
+ZRObjInfos ZRMPoolReserveIInfosObjInfos(void);
 
-void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks);
-void ZRMPoolReserveInfos_allocator(void *infos, ZRAllocator *allocator);
-void ZRMPoolReserveInfos_mode(void *infos, enum ZRMPoolReserveModeE mode);
-void ZRMPoolReserveInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData);
-void ZRMPoolReserveInfos_staticStrategy(void *infos);
+void ZRMPoolReserveIInfos(void *iinfo, ZRObjInfos blockInfos, size_t nbBlocks);
+void ZRMPoolReserveIInfos_allocator(void *iinfo, ZRAllocator *allocator);
+void ZRMPoolReserveIInfos_mode(void *iinfo, enum ZRMPoolReserveModeE mode);
+void ZRMPoolReserveIInfos_areaMetaData(void *iinfo, ZRObjAlignInfos *areaMetaData);
+void ZRMPoolReserveIInfos_staticStrategy(void *iinfo);
 
-ZRObjInfos ZRMPoolReserve_objInfos(void *infos);
-void ZRMPoolReserve_init(ZRMemoryPool *pool, void *infos);
-ZRMemoryPool* ZRMPoolReserve_new(void *infos);
+ZRObjInfos ZRMPoolReserve_objInfos(void *iinfo);
+void ZRMPoolReserve_init(ZRMemoryPool *pool, void *iinfo);
+ZRMemoryPool* ZRMPoolReserve_new(void *iinfo);
 
 
 ZRMemoryPool* ZRMPoolReserve_createSimple(

@@ -669,13 +669,13 @@ static void ZRMPoolReserveStrategy_init(ZRMPoolReserveStrategy *strategy, MPoolR
 
 // ============================================================================
 
-ZRObjInfos ZRMPoolReserveInfos_objInfos(void)
+ZRObjInfos ZRMPoolReserveIInfosObjInfos(void)
 {
 	return ZRTYPE_OBJINFOS(MPoolReserveInitInfos);
 }
 
 ZRMUSTINLINE
-static inline void ZRMPoolReserveInfos_validate(MPoolReserveInitInfos *infos)
+static inline void ZRMPoolReserveIInfos_validate(MPoolReserveInitInfos *infos)
 {
 	size_t const blockSize = infos->blockInfos.size;
 
@@ -712,7 +712,7 @@ static inline void ZRMPoolReserveInfos_validate(MPoolReserveInitInfos *infos)
 
 static ZRObjAlignInfos NULLOBJ;
 
-void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks)
+void ZRMPoolReserveIInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks)
 {
 	MPoolReserveInitInfos *initInfos = (MPoolReserveInitInfos*)infos;
 	*initInfos = (MPoolReserveInitInfos ) { //
@@ -722,10 +722,10 @@ void ZRMPoolReserveInfos(void *infos, ZRObjInfos blockInfos, size_t nbBlocks)
 		.allocator = NULL,
 		.areaMetaData = &NULLOBJ,
 		};
-	ZRMPoolReserveInfos_validate(initInfos);
+	ZRMPoolReserveIInfos_validate(initInfos);
 }
 
-void ZRMPoolReserveInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData)
+void ZRMPoolReserveIInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData)
 {
 	MPoolReserveInitInfos *initInfos = (MPoolReserveInitInfos*)infos;
 
@@ -734,23 +734,23 @@ void ZRMPoolReserveInfos_areaMetaData(void *infos, ZRObjAlignInfos *areaMetaData
 	else
 		initInfos->areaMetaData = areaMetaData;
 
-	ZRMPoolReserveInfos_validate(initInfos);
+	ZRMPoolReserveIInfos_validate(initInfos);
 }
 
-void ZRMPoolReserveInfos_allocator(void *infos, ZRAllocator *allocator)
+void ZRMPoolReserveIInfos_allocator(void *infos, ZRAllocator *allocator)
 {
 	MPoolReserveInitInfos *initInfos = (MPoolReserveInitInfos*)infos;
 	initInfos->allocator = allocator;
 }
 
-void ZRMPoolReserveInfos_mode(void *infos, enum ZRMPoolReserveModeE mode)
+void ZRMPoolReserveIInfos_mode(void *infos, enum ZRMPoolReserveModeE mode)
 {
 	MPoolReserveInitInfos *initInfos = (MPoolReserveInitInfos*)infos;
 	initInfos->mode = mode;
-	ZRMPoolReserveInfos_validate(initInfos);
+	ZRMPoolReserveIInfos_validate(initInfos);
 }
 
-void ZRMPoolReserveInfos_staticStrategy(void *infos)
+void ZRMPoolReserveIInfos_staticStrategy(void *infos)
 {
 	MPoolReserveInitInfos *initInfos = (MPoolReserveInitInfos*)infos;
 	initInfos->staticStrategy = 1;
@@ -852,10 +852,10 @@ ZRMemoryPool* ZRMPoolReserve_create(
 	)
 {
 	MPoolReserveInitInfos infos;
-	ZRMPoolReserveInfos(&infos, objInfos, nbBlocks);
-	ZRMPoolReserveInfos_allocator(&infos, allocator);
-	ZRMPoolReserveInfos_mode(&infos, mode);
-	ZRMPoolReserveInfos_areaMetaData(&infos, areaMetaData);
+	ZRMPoolReserveIInfos(&infos, objInfos, nbBlocks);
+	ZRMPoolReserveIInfos_allocator(&infos, allocator);
+	ZRMPoolReserveIInfos_mode(&infos, mode);
+	ZRMPoolReserveIInfos_areaMetaData(&infos, areaMetaData);
 	return ZRMPoolReserve_new(&infos);
 }
 
