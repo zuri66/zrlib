@@ -389,7 +389,7 @@ static void _MapIdentifierInfos(ZRObjAlignInfos *infos, MapIdentifierInitInfos *
 	ZRStruct_bestOffsetsPos(MAPIDENTIFIERINFOS_NB - 1, infos, 1);
 }
 
-ZRObjInfos ZRMapIdentifierInfos_objInfos(void)
+ZRObjInfos ZRMapIdentifierIInfosObjInfos(void)
 {
 	return ZRTYPE_OBJINFOS(MapIdentifierInitInfos);
 }
@@ -400,7 +400,7 @@ ZRObjInfos ZRMapIdentifier_objInfos(void *infos)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->infos[MapIdentifierInfos_struct]);
 }
 
-static void ZRMapIdentifierInfos_validate(void *infos)
+static void ZRMapIdentifierIInfos_validate(void *infos)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos;
 	_MapIdentifierInfos(initInfos->infos, initInfos);
@@ -408,7 +408,7 @@ static void ZRMapIdentifierInfos_validate(void *infos)
 									? fdestroy_unknown : fdestroy;
 }
 
-void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash)
+void ZRMapIdentifierIInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 
@@ -421,23 +421,23 @@ void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash
 
 	initInfos->nbfhash = nbfhash;
 	initInfos->fuhash = fuhash;
-	ZRMapIdentifierInfos_validate(initInfos);
+	ZRMapIdentifierIInfos_validate(initInfos);
 }
 
-void ZRMapIdentifierInfos_fucmp(void *infos_out, zrfucmp fucmp)
+void ZRMapIdentifierIInfos_fucmp(void *infos_out, zrfucmp fucmp)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 	initInfos->fucmp = fucmp;
 }
 
-void ZRMapIdentifierInfos_staticStrategy(void *infos_out)
+void ZRMapIdentifierIInfos_staticStrategy(void *infos_out)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 	initInfos->staticStrategy = 1;
-	ZRMapIdentifierInfos_validate(initInfos);
+	ZRMapIdentifierIInfos_validate(initInfos);
 }
 
-void ZRMapIdentifierInfos_allocator(void *infos_out, ZRAllocator *allocator)
+void ZRMapIdentifierIInfos_allocator(void *infos_out, ZRAllocator *allocator)
 {
 	MapIdentifierInitInfos *initInfos = (MapIdentifierInitInfos*)infos_out;
 	initInfos->allocator = allocator;
@@ -496,7 +496,16 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 	ZRMap *map, *map_ID;
 	ZRMemoryPool *pool;
 
-	ZRObjInfos objInfos = objInfosUnknown ? ZRTYPE_OBJINFOS(ZRObjectP) : initInfos->objInfos;
+	ZRObjInfos objInfos;
+
+	if (objInfosUnknown)
+	{
+		objInfos = ZRTYPE_OBJINFOS(ZRObjectP);
+	}
+	else
+	{
+		objInfos = initInfos->objInfos;
+	}
 
 	if (initInfos->staticStrategy)
 		strategy = ZRARRAYOP_GET(identifier, 1, initInfos->infos[MapIdentifierInfos_strategy].offset);
@@ -551,7 +560,6 @@ void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos)
 		ZRIDGeneratorInfos_staticStrategy(initInfos->generatorInfos);
 
 	ZRIDGenerator_init(generator, initInfos->generatorInfos);
-
 
 	ZRMapIdentifierStrategy_init(strategy, initInfos);
 	*mapIdentifier = (MapIdentifier ) { //
