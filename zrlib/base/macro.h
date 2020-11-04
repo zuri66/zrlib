@@ -56,8 +56,8 @@ typedef int (*zrfucmp)(void *a, void *b, void *data);
 #define ZRCONCAT_4(_1,_2,_3,_4) ZRCONCAT_2(_1, ZRCONCAT_3(_2,_3,_4))
 #define ZRCONCAT_(A,B) A ## B
 
-#define ZRMAX(...) ZRCONCAT(ZRMAX_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
-#define ZRMIN(...) ZRCONCAT(ZRMIN_,ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
+#define ZRMAX(...) ZRCONCAT(ZRMAX_,ZRNARGS(__VA_ARGS__))(__VA_ARGS__)
+#define ZRMIN(...) ZRCONCAT(ZRMIN_,ZRNARGS(__VA_ARGS__))(__VA_ARGS__)
 
 #define ZRMIN_2(a,b) ((a) < (b) ? (a) : (b))
 #define ZRMIN_3(a,b,c) ZRMIN_2(a,ZRMIN_2(b,c))

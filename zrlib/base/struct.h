@@ -191,10 +191,8 @@ static inline ZRObjInfos ZROBJINFOS_UNION(ZRObjInfos *infos, size_t nb)
 	return ZROBJINFOS_UNION_FLAGS(infos, nb, ZRSTRUCT_DEFAULT_FLAGS);
 }
 
-#define ZRObjInfos_union_flags_l_SUFF(count) ,flags
-#define ZRObjInfos_union_flags_l(flags, ...) \
-	ZRARGS_XCAPPLYREC_E(ZROBJINFOS_UNION2_FLAGS,ZRFORGET,ZRObjInfos_union_flags_l_SUFF, __VA_ARGS__)
-
+#define ZRObjInfos_union_flags_l_X(nb,depth,A,B) ZROBJINFOS_UNION2_FLAGS(A,B,flags)
+#define ZRObjInfos_union_flags_l(flags, ...) ZRARGS_XCAPPLYREC_E(ZRObjInfos_union_flags_l_X,__VA_ARGS__)
 #define ZRObjInfos_union_l(...) ZRObjInfos_union_flags_l(ZRSTRUCT_DEFAULT_FLAGS, __VA_ARGS__)
 
 // ============================================================================

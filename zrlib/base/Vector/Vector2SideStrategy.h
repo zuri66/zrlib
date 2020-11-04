@@ -50,7 +50,7 @@ ZRVector* ZRVector2SideStrategy_new(void *iinfos);
 
 /* HELPERS */
 
-#define ZRVector2SideStrategy_(prefix, ...) ZRCONCAT(ZRVector2SideStrategy_ ## prefix ## _, ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
+#define ZRVector2SideStrategy_(prefix, ...) ZRCONCAT(ZRVector2SideStrategy_ ## prefix ## _, ZRNARGS(__VA_ARGS__))(__VA_ARGS__)
 #define ZRVector2SideStrategy_createFixed(...)   ZRVector2SideStrategy_(createFixed, __VA_ARGS__)
 #define ZRVector2SideStrategy_createDynamic(...) ZRVector2SideStrategy_(createDynamic, __VA_ARGS__)
 
