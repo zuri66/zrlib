@@ -10,7 +10,6 @@
 #include <zrlib/base/Map/HashTable.h>
 #include <zrlib/base/Allocator/Allocator.h>
 #include <zrlib/base/Vector/Vector2SideStrategy.h>
-#include <zrlib/base/ResizeOp.h>
 
 #include <stdalign.h>
 #include <stdint.h>
@@ -244,6 +243,18 @@ static inline void lessSize(ZRHashTable *htable)
 }
 
 // ============================================================================
+
+void ZRHashTable_growStrategy(ZRMap *map, zrflimit fupLimit, zrfincrease fincrease)
+{
+	ZRHashTable *htable = ZRHASHTABLE(map);
+	htable->resizeData.growStrategy = (ZRResizeGrowStrategy ) { fupLimit, fincrease };
+}
+
+void ZRHashTable_shrinkStrategy(ZRMap *map, zrflimit fdownLimit, zrfdecrease fdecrease)
+{
+	ZRHashTable *htable = ZRHASHTABLE(map);
+	htable->resizeData.shrinkStrategy = (ZRResizeShrinkStrategy ) { fdownLimit, fdecrease };
+}
 
 static void finitMap(ZRMap *map)
 {
@@ -602,7 +613,6 @@ typedef struct
 	size_t nbfhash;
 
 	void *tableInitInfos;
-	ZRVector *table;
 	ZRAllocator *allocator;
 
 	unsigned staticStrategy :1;
@@ -612,8 +622,8 @@ typedef struct
 
 static void tableInitInfos(void *tableInfos_out, ZRHashTableInitInfos *initInfos)
 {
-	ZRVector2SideStrategyInfos(tableInfos_out, ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]));
-	ZRVector2SideStrategyInfos_allocator(tableInfos_out, initInfos->allocator);
+	ZRVector2SideStrategyIInfos(tableInfos_out, ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->bucketInfos[ZRHashTableBucketInfos_struct]));
+	ZRVector2SideStrategyIInfos_allocator(tableInfos_out, initInfos->allocator);
 }
 
 static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfos *tableInfos, bool staticStrategy)
@@ -626,9 +636,9 @@ static void hashTableStructInfos(ZRObjAlignInfos *out, size_t nbfhash, ZRObjInfo
 	ZRStruct_bestOffsetsPos(ZRHASHTABLESTRUCTINFOS_NB - 1, out, 1);
 }
 
-static void hashTableStructInfos_validate(ZRHashTableInitInfos *initInfos)
+static void hashTableStructIInfos_validate(ZRHashTableInitInfos *initInfos)
 {
-	size_t const tableInfosSize = ZRVector2SideStrategyInfos_objInfos().size;
+	size_t const tableInfosSize = ZRVector2SideStrategyIInfosObjInfos().size;
 
 	if (initInfos->tableInitInfos == NULL)
 		initInfos->tableInitInfos = malloc(tableInfosSize);
@@ -641,12 +651,11 @@ static void hashTableStructInfos_validate(ZRHashTableInitInfos *initInfos)
 	hashTableStructInfos(initInfos->infos, initInfos->nbfhash, &tableObjInfos, (bool)initInfos->staticStrategy);
 }
 
-void ZRHashTableInfos( //
+void ZRHashTableIInfos( //
 	void *infos_out, //
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
-	size_t nbfhash, //
-	ZRVector *table
+	size_t nbfhash
 	)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
@@ -660,7 +669,6 @@ void ZRHashTableInfos( //
 		{ //
 		.fuhash = fuhash,
 		.nbfhash = nbfhash,
-		.table = table,
 		.allocator = NULL,
 		.fucmp = default_fucmp,
 		.default_fuhash = default_fuhash,
@@ -668,19 +676,19 @@ void ZRHashTableInfos( //
 	bucketInfos(initInfos->bucketInfos, key, obj);
 }
 
-void ZRHashTableInfos_allocator(void *infos_out, ZRAllocator *allocator)
+void ZRHashTableIInfos_allocator(void *infos_out, ZRAllocator *allocator)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->allocator = allocator;
 }
 
-void ZRHashTableInfos_dereferenceKey(void *infos_out)
+void ZRHashTableIInfos_dereferenceKey(void *infos_out)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->dereferenceKey = 1;
 }
 
-ZRObjInfos ZRHashTableInfos_objInfos(void)
+ZRObjInfos ZRHashTableIInfosObjInfos(void)
 {
 	ZRObjInfos ret = { ZRTYPE_ALIGNMENT_SIZE(ZRHashTableInitInfos) };
 	return ret;
@@ -692,14 +700,14 @@ ZRObjInfos ZRHashTable_objInfos(void *infos)
 	return ZROBJALIGNINFOS_CPYOBJINFOS(initInfos->infos[ZRHashTableStructInfos_struct]);
 }
 
-void ZRHashTableInfos_staticStrategy(void *infos_out)
+void ZRHashTableIInfos_staticStrategy(void *infos_out)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 	initInfos->staticStrategy = 1;
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 }
 
-void ZRHashTableInfos_fucmp(void *infos_out, zrfucmp fucmp)
+void ZRHashTableIInfos_fucmp(void *infos_out, zrfucmp fucmp)
 {
 	ZRHashTableInitInfos *initInfos = infos_out;
 
@@ -732,7 +740,7 @@ ZRMap* ZRHashTable_new(void *initInfos_p)
 	ZRHashTableInitInfos *initInfos = initInfos_p;
 	initInfos->changefdestroy = 1;
 
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 	ZRHashTable *ret = ZRALLOC(initInfos->allocator, initInfos->infos[ZRHashTableStructInfos_struct].size);
 	ZRHashTable_init(ZRHASHTABLE_MAP(ret), initInfos);
 
@@ -746,17 +754,17 @@ void ZRHashTable_init(ZRMap *map, void *initInfos_p)
 	ZRHashTableInitInfos *initInfos = initInfos_p;
 	ZRHashTable *htable = (ZRHashTable*)map;
 
-	hashTableStructInfos_validate(initInfos);
+	hashTableStructIInfos_validate(initInfos);
 
-	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyInfos_objInfos().size];
+	alignas(max_align_t) char vector_initInfos[ZRVector2SideStrategyIInfosObjInfos().size];
 	size_t const vectorCapacity = DEFAULT_CAPACITY;
-	ZRVector2SideStrategyInfos(vector_initInfos, ZRTYPE_OBJINFOS(size_t));
-	ZRVector2SideStrategyInfos_initialArraySize(vector_initInfos, vectorCapacity);
-	ZRVector2SideStrategyInfos_initialMemorySize(vector_initInfos, vectorCapacity * 3);
-	ZRVector2SideStrategyInfos_allocator(vector_initInfos, initInfos->allocator);
+	ZRVector2SideStrategyIInfos(vector_initInfos, ZRTYPE_OBJINFOS(size_t));
+	ZRVector2SideStrategyIInfos_initialArraySize(vector_initInfos, vectorCapacity);
+	ZRVector2SideStrategyIInfos_initialMemorySize(vector_initInfos, vectorCapacity * 3);
+	ZRVector2SideStrategyIInfos_allocator(vector_initInfos, initInfos->allocator);
 
 	if (initInfos->staticStrategy)
-		ZRVector2SideStrategyInfos_staticStrategy(vector_initInfos);
+		ZRVector2SideStrategyIInfos_staticStrategy(vector_initInfos);
 
 	ZRAllocator *allocator;
 
@@ -814,12 +822,11 @@ ZRMap* ZRHashTable_create(
 	ZRObjInfos key, ZRObjInfos obj,
 	zrfuhash fuhash[], //
 	size_t nbfhash, //
-	ZRVector *table, //
 	ZRAllocator *allocator //
 	)
 {
 	ZRHashTableInitInfos initInfos;
-	ZRHashTableInfos(&initInfos, key, obj, fuhash, nbfhash, table);
-	ZRHashTableInfos_allocator(&initInfos, allocator);
+	ZRHashTableIInfos(&initInfos, key, obj, fuhash, nbfhash);
+	ZRHashTableIInfos_allocator(&initInfos, allocator);
 	return ZRHashTable_new(&initInfos);
 }

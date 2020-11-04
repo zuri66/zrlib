@@ -23,6 +23,7 @@ set(SRCS
 	src/base/Iterator/FilterIterator.c
 	src/base/Iterator/Iterator.c
 	src/base/List/List.c
+	src/base/math.c
 	src/base/MemoryOp.c
 	src/base/ResizeOp.c
 	src/base/struct.c
@@ -62,6 +63,7 @@ set(HEADERS
 	zrlib/base/Iterator/FilterIterator.h
 	zrlib/base/Iterator/Iterator.h
 	zrlib/base/macro.h
+	zrlib/base/math.h
 	zrlib/base/struct.h
 	zrlib/base/List/List.h
 	zrlib/base/MemoryOp.h

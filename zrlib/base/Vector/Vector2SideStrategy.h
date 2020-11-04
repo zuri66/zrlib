@@ -13,44 +13,53 @@
 
 #include <stdbool.h>
 
-// ============================================================================
-// STRATEGY
+/* ========================================================================= */
+/* STRATEGY */
 
 void ZRVector2SideStrategy_growStrategy(_ ZRVector *vec, zrflimit fupLimit, _ zrfincrease fincrease);
 void ZRVector2SideStrategy_shrinkStrategy(ZRVector *vec, zrflimit fdownLimit, zrfdecrease fdecrease);
 
-// ============================================================================
-// HELPERS
+/* ========================================================================= */
 
 /**
  * The ObjInfos of the information object for initialization of the vector.
  */
-ZRObjInfos ZRVector2SideStrategyInfos_objInfos(void);
+ZRObjInfos ZRVector2SideStrategyIInfosObjInfos(void);
 
-void ZRVector2SideStrategyInfos(void *infos_out, ZRObjInfos objInfos);
-void ZRVector2SideStrategyInfos_allocator(void *infos_out, ZRAllocator *allocator);
-void ZRVector2SideStrategyInfos_initialArraySize(void *infos_out, size_t size);
-void ZRVector2SideStrategyInfos_initialMemorySize(void *infos_out, size_t size);
-void ZRVector2SideStrategyInfos_fixedArray(void *infos_out);
-void ZRVector2SideStrategyInfos_oneSide(void *infos_out);
+void ZRVector2SideStrategyIInfos(void *iinfos, ZRObjInfos objInfos);
+void ZRVector2SideStrategyIInfos_objInfos(void *iinfos, ZRObjInfos objInfos);
+void ZRVector2SideStrategyIInfos_allocator(void *iinfos, ZRAllocator *allocator);
+void ZRVector2SideStrategyIInfos_initialArraySize(void *iinfos, size_t size);
+void ZRVector2SideStrategyIInfos_initialMemorySize(void *iinfos, size_t size);
+void ZRVector2SideStrategyIInfos_fixedArray(void *iinfos);
+void ZRVector2SideStrategyIInfos_oneSide(void *iinfos);
 
 /**
  * The strategy object is store inside the vector object
  */
-void ZRVector2SideStrategyInfos_staticStrategy(void *infos_out);
+void ZRVector2SideStrategyIInfos_staticStrategy(void *iinfos);
 
 /**
  * The ObjInfos of the vector object.
  */
-ZRObjInfos ZRVector2SideStrategy_objInfos(void *infos);
+ZRObjInfos ZRVector2SideStrategy_objInfos(void *iinfos);
 
-void ZRVector2SideStrategy_init(ZRVector *vector, void *infos);
-ZRVector* ZRVector2SideStrategy_new(void *infos);
+void ZRVector2SideStrategy_init(ZRVector *vector, void *iinfos);
+ZRVector* ZRVector2SideStrategy_new(void *iinfos);
 
-void ZRVector2SideStrategyInfos_fixed(_ void *infos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
-void ZRVector2SideStrategyInfos_dynamic(void *infos, size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
 
-ZRVector* ZRVector2SideStrategy_createFixed(_ size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
-ZRVector* ZRVector2SideStrategy_createDynamic(size_t initialNbObj, ZRObjInfos objInfos, ZRAllocator *allocator);
+/* HELPERS */
+
+#define ZRVector2SideStrategy_(prefix, ...) ZRCONCAT(ZRVector2SideStrategy_ ## prefix ## _, ZRMACRO_NARGS(__VA_ARGS__))(__VA_ARGS__)
+#define ZRVector2SideStrategy_createFixed(...)   ZRVector2SideStrategy_(createFixed, __VA_ARGS__)
+#define ZRVector2SideStrategy_createDynamic(...) ZRVector2SideStrategy_(createDynamic, __VA_ARGS__)
+
+ZRVector* ZRVector2SideStrategy_createFixed_1(ZRObjInfos objInfos);
+ZRVector* ZRVector2SideStrategy_createFixed_2(ZRObjInfos objInfos, size_t capacity);
+ZRVector* ZRVector2SideStrategy_createFixed_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator);
+
+ZRVector* ZRVector2SideStrategy_createDynamic_1(ZRObjInfos objInfos);
+ZRVector* ZRVector2SideStrategy_createDynamic_2(ZRObjInfos objInfos, size_t capacity);
+ZRVector* ZRVector2SideStrategy_createDynamic_3(ZRObjInfos objInfos, size_t capacity, ZRAllocator *allocator);
 
 #endif

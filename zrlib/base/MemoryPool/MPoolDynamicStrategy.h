@@ -16,18 +16,17 @@
 // HELP
 // ============================================================================
 
-ZRObjInfos ZRMPoolDSInfos_objInfos(void);
+ZRObjInfos ZRMPoolDSIInfosObjInfos(void);
 
-void ZRMPoolDSInfos(void *infos, ZRObjInfos objInfos);
+void ZRMPoolDSIInfos(void *iinfos, ZRObjInfos objInfos);
+void ZRMPoolDSIInfos_staticStrategy(__ void *iinfos);
+void ZRMPoolDSIInfos_allocator(_______ void *iinfos, ZRAllocator *allocator);
+void ZRMPoolDSIInfos_initialBucketSize(void *iinfos, size_t initialBucketSize);
+void ZRMPoolDSIInfos_maxFreeBuckets(__ void *iinfos, size_t maxFreeBuckets);
 
-ZRObjInfos ZRMPoolDS_objInfos(void *infos);
-void ZRMPoolDSInfos_staticStrategy(__ void *infos);
-void ZRMPoolDSInfos_allocator(_______ void *infos, ZRAllocator *allocator);
-void ZRMPoolDSInfos_initialBucketSize(void *infos, size_t initialBucketSize);
-void ZRMPoolDSInfos_maxFreeBuckets(__ void *infos, size_t maxFreeBuckets);
-
-void ZRMPoolDS_init(ZRMemoryPool *pool, void *initInfos_p);
-ZRMemoryPool* ZRMPoolDS_new(void *initInfos_p);
+ZRObjInfos ZRMPoolDS_objInfos(void *iinfos);
+void ZRMPoolDS_init(ZRMemoryPool *pool, void *iinfos);
+ZRMemoryPool* ZRMPoolDS_new(void *iinfos);
 
 ZRMemoryPool* ZRMPoolDS_create(______ size_t initialBucketSize, size_t maxFreeBuckets, ZRObjInfos objInfos, ZRAllocator *allocator);
 ZRMemoryPool* ZRMPoolDS_createBS(____ size_t initialBucketSize, ______________________ ZRObjInfos objInfos, ZRAllocator *allocator);

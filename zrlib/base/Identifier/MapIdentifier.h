@@ -12,15 +12,15 @@
 #include <zrlib/base/struct.h>
 
 
-ZRObjInfos ZRMapIdentifierInfos_objInfos(void);
-ZRObjInfos ZRMapIdentifier_objInfos(void *infos);
+ZRObjInfos ZRMapIdentifierIInfosObjInfos(void);
 
-void ZRMapIdentifierInfos(void *infos_out, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash);
-void ZRMapIdentifierInfos_staticStrategy(void *infos_out);
-void ZRMapIdentifierInfos_allocator(void *infos_out, ZRAllocator *allocator);
-void ZRMapIdentifierInfos_fucmp(void *infos_out, zrfucmp fucmp);
+void ZRMapIdentifierIInfos(void *iinfos, ZRObjInfos objInfos, zrfuhash *fuhash, size_t nbfhash);
+void ZRMapIdentifierIInfos_staticStrategy(void *iinfos);
+void ZRMapIdentifierIInfos_allocator(void *iinfos, ZRAllocator *allocator);
+void ZRMapIdentifierIInfos_fucmp(void *iinfos, zrfucmp fucmp);
 
-void ZRMapIdentifier_init(ZRIdentifier *identifier, void *infos);
-ZRIdentifier* ZRMapIdentifier_new(void *infos);
+ZRObjInfos ZRMapIdentifier_objInfos(void *iinfos);
+void ZRMapIdentifier_init(ZRIdentifier *identifier, void *iinfos);
+ZRIdentifier* ZRMapIdentifier_new(void *iinfos);
 
 #endif

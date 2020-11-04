@@ -51,7 +51,7 @@ void sbnode_add(ZRSimpleTreeBuilder *sbuilder, ZRSimpleTreeBuilderNode *sbnode, 
 			.obj = sbnode->obj,
 			},
 		.parent = parent,
-		.childs = ZRVector2SideStrategy_createDynamic(128, ZROBJINFOS_DEF(alignof(ZRSimpleTreeBuilderNode), ZRSTREEBUILDER_NODESIZE(sbuilder)), sbuilder->allocator),
+		.childs = ZRVector2SideStrategy_createDynamic(ZROBJINFOS_DEF(alignof(ZRSimpleTreeBuilderNode), ZRSTREEBUILDER_NODESIZE(sbuilder)), 128, sbuilder->allocator),
 		.edgeObj = ZRARRAYOP_GET(sbnode->obj, sbuilder->nodeObjSize, 1),
 		};
 	sbnode_cpyData(sbuilder, sbnode, nodeData, edgeData);
@@ -253,7 +253,7 @@ static void ZRSimpleTreeBuilder_init(ZRSimpleTreeBuilder *builder, ZRSimpleTreeB
 	ZRAllocator *allocator
 	)
 {
-	ZRVector *nodeStack = ZRVector2SideStrategy_createDynamic(512, ZRTYPE_SIZE_ALIGNMENT(void*), allocator);
+	ZRVector *nodeStack = ZRVector2SideStrategy_createDynamic(ZRTYPE_OBJINFOS(void*), 512, allocator);
 
 	*builder = (ZRSimpleTreeBuilder ) { //
 		.treeBuilder = (ZRTreeBuilder ) { //

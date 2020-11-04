@@ -8,11 +8,9 @@
 
 #include <zrlib/config.h>
 #include <zrlib/base/ArrayOp.h>
+#include <zrlib/base/math.h>
 
 #include <assert.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifndef ZRSTRUCT_MAXFIELDS
 #	define ZRSTRUCT_MAXFIELDS 128
@@ -31,6 +29,14 @@ typedef struct ZRObjInfosS
 #define ZROBJINFOS_DEF0() ZROBJINFOS_DEF(0, 0)
 #define ZROBJINFOS_DEF_UNKNOWN() ZROBJINFOS_DEF(ZRSIZE_UNKNOWN, ZRSIZE_UNKNOWN)
 #define ZROBJINFOS_ISUNKNOWN(A) (ZROBJINFOS_CMP(ZROBJINFOS_DEF_UNKNOWN(), A) == 0)
+
+#define ZRSTRUCT_FLAG_POW2 0
+#define ZRSTRUCT_FLAG_ARITHMETIC 1
+#define ZRSTRUCT_FLAG_RESIZE 2
+
+#ifndef ZRSTRUCT_DEFAULT_FLAGS
+#define ZRSTRUCT_DEFAULT_FLAGS (ZRSTRUCT_FLAG_POW2)
+#endif
 
 ZRMUSTINLINE
 static inline int ZROBJINFOS_CMP(ZRObjInfos a, ZRObjInfos b)
@@ -109,81 +115,100 @@ static inline size_t ZRSTRUCT_ALIGNOFFSET(size_t fieldOffset, size_t alignment)
 	return fieldOffset;
 }
 
-/**
- * Size for structure with a flexible array member which conserve the structure alignment.
- * The size of the FAM must be counted in the structSize argument.
- *
- * DEPRECATED
- */
 ZRMUSTINLINE
-static inline size_t ZRSTRUCTSIZE_FAM_PAD(size_t structSize, size_t alignment)
+static inline size_t ZRALIGNMENT_UNION2_FLAGS(size_t a, size_t b, unsigned flags)
 {
-	return ZRSTRUCT_ALIGNOFFSET(structSize, alignment);
+	bool const arithm = flags & ZRSTRUCT_FLAG_ARITHMETIC;
+
+	/* Alignments may be any values */
+	if (arithm)
+	{
+		if (a == b)
+			return a;
+		if (a > b)
+		{
+			/* alignments are multiples */
+			if (0 == (a % b))
+				return a;
+		}
+		else
+		{
+			if (0 == (b % a))
+				return b;
+		}
+		/* Must compute the alignment */
+		return (a * b) / ZRMATH_GCD(a, b);
+	}
+	/* We assert that alignments are all power of 2*/
+	else
+	{
+		assert(ZRISPOW2(a));
+		assert(ZRISPOW2(b));
+		return ZRMAX(a, b);
+	}
+}
+
+ZRMUSTINLINE
+static inline size_t ZRALIGNMENT_UNION2(size_t a, size_t b)
+{
+	return ZRALIGNMENT_UNION2_FLAGS(a, b, ZRSTRUCT_DEFAULT_FLAGS);
 }
 
 /**
- * Compute the offset of infos.
- * Each infos item represents a field in a struct.
- * The infos[nb+1] item represent the struct infos.
+ * Construct an ObjInfos able to represent a or b in memory like a c union.
  */
 ZRMUSTINLINE
-static inline void ZRSTRUCT_MAKEOFFSETS(size_t nb, ZRObjAlignInfos *infos)
+static inline ZRObjInfos ZROBJINFOS_UNION2_FLAGS(ZRObjInfos a, ZRObjInfos b, unsigned flags)
 {
-	size_t offset = infos->offset;
-	size_t max_alignment = 0;
+	return ZROBJINFOS_DEF(ZRALIGNMENT_UNION2_FLAGS(a.alignment, b.alignment, flags), ZRMAX(a.size, b.size));
+}
+
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION2(ZRObjInfos a, ZRObjInfos b)
+{
+	return ZROBJINFOS_DEF(ZRALIGNMENT_UNION2_FLAGS(a.alignment, b.alignment, ZRSTRUCT_DEFAULT_FLAGS), ZRMAX(a.size, b.size));
+}
+
+ZRMUSTINLINE
+static inline ZRObjInfos ZROBJINFOS_UNION_FLAGS(ZRObjInfos *infos, size_t nb, unsigned flags)
+{
+	if (nb == 0)
+		return ZROBJINFOS_DEF_UNKNOWN();
+
+	ZRObjInfos ret = ZROBJINFOS_DEF(1, 0);
 
 	while (nb--)
 	{
-		if (infos->alignment == 0 || infos->size == 0)
-		{
-			infos++;
-			continue;
-		}
-
-		if (infos->alignment > max_alignment)
-			max_alignment = infos->alignment;
-
-		offset = ZRSTRUCT_ALIGNOFFSET(offset, infos->alignment);
-		infos->offset = offset;
-		offset += infos->size;
+		ret = ZROBJINFOS_UNION2_FLAGS(*infos, ret, flags);
 		infos++;
 	}
-	// The struct infos
-	infos->alignment = max_alignment;
-	infos->size = ZRSTRUCT_ALIGNOFFSET(offset, max_alignment);
-	infos->offset = 0;
-}
-
-static int cmp_infos(const void *va, const void *vb)
-{
-	const ZRObjAlignInfos *a = *(ZRObjAlignInfos**)va;
-	const ZRObjAlignInfos *b = *(ZRObjAlignInfos**)vb;
-	return b->alignment - a->alignment;
+	return ret;
 }
 
 ZRMUSTINLINE
-static inline void ZRSTRUCT_BESTORDERPOS(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos)
+static inline ZRObjInfos ZROBJINFOS_UNION(ZRObjInfos *infos, size_t nb)
 {
-	// Copy also the nb + 1 struct infos
-	ZRCARRAY_TOPOINTERS(ZRObjAlignInfos, pinfos, ZRObjAlignInfos, infos, nb + 1);
-
-	qsort(pinfos + pos, nb - pos, sizeof(ZRObjAlignInfos*), cmp_infos);
+	return ZROBJINFOS_UNION_FLAGS(infos, nb, ZRSTRUCT_DEFAULT_FLAGS);
 }
 
-ZRMUSTINLINE
-static inline void ZRSTRUCT_BESTORDER(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos)
-{
-	ZRSTRUCT_BESTORDERPOS(nb, infos, pinfos, 0);
-}
+#define ZRObjInfos_union_flags_l_SUFF(count) ,flags
+#define ZRObjInfos_union_flags_l(flags, ...) \
+	ZRARGS_XCAPPLYREC_E(ZROBJINFOS_UNION2_FLAGS,ZRFORGET,ZRObjInfos_union_flags_l_SUFF, __VA_ARGS__)
+
+#define ZRObjInfos_union_l(...) ZRObjInfos_union_flags_l(ZRSTRUCT_DEFAULT_FLAGS, __VA_ARGS__)
 
 // ============================================================================
 
+#define ZRSTRUCT_MAKEOFFSETS ZRStruct_makeOffsets
+
 size_t ZRStruct_alignOffset(size_t fieldOffset, size_t alignment);
-#define ZRStructSize_FAM_pad ZRStruct_alignOffset
 void ZRStruct_makeOffsets(size_t nb, ZRObjAlignInfos *infos);
+void ZRStruct_makeOffsets_flags(size_t nb, ZRObjAlignInfos *infos, unsigned flags);
 void ZRStruct_bestOrder(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos);
 void ZRStruct_bestOrderPos(size_t nb, ZRObjAlignInfos *infos, ZRObjAlignInfos **pinfos, size_t pos);
 void ZRStruct_bestOffsets(size_t nb, ZRObjAlignInfos *infos);
+void ZRStruct_bestOffsets_flags(size_t nb, ZRObjAlignInfos *infos, unsigned flags);
 void ZRStruct_bestOffsetsPos(size_t nb, ZRObjAlignInfos *infos, size_t pos);
+void ZRStruct_bestOffsetsPos_flags(size_t nb, ZRObjAlignInfos *infos, size_t pos, unsigned flags);
 
 #endif
